@@ -19,6 +19,8 @@ marker='window.MT_DATA = '
 a=html.index(marker)+len(marker);b=html.index(';</script>',a)
 payload=json.loads(html[a:b]);assert payload['demo'] is True
 payload['generatedAt']='2026-11-09 23:00 UTC'
+validation=json.loads((root/'tests/fixtures/shell_live_validation_2026_11_09.json').read_text())
+payload['history']=[r for r in payload['history'] if not(r['symbol']=='GBPUSD=X' and r['date']=='2026-11-09')]+[validation['fxObservation']]
 companies=json.loads((root/'tests/fixtures/release1_companies.json').read_text())['companies']
 with tempfile.TemporaryDirectory() as directory:
     with patch('company_profiles._restore_published',return_value={}):
@@ -54,6 +56,11 @@ with sync_playwright() as p:
             assert page.get_by_label('Debt (reporting currency, millions)',exact=True).input_value()!=''
             assert page.get_by_label('Shares outstanding (absolute count)',exact=True).input_value()!=''
             assert 'BASE' in page.locator('#research-valuation').inner_text()
+            if symbol=='SHEL.L':
+                assert page.get_by_label('Shares outstanding (absolute count)',exact=True).input_value()=='5701440412'
+                assert page.get_by_label('Debt-related adjustment (reporting millions)',exact=True).input_value()=='83'
+                assert '43.69' in page.locator('#research-valuation').inner_text()
+                assert '2026-10-30' in page.locator('#research-valuation').inner_text()
             page.get_by_label('Base FCFF growth (%)',exact=True).fill('6')
             assert 'User assumption / override' in page.locator('#research-valuation').inner_text()
         for width in [390,768,1024,1440]:

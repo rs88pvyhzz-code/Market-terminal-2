@@ -1,0 +1,132 @@
+{
+  "retrievedAt": "2026-11-09T22:20:36+00:00",
+  "balance": {
+    "period": "2026-09-30",
+    "retrievedAt": "2026-11-09T22:20:34+00:00",
+    "source": "Shell issuer interim financial report (SEC exhibit)",
+    "currency": "USD",
+    "totalDebt": 76075000000.0,
+    "cash": 36425000000.0,
+    "sharesOutstanding": 5701440412,
+    "shareBasis": "issued ordinary shares; no treasury; 1:1 SHEL.L; not weighted-average EPS shares",
+    "sharesPeriod": "2026-10-30",
+    "sharesRetrievedAt": "2026-11-09T22:20:34+00:00",
+    "sharesSource": "Shell issuer voting-rights announcement (no treasury shares)",
+    "reportedNetDebt": 39733000000.0,
+    "debtDerivatives": 963000000.0,
+    "debtCollateral": -880000000.0,
+    "debtAdjustment": 83000000.0,
+    "published": "2026-10-29",
+    "url": "https://www.sec.gov/Archives/edgar/data/1306965/000162828026068044/quarterlyexhibit992-q32026.htm",
+    "sharesPublished": "2026-11-02",
+    "sharesUrl": "https://shell.gcs-web.com/news-releases/news-release-details/voting-rights-and-capital-128",
+    "leaseLiabilities": 34147000000.0
+  },
+  "shareQuarterEndIssued": 5729497530,
+  "yahooQuarterEndCount": 5699084708,
+  "yahooUndatedCount": 5663324316,
+  "fxObservation": {
+    "date": "2026-11-09",
+    "symbol": "GBPUSD=X",
+    "close": 1.34382
+  },
+  "fxQuoteAsOf": "2026-11-09 22:20 UTC",
+  "equityQuote": {
+    "group": "Companies",
+    "symbol": "SHEL.L",
+    "name": "Shell plc",
+    "kind": "equity",
+    "currency": "GBp",
+    "price": 3701.0,
+    "changePct": -0.58,
+    "changeBp": null,
+    "ytdPct": 35.07,
+    "yearPct": 29.91,
+    "ytdBp": null,
+    "yearBp": null,
+    "high52": 4110.0,
+    "low52": 2553.772,
+    "asOf": "2026-11-09 17:54 UTC",
+    "delayedMin": null,
+    "cached": false,
+    "cacheDetail": "downloaded",
+    "source": "Yahoo Finance",
+    "adjustedAvailable": true
+  },
+  "historical": [
+    {
+      "fiscalEnd": "2025-12-31",
+      "operatingProfit": 27582000000.0,
+      "pretaxProfit": 29756000000,
+      "taxExpense": 11637000000,
+      "nopat": 16795209638.392256,
+      "depreciation": 25299000000,
+      "capex": -18947000000.0,
+      "workingCapitalCashChange": -1803000000.0,
+      "operatingCashFlow": 42863000000,
+      "fcf": 23916000000.0,
+      "ocfToFcffBridge": -2571790361.6077423,
+      "fcffProxy": 21344209638.392258
+    },
+    {
+      "fiscalEnd": "2024-12-31",
+      "operatingProfit": 29992000000.0,
+      "pretaxProfit": 29922000000,
+      "taxExpense": 13401000000,
+      "nopat": 16559649488.670544,
+      "depreciation": 26872000000,
+      "capex": -19601000000.0,
+      "workingCapitalCashChange": 2062000000.0,
+      "operatingCashFlow": 54687000000,
+      "fcf": 35086000000.0,
+      "ocfToFcffBridge": -9193350511.329453,
+      "fcffProxy": 25892649488.670547
+    },
+    {
+      "fiscalEnd": "2023-12-31",
+      "operatingProfit": 30737000000.0,
+      "pretaxProfit": 32627000000,
+      "taxExpense": 12991000000,
+      "nopat": 18498535936.494316,
+      "depreciation": 31290000000,
+      "capex": -22993000000.0,
+      "workingCapitalCashChange": 7145000000.0,
+      "operatingCashFlow": 54191000000,
+      "fcf": 31198000000.0,
+      "ocfToFcffBridge": 2742535936.494316,
+      "fcffProxy": 33940535936.494316
+    }
+  ],
+  "normalisedFCFF": 25892649488.670547,
+  "assumptions": {
+    "fcf": 25892.649488670548,
+    "debt": 76075,
+    "cash": 36425,
+    "debtAdjustment": 83,
+    "shares": 5701440412,
+    "fx": 0.7441472816299802,
+    "years": 5,
+    "discount": 0.1,
+    "terminal": 0.02
+  },
+  "scenarios": [
+    {
+      "growth": 0,
+      "price": 34.379541480421175,
+      "enterprise": 303139.06487623916,
+      "equity": 263406.06487623916
+    },
+    {
+      "growth": 0.05,
+      "price": 43.68862703409167,
+      "enterprise": 374462.57553693315,
+      "equity": 334729.57553693315
+    },
+    {
+      "growth": 0.1,
+      "price": 54.79997903337828,
+      "enterprise": 459594.52842390235,
+      "equity": 419861.52842390235
+    }
+  ]
+}

@@ -191,6 +191,13 @@ def financials_for(symbol, offline=False):
     currency=info.get('financialCurrency') or (company_filings.ISSUERS.get(symbol) or ('','',''))[2]
     info['financialCurrency']=currency
     rows=company_filings.merge_rows(rows,primary,currency)
+    if symbol=='SHEL.L':
+        try:
+            import shell_issuer_inputs
+            balance,capital,issuer_warnings=shell_issuer_inputs.collect()
+            info['_researchBalance']=shell_issuer_inputs.apply(info.get('_researchBalance'),balance,capital)
+            if issuer_warnings: primary_warning='; '.join(filter(None,[primary_warning,*issuer_warnings]))
+        except Exception as exc: primary_warning='Shell supplemental sources unavailable: '+str(exc)[:100]
     info['_filingWarning']=primary_warning
     status='Issuer filings (SEC XBRL) preferred; Yahoo Finance fallback by field' if primary else 'Yahoo Finance via yfinance (unofficial; figures unverified)'
     for warning in (primary_warning,client_warning):

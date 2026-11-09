@@ -41,6 +41,7 @@ jobs:
           python test_gilt_model.py
           python test_equity_research.py
           python test_research_release1.py
+          python test_shell_live_validation.py
 
       - name: Download data and build terminal
         run: >-

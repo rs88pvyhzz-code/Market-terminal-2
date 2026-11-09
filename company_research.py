@@ -54,6 +54,7 @@ def analyse(rows, financial=False):
         keys = ('operatingProfit', 'depreciation', 'capex', 'workingCapitalCashChange')
         r['nopat'] = r['operatingProfit']*(1-tax) if tax is not None and number(r.get('operatingProfit')) else None
         r['fcffProxy'] = (r['nopat']+r['depreciation']-abs(r['capex'])+r['workingCapitalCashChange']) if not financial and tax is not None and all(number(r.get(k)) for k in keys) else None
+        r['ocfToFcffBridge'] = r['fcffProxy']-r['fcf'] if number(r.get('fcffProxy')) and number(r.get('fcf')) else None
         r['growth'] = {}
         # Do not call a stub/multi-year gap a one-year growth observation.
         try: annual = 330 <= (dt.date.fromisoformat(r['fiscalEnd'])-dt.date.fromisoformat(prior['fiscalEnd'])).days <= 400

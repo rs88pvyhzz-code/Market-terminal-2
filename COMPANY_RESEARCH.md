@@ -157,3 +157,14 @@ ETF, gilt, economics, market analytics and watchlist calculations are unchanged.
 The demo publication guard in `verify_snapshot.py` remains intact; no synthetic
 snapshot is deployed or committed. Live source smoke tests are separate from the
 reproducible regression suite.
+
+
+## Final Shell live-data review
+
+See [SHELL_LIVE_VALIDATION.md](SHELL_LIVE_VALIDATION.md) for the 9 November 2026
+snapshot, primary links, component dates, FCFF-to-cash-flow reconciliation and
+bear/base/bull GBP values. Shell now prefers its latest issuer interim debt
+reconciliation and voting-rights announcement over Yahoo when dates support it.
+The DCF separately subtracts sourced debt-related derivative/collateral adjustments
+and preserves independent share/balance dates. A zero unsourced claims adjustment
+is an explicit assumption, not a claim to match reported net debt.
