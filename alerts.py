@@ -4,7 +4,8 @@
 Rules and mail credentials come ONLY from encrypted GitHub repository secrets,
 never from files in the public repo:
 
-  ALERT_EMAIL     your address (alerts are sent from and to it)
+  ALERT_EMAIL     the sending mailbox (ideally a dedicated account used only for this)
+  ALERT_TO        optional: where alerts go (default: ALERT_EMAIL)
   ALERT_PASSWORD  an app-specific password for that mailbox
   ALERT_RULES     one rule per line:  SYMBOL, CONDITION, THRESHOLD[, note]
   ALERT_TAX_RATE  optional coupon tax % for gilt net-yield rules (default 20)
@@ -222,12 +223,12 @@ def previous_state():
         return []
 
 
-def send(address, password, smtp, subject, body):
+def send(address, password, smtp, subject, body, to=None):
     host, _, port = smtp.partition(':')
     port = int(port or 587)
     msg = EmailMessage()
     msg['From'] = address
-    msg['To'] = address
+    msg['To'] = to or address
     msg['Subject'] = subject
     msg.set_content(body)
     context = ssl.create_default_context()
@@ -279,7 +280,7 @@ def main(argv):
             subject = (f'Market alert: {len(fresh)} triggered' if len(fresh) > 1
                        else 'Market alert: ' + fresh[0][1][:90])
             try:
-                send(address, password, smtp, subject, body)
+                send(address, password, smtp, subject, body, os.environ.get('ALERT_TO', '').strip() or None)
                 sent += [_key(r, today) for r, _ in fresh]
                 print('Alerts: email sent.')
             except Exception as exc:

@@ -64,6 +64,7 @@ jobs:
         env:
           ALERT_EMAIL: ${{ secrets.ALERT_EMAIL }}
           ALERT_PASSWORD: ${{ secrets.ALERT_PASSWORD }}
+          ALERT_TO: ${{ secrets.ALERT_TO }}
           ALERT_RULES: ${{ secrets.ALERT_RULES }}
           ALERT_TAX_RATE: ${{ secrets.ALERT_TAX_RATE }}
           ALERT_SMTP: ${{ secrets.ALERT_SMTP }}

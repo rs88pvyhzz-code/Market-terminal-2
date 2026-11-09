@@ -1978,11 +1978,14 @@ function reorderSections(){
   const pair=wrap.querySelector(':scope > section.g2');
   if(pair){const children=[...pair.children];if(children[0]){children[0].id='us-spread-panel';wrap.insertBefore(children[0],pair);}
     if(children[1]){children[1].id='score-panel';wrap.insertBefore(children[1],pair);}pair.remove();}
+  // Company news becomes its own panel so it can sit after peer comparison.
+  const insight=$('company-insight');
+  if(insight&&!$('company-news-panel')){const sec=el('section','panel');sec.id='company-news-panel';sec.append(insight);wrap.append(sec);}
   const config=[
     ['overview','MARKET OVERVIEW','Headlines · indices · FX · key yields',['news','headline','overview-board']],
     ['fx','GLOBAL MARKET DATA','Major markets · prices · interactive historical charts',['monitor']],
     ['equities','EQUITY MARKETS','Daily movers · full index constituents',['movers','equity-screener','constituents']],
-    ['companies','COMPANY RESEARCH','Peer analysis · earnings diary · company financials',['peer-panel','company-events-panel','companies']],
+    ['companies','COMPANY RESEARCH','Prices & financials · peer comparison · news · earnings diary',['companies','peer-panel','company-news-panel','company-events-panel']],
     ['bonds','BONDS & RATES','Government bonds · corporate credit · yield curves',['gilts','us-treasuries','corporate-credit','rates','real','us-spread-panel','sovereign','cross-rates']],
     ['analytics','VALUATIONS & MARKET ANALYTICS','Breadth · sectors · rolling risk · valuations · ETF data accuracy · comparisons',['analytics-breadth','analytics-sectors','analytics-rolling','market-valuations','compare','score-panel']],
     ['etfs','ETF RESEARCH','TER · tracking error · country funds · equities · bonds',['etf-tracker-panel']],
