@@ -12,11 +12,11 @@ class CatalogTests(unittest.TestCase):
     def test_catalog(self):
         rows,warnings=etf_tracker.read_catalog(ROOT/'etf_catalog.csv')
         self.assertFalse(warnings)
-        self.assertEqual(len(rows),78)
+        self.assertEqual(len(rows),132)
         self.assertGreaterEqual(len(set(x['market'] for x in rows)),45)
         self.assertEqual(len(rows),len(set(x['symbol'] for x in rows)))
         records={x['symbol']:x for x in rows}
-        self.assertEqual(records['CECL.L']['replication'],'Synthetic swap')
+        self.assertEqual(records['EMXN.L']['replication'],'Synthetic swap')
         self.assertEqual(records['SPOL.L']['replication'],'Physical full')
         self.assertEqual(records['FRIN.L']['market'],'India')
         self.assertEqual(records['HMCX.L']['market'],'UK FTSE 250')
@@ -51,8 +51,8 @@ class CatalogTests(unittest.TestCase):
                 return (None,[],None,'not available')
         opts=types.SimpleNamespace(workers=3,years=5)
         payload,warnings,cached=etf_tracker.collect(Core(),opts,ROOT/'etf_catalog.csv',[],[],[],[])
-        self.assertEqual(payload['coverage']['catalogued'],78)
-        self.assertEqual(payload['coverage']['unavailable'],78)
+        self.assertEqual(payload["coverage"]["catalogued"],132)
+        self.assertEqual(payload['coverage']['unavailable'],132)
         self.assertTrue(warnings)
         self.assertEqual(cached,0)
 
