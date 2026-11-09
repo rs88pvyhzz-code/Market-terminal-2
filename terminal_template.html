@@ -390,7 +390,10 @@ h2{font:600 15px/1.35 var(--font);color:var(--amber);margin:0}h3{font:500 13px v
  #etf-tracker-panel .etf-card-facts{grid-template-columns:repeat(2,minmax(0,1fr))}
 }
 
-</style></head>
+</style><style>
+.research-view[hidden]{display:none}.research-view{padding-top:16px;min-width:0}.research-view h3{margin:16px 0 10px}.research-inputs{display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:12px}.research-inputs label{display:flex;flex-direction:column;gap:6px}.research-view textarea{display:block;width:100%;margin:8px 0 16px;box-sizing:border-box;resize:vertical}.research-view .company-main{display:block}#research-nav{display:flex;flex-wrap:wrap;gap:6px;margin:16px 0}#research-nav button{white-space:normal}.research-view .small-scroll{overflow:auto} .research-view td,.research-view th{white-space:nowrap}
+</style>
+</head>
 <body>
 <div class="wrap">
 <header>
@@ -405,7 +408,6 @@ h2{font:600 15px/1.35 var(--font);color:var(--amber);margin:0}h3{font:500 13px v
     <button type="button" role="tab" id="tab-fx" aria-controls="view-fx" data-workspace="fx" aria-selected="false">MARKETS</button>
     <button type="button" role="tab" id="tab-equities" aria-controls="view-equities" data-workspace="equities" aria-selected="false">EQUITIES</button>
     <button type="button" role="tab" id="tab-companies" aria-controls="view-companies" data-workspace="companies" aria-selected="false">COMPANY RESEARCH</button>
-    <button type="button" role="tab" id="tab-forensic" aria-controls="view-forensic" data-workspace="forensic" aria-selected="false">FORENSIC</button>
     <button type="button" role="tab" id="tab-bonds" aria-controls="view-bonds" data-workspace="bonds" aria-selected="false">BONDS & RATES</button>
     <button type="button" role="tab" id="tab-analytics" aria-controls="view-analytics" data-workspace="analytics" aria-selected="false">ANALYTICS</button>
     <button type="button" role="tab" id="tab-etfs" aria-controls="view-etfs" data-workspace="etfs" aria-selected="false">ETF TRACKERS</button>
@@ -674,7 +676,7 @@ h2{font:600 15px/1.35 var(--font);color:var(--amber);margin:0}h3{font:500 13px v
 </section>
 <section class="panel" id="forensic-panel">
   <div class="row"><div><h2>FORENSIC ACCOUNTS CHECK</h2>
-  <p class="note">Automatic red-flag screen on up to four years of reported accounts: earnings quality, cash conversion, working capital, dilution, margins and balance-sheet strain. It points you to where to look; it does not prove anything. For a narrative review with sources, use FULL REVIEW IN CLAUDE.</p></div>
+  <p class="note">Automatic red-flag screen on up to five years of reported accounts: earnings quality, cash conversion, working capital, dilution, margins and balance-sheet strain. It points you to where to look; it does not prove anything. Review the issuer reports before drawing a conclusion.</p></div>
   <span class="mini" id="forensic-coverage"></span></div>
   <div class="research-controls">
     <label for="forensic-query" class="mini">COMPANY</label>
@@ -1419,6 +1421,7 @@ function renderCompanyInsight(c){
   $('company-google-news').href=companyNewsSearch(c.name);
   $('company-yahoo-news').href='https://finance.yahoo.com/quote/'+encodeURIComponent(c.symbol)+'/news/';
 }
+/*__EQUITY_RESEARCH__*/
 function renderCompany(){
   const c=ensureCompany(state.companySymbol);
   if(!c){showCompanyAlert('No company profiles embedded. Rebuild without --no-companies.');
@@ -1477,6 +1480,7 @@ function renderCompany(){
     chart('company-chart',[{name:c.name,color:AMBER,pts}],{format:v=>fmt(v,v>=1000?1:2)});
   }
   renderCompanyRisk(c);
+  renderEquityResearch(c);
   const destination=$('company-annual');destination.replaceChildren();
   if(!c.annual||!c.annual.length){destination.append(el('div','empty','Annual income statements unavailable from the free feed.'));return;}
   const table=el('table');const header=el('tr');
@@ -2005,8 +2009,7 @@ function reorderSections(){
     ['overview','MARKET OVERVIEW','Headlines · indices · FX · key yields',['news','headline','overview-board']],
     ['fx','GLOBAL MARKET DATA','Major markets · prices · interactive historical charts',['monitor']],
     ['equities','EQUITY MARKETS','Daily movers · full index constituents',['movers','equity-screener','constituents']],
-    ['companies','COMPANY RESEARCH','Prices & financials · peer comparison · news · earnings diary',['companies','peer-panel','company-news-panel','company-events-panel']],
-    ['forensic','FORENSIC ACCOUNTS','Earnings quality · cash conversion · dilution · balance-sheet red flags',['forensic-panel']],
+    ['companies','COMPANY RESEARCH','Prices & financials · peer comparison · news · earnings diary',['companies','peer-panel','company-news-panel','company-events-panel','forensic-panel']],
     ['bonds','BONDS & RATES','Government bonds · corporate credit · yield curves',['gilts','us-treasuries','corporate-credit','rates','real','us-spread-panel','sovereign','cross-rates']],
     ['analytics','VALUATIONS & MARKET ANALYTICS','Breadth · sectors · rolling risk · valuations · ETF data accuracy · comparisons',['analytics-breadth','analytics-sectors','analytics-rolling','market-valuations','compare','score-panel']],
     ['etfs','ETF RESEARCH','TER · tracking error · country funds · equities · bonds',['etf-tracker-panel']],
@@ -2513,7 +2516,7 @@ function initWatchlist(){
  $('watchlist-basis').onchange=e=>{watchState.basis=e.target.value;const w=watchlistRecords.find(r=>r.symbol===watchState.symbol);if(w){renderWatchlistChart(w,watchQuoteMap.get(w.symbol));renderWatchlistRelative(w,watchQuoteMap.get(w.symbol));}};
 }
 
-const WORKSPACES=['overview','fx','equities','companies','forensic','bonds','analytics','etfs','economics','watchlist','quality'];
+const WORKSPACES=['overview','fx','equities','companies','bonds','analytics','etfs','economics','watchlist','quality'];
 let activeWorkspace='overview', searchHits=[], searchCursor=0;
 const workspaceForSection={'etf-tracker-panel':'etfs','personal-watchlist-panel':'watchlist','analytics-breadth':'analytics','analytics-sectors':'analytics','analytics-rolling':'analytics','market-valuations':'analytics','corporate-credit':'bonds','company-events-panel':'companies','us-treasuries':'bonds',gilts:'bonds',news:'overview',headline:'overview',monitor:'fx',movers:'equities','equity-screener':'equities',constituents:'equities',companies:'companies','peer-panel':'companies',rates:'bonds',real:'bonds',sovereign:'bonds',macro:'economics',calendar:'economics',compare:'analytics','quality-panel':'quality',sources:'quality'};
 function paintWorkspace(key){
@@ -2521,7 +2524,6 @@ function paintWorkspace(key){
     case 'overview': renderNews(); renderPulse(); break;
     case 'equities': renderMovers(); renderScreener(); renderConstituents(); break;
     case 'companies': renderCompany(); renderPeers(); renderCompanyEvents(); break;
-    case 'forensic': renderForensic(); break;
     case 'bonds': renderGilts(); renderCredit(); renderRates(); usSpread(); renderReal(); renderSovereign(); break;
     case 'etfs': renderEtfTracker(); break;
     case 'economics': renderMacro(); renderEconomicPrints(); renderCalendar(); break;
@@ -2616,6 +2618,7 @@ function chooseGlobalResult(item){if(!item)return;
   else{marketInstrument(item.code);}
 }
 function initWorkspace(){
+  setupResearchViews();
   fullSearchList=searchCatalogue();
   document.querySelectorAll('[data-workspace]').forEach(button=>{
     if(!button.matches('[role="tab"]'))return;
@@ -3791,7 +3794,7 @@ function forensicTests(c){
   const pp=v=>v==null||!Number.isFinite(v)?'—':fmt(v,1)+'%';
   const add=(name,latest,prior,status,why)=>out.push({name,latest,prior,status,why});
   const grade=(v,watch,flag,higherIsWorse=true)=>v==null||!Number.isFinite(v)?'n/a':higherIsWorse?(v>flag?'FLAG':v>watch?'WATCH':'OK'):(v<flag?'FLAG':v<watch?'WATCH':'OK');
-  const fcf=r=>r.operatingCashFlow!=null&&r.capex!=null?r.operatingCashFlow+r.capex:null;
+  const fcf=researchFCF;
   const nd=r=>r.totalDebt!=null&&r.cash!=null?r.totalDebt-r.cash:null;
   const m=(a,b)=>a!=null&&b?a/b*100:null;
   if(!fin){
@@ -3853,9 +3856,9 @@ function renderForensic(){
   $('forensic-sector').textContent=[c.sector,c.industry].filter(Boolean).join(' · ');
   const res=forensicTests(c);
   const hasBS=res.years.some(r=>r.operatingCashFlow!=null||r.totalAssets!=null);
-  if(!res.years.length||!hasBS){alert.textContent=res.years.length?'Balance sheet and cash flow lines not collected yet for this company (profiles refresh in rotation, about 35 per build). Use FULL REVIEW IN CLAUDE meanwhile.':
-    'No annual accounts collected for this company: full accounts cover the FTSE 100, the 100 largest US companies and your selected companies. Use FULL REVIEW IN CLAUDE.';alert.style.display='block';}
-  if(res.financial){alert.textContent=(alert.style.display==='block'?alert.textContent+' ':'')+'Financial company: generic working-capital and cash-flow tests are switched off. Sector tests need the reports; use FULL REVIEW IN CLAUDE.';alert.style.display='block';}
+  if(!res.years.length||!hasBS){alert.textContent=res.years.length?'Balance sheet and cash flow lines not collected yet for this company (profiles refresh in rotation, about 35 per build). Check the provider statements and issuer reports.':
+    'No annual accounts collected for this company: full accounts cover the FTSE 100, the 100 largest US companies and your selected companies. Check the provider statements and issuer reports.';alert.style.display='block';}
+  if(res.financial){alert.textContent=(alert.style.display==='block'?alert.textContent+' ':'')+'Financial company: generic working-capital and cash-flow tests are switched off. Sector tests need the reports; check the issuer reports.';alert.style.display='block';}
   const counts={FLAG:0,WATCH:0,OK:0};res.tests.forEach(t=>{if(counts[t.status]!=null)counts[t.status]++;});
   for(const [k,v,n] of [['Red flags',String(counts.FLAG),'Tests outside the warning threshold'],['Watch',String(counts.WATCH),'Worth a closer look'],['Clear',String(counts.OK),'Within normal range'],
     ['Latest accounts',res.years[0]?.fiscalEnd||'—',c.financialCurrency||c.priceCurrency||'']])summ.append(researchTile(k,v,n));
