@@ -598,7 +598,7 @@ h2{font:600 15px/1.35 var(--font);color:var(--amber);margin:0}h3{font:500 13px v
   </div>
   <div class="research-stats" id="gilt-stats"></div>
   <p class="note" id="gilt-calc-note">Yield, accrued interest, duration and DV01 are <b>approximate</b>; the DMO spreadsheet has no published yield. The DMO price is a historical retail-service quote, not an executable offer. The model applies DMO conventions (T+3 settlement for DMO prices, T+1 for your own price, actual/actual accrual, 7-business-day ex-dividend) but ignores bank holidays and irregular first coupons, and excludes dealing costs. Index-linked gilts have real clean prices and inflation-adjusted dirty prices; a nominal YTM is <b>not</b> calculated for them.</p>
-  <section id="gilt-ladder" style="margin:18px 0 22px">
+  <section id="gilt-ladder" style="display:block;margin:18px 0 22px;min-width:0;max-width:100%;overflow:hidden">
   <div class="row"><div><h3>GILT LADDER BUILDER</h3>
    <p class="note">Pick the conventional gilt with the best after-tax yield maturing in each year to fund a fixed amount of spending. Coupons from later gilts reduce what earlier years need. Uses the coupon tax rate selected above.</p></div>
    <span class="mini" id="ladder-basis">—</span></div>
@@ -611,7 +611,7 @@ h2{font:600 15px/1.35 var(--font);color:var(--amber);margin:0}h3{font:500 13px v
    <input class="field" id="ladder-years" type="number" inputmode="numeric" min="1" max="40" step="1" value="10" style="max-width:90px">
   </div>
   <div class="research-stats" id="ladder-stats"></div>
-  <div class="constituents-scroll" style="max-height:460px"><table class="watch" style="min-width:900px"><thead><tr>
+  <div class="constituents-scroll" style="display:block;max-height:460px;max-width:100%;overflow:auto"><table class="watch" style="min-width:900px"><thead><tr>
    <th>Year</th><th>Gilt</th><th>Matures</th><th class="n">Nominal to buy</th><th class="n">Cost today</th><th class="n">Gross YTM</th><th class="n">Net YTM</th><th class="n">Cash in year (net)</th>
   </tr></thead><tbody id="ladder-rows"></tbody></table></div>
   <p class="note" id="ladder-note">Indicative only, not advice. Costs use DMO dated offer (dirty) prices; your broker's prices and dealing charges will differ. Coupon tax is deducted in the year each coupon is paid; the gain to par is CGT-exempt. Holdings above £5,000 nominal fall within the accrued income scheme, which shifts some tax between years but is not modelled. The personal savings allowance is ignored.</p>
