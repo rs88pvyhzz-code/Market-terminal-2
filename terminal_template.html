@@ -683,7 +683,7 @@ h2{font:600 15px/1.35 var(--font);color:var(--amber);margin:0}h3{font:500 13px v
   </div>
   <div class="events-scroll"><table class="watch"><thead><tr><th>Date</th><th>Company</th><th>Type</th><th>Event</th><th>Reliability</th><th>Source</th></tr></thead><tbody id="events-rows"></tbody></table></div>
   <p class="research-hint" id="events-note">Dates can change. Confirm with the issuer before trading.</p>
-  <p class="note">Coverage is limited to selected detailed profiles, not every S&amp;P 500 or FTSE constituent. Optional issuer-confirmed dates can be added through company_events.csv, with a dated company announcement link. No dates are inferred from quarterly reporting cycles.</p>
+  <p class="note">Covers every FTSE 100, FTSE 250, S&amp;P 500 and Nasdaq 100 constituent once its financial summary has been collected (about 150 companies per build, refreshed fortnightly), plus your detailed profiles. Optional issuer-confirmed dates can be added through company_events.csv, with a dated company announcement link. No dates are inferred from quarterly reporting cycles.</p>
 </section>
 <section class="panel" id="peer-panel">
   <div class="row"><div><h2>COMPARE COMPANIES — PEER ANALYSIS</h2><p class="note">Choose up to four companies using the drop-down boxes below. Compare P/E, margins, yields, debt and cash flow. Blank figures mean no sourced data; monetary figures retain their reporting currencies.</p></div><button class="btn" id="peer-from-company" type="button">ADD CURRENT COMPANY</button></div>
@@ -1925,13 +1925,13 @@ function renderCompanyEvents(){
  const coverage=D.companyEventCoverage||{};
  $('events-coverage').textContent=all.length+' dated events · '+(coverage.issuerSourced||0)+' issuer-sourced';
  if(!match.length){const tr=el('tr');const cell=td(tr,'No matching dated events. Yahoo calendars may not have returned dates; check the issuer investor-relations site.');cell.colSpan=6;host.append(tr);}
- for(const e of match.slice(0,100)){
+ for(const e of match.slice(0,300)){
    const tr=el('tr');td(tr,e.date+(e.endDate&&e.endDate!==e.date?' – '+e.endDate:''));
    const name=td(tr,'');const link=el('button','constituent-open',e.company||e.symbol);link.type='button';link.onclick=()=>openConstituent(e.symbol);name.append(link);
    td(tr,e.type||'—');td(tr,e.title||'—');td(tr,e.status||'Indicative',e.status==='Issuer-sourced'?'event-confirmed':'event-indicative');
    const source=td(tr,'');if(e.sourceUrl&&e.sourceUrl.startsWith('https://')){const a=el('a','company-link','CHECK SOURCE');a.href=e.sourceUrl;a.target='_blank';a.rel='noopener noreferrer';source.append(a);}else source.textContent='—';host.append(tr);
  }
- $('events-note').textContent=match.length+' matching events (showing first 100). Only detailed profiles have Yahoo calendar dates; third-party forecasts are not issuer confirmations. Source dates may change.';
+ $('events-note').textContent=match.length+' matching events (showing first 300). Detailed profiles use Yahoo calendars; every other FTSE 100/250, S&P 500 and Nasdaq 100 constituent uses its fortnightly financial summary, so dates fill in as summaries are collected. None are issuer confirmations.';
 }
 
 function sources(){const w=D.warnings||[];$('source-summary').textContent=(D.quotes||[]).length+' market instruments; '+(D.history||[]).length+' daily closes; '+(D.uk_rates||[]).length+' UK rates dates; '+(D.us_rates||[]).length+' US rates dates; '+(D.eu_rates||[]).length+' euro rates dates; '+(D.macro||[]).length+' economic series; '+(D.movers||[]).length+' equity mover markets; '+(D.companies||[]).length+' detailed company profiles; '+(D.fundamentalsCoverage?.summaries||0)+' cached constituent financial summaries; '+(D.news||[]).length+' news headlines; '+(D.calendar||[]).length+' verified release dates; '+(D.sovereign_yields||[]).length+' sovereign-yield months. Data generated '+(D.generatedAt||'unknown')+'. Cached source series: '+(D.cachedSeries||0)+'.';

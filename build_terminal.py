@@ -561,7 +561,24 @@ def build(opts):
     market_valuations=market_additions.market_valuation(movers,fundamentals,companies,us,uk,asof=today_utc().date().isoformat())
     bulk_events,bulk_warnings=market_additions.collect_market_earnings(movers,companies,offline=opts.offline or opts.no_companies)
     warnings.extend(bulk_warnings)
-    company_events,event_warnings,event_coverage=market_additions.issuer_events(companies,ROOT/'company_events.csv',bulk_events=bulk_events)
+    # Earnings / dividend dates for every index constituent with a financial summary.
+    constituent_names={}
+    for market in movers:
+        for row in market.get('constituents') or []:
+            if row.get('symbol'):constituent_names.setdefault(str(row['symbol']).upper(),row.get('name') or row['symbol'])
+    summary_events=[]
+    for f in fundamentals:
+        sym=str(f.get('symbol') or '').upper()
+        if not sym:continue
+        for key,typ,title in (('nextEarningsDate','earnings','Earnings date (provider estimate)'),
+                              ('exDividendDate','ex-dividend','Ex-dividend date'),
+                              ('dividendPaymentDate','dividend-payment','Dividend payment date')):
+            if f.get(key):
+                summary_events.append({'symbol':sym,'company':constituent_names.get(sym,sym),'date':f[key],'endDate':None,
+                    'type':typ,'title':title,'time':None,'status':'Indicative — index summary',
+                    'source':'Yahoo Finance summary (unverified, refreshed fortnightly)',
+                    'sourceUrl':'https://finance.yahoo.com/quote/'+urllib.parse.quote(sym,safe='.')+'/'})
+    company_events,event_warnings,event_coverage=market_additions.issuer_events(companies,ROOT/'company_events.csv',bulk_events=bulk_events,summary_events=summary_events)
     warnings.extend(event_warnings)
     print(f'Credit: {len(credit_spreads)} / {len(market_additions.CREDIT_SERIES)} FRED series; market valuation: {len(market_valuations)} indices; issuer events: {len(company_events)}',flush=True)
     etf_data,etf_warnings,etf_cached=etf_tracker.collect(sys.modules[__name__],opts,ROOT/'etf_catalog.csv',quotes,hist,watch_quotes,watch_history)
@@ -606,7 +623,7 @@ def main():
     p.add_argument('--no-movers',action='store_true',help='skip constituent-level mover downloads')
     p.add_argument('--companies',default='',help='extra company tickers separated by commas (e.g. SHEL.L,MSFT)')
     p.add_argument('--no-companies',action='store_true',help='skip detailed company collection')
-    p.add_argument('--fundamentals-batch',type=int,default=40,help='maximum new constituent financial summaries per build (default 40)')
+    p.add_argument('--fundamentals-batch',type=int,default=150,help='maximum new constituent financial summaries per build (default 150)')
     p.add_argument('--mover-history-limit',type=int,default=12,help='up to 12 daily movers receive ten-year price history')
     p.add_argument('--price-history-batch',type=int,default=60,help='number of additional ten-year charts downloaded per update')
     p.add_argument('--company-news-limit',type=int,default=12,help='fetch related headlines for up to 12 large daily movers')

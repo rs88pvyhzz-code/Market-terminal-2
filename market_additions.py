@@ -192,7 +192,7 @@ def collect_market_earnings(movers, companies, offline=False, today=None, provid
 
 EVENT_COLS=['symbol','event_date','event_type','title','source_url','announced_at_utc','event_time_utc']
 
-def issuer_events(companies, csv_file, today=None, bulk_events=None):
+def issuer_events(companies, csv_file, today=None, bulk_events=None, summary_events=None):
     """Combine indicative yfinance calendars with verified manually sourced issuer events."""
     today=today or dt.datetime.now(dt.timezone.utc).date()
     lo=today-dt.timedelta(days=7);hi=today+dt.timedelta(days=180)
@@ -216,6 +216,11 @@ def issuer_events(companies, csv_file, today=None, bulk_events=None):
                  'time':None,'status':'Indicative — verify issuer',
                  'source':'Yahoo Finance / yfinance calendar (unverified)',
                  'sourceUrl':'https://finance.yahoo.com/quote/'+quote(sym,safe='.')+'/'})
+    # Whole-index events from the financial-summary cache; detailed profiles take priority.
+    for e in summary_events or []:
+        if not isinstance(e,dict):continue
+        if any(x.get('symbol')==e.get('symbol') and x.get('type')==e.get('type') for x in out):continue
+        include(dict(e))
     for e in bulk_events or []:
         if not isinstance(e,dict) or e.get('type')!='earnings':continue
         if any(x.get('symbol')==e.get('symbol') and x.get('type')=='earnings' and x.get('date')==e.get('date') for x in out):continue

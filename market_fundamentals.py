@@ -25,6 +25,14 @@ def finite(value):
         return None
 
 
+def _epoch_date(value):
+    """Yahoo returns event dates as epoch seconds; keep the calendar date only."""
+    v=finite(value)
+    if v is None or v<=0:return None
+    try:return dt.datetime.fromtimestamp(v,dt.timezone.utc).date().isoformat()
+    except (OverflowError,OSError,ValueError):return None
+
+
 def convert(symbol, info, collected):
     if not isinstance(info,dict) or not info:
         return None
@@ -39,7 +47,7 @@ def convert(symbol, info, collected):
     currency=info.get('financialCurrency') or None
     values={
         'symbol':symbol,
-        'schemaVersion':2,
+        'schemaVersion':3,
         'asOf':collected,
         'source':'Yahoo Finance / yfinance (unofficial, unverified)',
         'trailingPE':tr if tr is not None and tr>0 else None,
@@ -62,6 +70,10 @@ def convert(symbol, info, collected):
         'earningsGrowthPct': (100*finite(info.get('earningsGrowth')) if finite(info.get('earningsGrowth')) is not None else None),
         'revenueGrowthPct': (100*finite(info.get('revenueGrowth')) if finite(info.get('revenueGrowth')) is not None else None),
         'earningsReportedDate':None,
+        # Event dates for the whole-index calendar (provider estimates, not issuer confirmations).
+        'nextEarningsDate':_epoch_date(info.get('earningsTimestampStart') or info.get('earningsTimestamp')),
+        'exDividendDate':_epoch_date(info.get('exDividendDate')),
+        'dividendPaymentDate':_epoch_date(info.get('dividendDate')),
     }
     # Only retain non-empty summaries; a symbol that returned blanks is not 'covered'.
     if not any(values.get(x) is not None for x in ('trailingPE','forwardPE','marketCap','revenueTTM','netIncomeTTM')):
@@ -166,7 +178,7 @@ def collect(movers, detailed_companies, directory, batch_size=40, offline=False,
              'industry','epsTTM','ebitda','enterpriseToEbitda','freeCashflow','totalDebt','roePct',
              'earningsGrowthPct','revenueGrowthPct')}
         if not any(vals.get(k) is not None for k in ('trailingPE','forwardPE','marketCap','revenueTTM','netIncomeTTM')):continue
-        records[sym]={'symbol':sym,'schemaVersion':2,'asOf':stamp,'source':'Detailed company profile (Yahoo Finance via yfinance)',**vals}
+        records[sym]={'symbol':sym,'schemaVersion':3,'asOf':stamp,'source':'Detailed company profile (Yahoo Finance via yfinance)',**vals}
         attempts[sym]=stamp
     def age_days(s):
         try:return (now-dt.datetime.fromisoformat(s.replace('Z','+00:00'))).total_seconds()/86400
@@ -176,8 +188,9 @@ def collect(movers, detailed_companies, directory, batch_size=40, offline=False,
         if sym in records:
             # One-off progressive migration adds earnings/revenue growth to old
             # financial summaries; avoid a 30-day wait for the new screener.
-            if records[sym].get('schemaVersion')!=2:return age_days(last)>=2
-            return age_days(records[sym].get('asOf',''))>=30 and age_days(last)>=2
+            if records[sym].get('schemaVersion')!=3:return age_days(last)>=2
+            # 14 days, not 30, so event dates (earnings, ex-dividend) stay usable.
+            return age_days(records[sym].get('asOf',''))>=14 and age_days(last)>=2
         return age_days(last)>=2
     pending=[s for s in lookup_order if needs_update(s)][:max(0,batch_size)]
     warnings=[]
