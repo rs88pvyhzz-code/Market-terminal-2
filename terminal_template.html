@@ -677,11 +677,13 @@ h2{font:600 15px/1.35 var(--font);color:var(--amber);margin:0}h3{font:500 13px v
   <span class="mini" id="events-coverage"></span></div>
   <div class="research-controls"><label for="events-search" class="mini">COMPANY</label>
     <input id="events-search" type="search" class="field" placeholder="Search company or ticker…" aria-label="Filter company events">
+    <label for="events-group" class="mini">COMPANIES</label><select id="events-group" class="field" aria-label="Company group"><option value="key">My companies</option><option value="FTSE100">FTSE 100</option><option value="FTSE250">FTSE 250</option><option value="SP500">S&amp;P 500</option><option value="NASDAQ100">Nasdaq 100</option><option value="all">All indices</option></select>
+    <label for="events-when" class="mini">WHEN</label><select id="events-when" class="field" aria-label="Time window"><option value="7">Next 7 days</option><option value="30" selected>Next 30 days</option><option value="90">Next 3 months</option><option value="180">Next 6 months</option><option value="past">Past 7 days</option></select>
     <label for="events-filter" class="mini">EVENT</label><select id="events-filter" class="field" aria-label="Event type"><option value="all">All types</option><option value="earnings">Earnings</option><option value="ex-dividend">Ex-dividend</option><option value="dividend-payment">Dividend payments</option><option value="issuer-announcement">Issuer announcements</option></select>
     <button class="btn" id="events-selected-company" type="button">SHOW CURRENT COMPANY</button>
     <button class="btn" id="events-all" type="button">CLEAR FILTER</button>
   </div>
-  <div class="events-scroll"><table class="watch"><thead><tr><th>Date</th><th>Company</th><th>Type</th><th>Event</th><th>Reliability</th><th>Source</th></tr></thead><tbody id="events-rows"></tbody></table></div>
+  <div class="events-scroll"><table class="watch"><thead><tr><th>Company</th><th>Index</th><th>Event</th><th class="n">Market cap</th><th>Basis</th></tr></thead><tbody id="events-rows"></tbody></table></div>
   <p class="research-hint" id="events-note">Dates can change. Confirm with the issuer before trading.</p>
   <p class="note">Covers every FTSE 100, FTSE 250, S&amp;P 500 and Nasdaq 100 constituent once its financial summary has been collected (about 150 companies per build, refreshed fortnightly), plus your detailed profiles. Optional issuer-confirmed dates can be added through company_events.csv, with a dated company announcement link. No dates are inferred from quarterly reporting cycles.</p>
 </section>
@@ -1751,7 +1753,7 @@ function renderEconomicPrints(){
 // -- Bloomberg-style corporate credit, market valuations and issuer events --
 const creditState={primary:'US_IG',compare:'US_HY',range:'3Y'};
 let valuationSelection='SP500';
-const eventState={query:'',filter:'all'};
+const eventState={query:'',filter:'all',group:'key',when:'30'};
 function renderCredit(){
   const rows=D.credit_spreads||[],host=$('credit-kpis');host.replaceChildren();
   $('credit-count').textContent=rows.length+' / 6 public spread series';
@@ -1929,19 +1931,43 @@ function renderValuations(){
 }
 function renderCompanyEvents(){
  const host=$('events-rows');host.replaceChildren();const all=D.company_events||[];
- const match=all.filter(e=>(eventState.filter==='all'||e.type===eventState.filter)&&(!eventState.query||[e.company,e.symbol,e.type,e.title].join(' ').toLowerCase().includes(eventState.query)));
+ // Index membership and size, for grouping and ordering.
+ const member=new Map(),label={FTSE100:'FTSE 100',FTSE250:'FTSE 250',SP500:'S&P 500',NASDAQ100:'Nasdaq 100'};
+ for(const m of D.movers||[])for(const c of m.constituents||[]){const k=String(c.symbol||'').toUpperCase();if(!member.has(k))member.set(k,new Set());member.get(k).add(m.id);}
+ const mine=new Set([...(D.companies||[]).map(c=>c.symbol),...(D.personalWatchlist||[]).map(w=>w.symbol),...profileMap.keys()].map(x=>String(x||'').toUpperCase()));
+ const fx=(qMap.get('GBPUSD=X')||{}).price||1.3;
+ const capUSD=sym=>{const f=profileMap.get(sym)||companyMap.get(sym)||fundamentalsMap.get(sym)||{};const v=f.marketCap;if(!(v>0))return null;
+   const ccy=f.marketCapCurrency||(member.get(sym)&&[...member.get(sym)].some(x=>x.startsWith('FTSE'))?'GBP':'USD');return ccy==='GBP'?v*fx:v;};
+ const capText=sym=>{const v=capUSD(sym);if(v==null)return '—';const gbp=[...(member.get(sym)||[])].some(x=>x.startsWith('FTSE'));
+   const n=gbp?v/fx:v,c=gbp?'£':'$';return n>=1e12?c+fmt(n/1e12,2)+'tn':n>=1e9?c+fmt(n/1e9,1)+'bn':c+fmt(n/1e6,0)+'m';};
+ const today=new Date((D.generatedAt||'').slice(0,10)+'T00:00:00Z');const iso=d=>d.toISOString().slice(0,10);
+ let lo,hi;if(eventState.when==='past'){lo=iso(new Date(today-7*864e5));hi=iso(new Date(today-864e5));}
+ else{lo=iso(today);hi=iso(new Date(+today+Number(eventState.when)*864e5));}
+ const inGroup=e=>{const k=String(e.symbol||'').toUpperCase();if(eventState.group==='all')return true;if(eventState.group==='key')return mine.has(k);return member.get(k)?.has(eventState.group);};
+ const match=all.filter(e=>e.date>=lo&&e.date<=hi&&inGroup(e)&&(eventState.filter==='all'||e.type===eventState.filter)&&
+   (!eventState.query||[e.company,e.symbol,e.type,e.title].join(' ').toLowerCase().includes(eventState.query)))
+   .sort((a,b)=>(eventState.when==='past'?b.date.localeCompare(a.date):a.date.localeCompare(b.date))||((capUSD(b.symbol)??-1)-(capUSD(a.symbol)??-1)));
  const coverage=D.companyEventCoverage||{};
- $('events-coverage').textContent=all.length+' dated events · '+(coverage.issuerSourced||0)+' issuer-sourced';
- if(!match.length){const tr=el('tr');const cell=td(tr,'No matching dated events. Yahoo calendars may not have returned dates; check the issuer investor-relations site.');cell.colSpan=6;host.append(tr);}
+ $('events-coverage').textContent=all.length+' dated events collected · '+(coverage.issuerSourced||0)+' issuer-confirmed';
+ if(!match.length){const tr=el('tr');const cell=td(tr,'No events for this selection. Widen the time window or choose another group.');cell.colSpan=5;host.append(tr);}
+ const typeName={earnings:'Results','ex-dividend':'Ex-dividend','dividend-payment':'Dividend paid','issuer-announcement':'Announcement'};
+ let lastDate='';
  for(const e of match.slice(0,300)){
-   const tr=el('tr');td(tr,e.date+(e.endDate&&e.endDate!==e.date?' – '+e.endDate:''));
+   if(e.date!==lastDate){lastDate=e.date;const count=match.filter(x=>x.date===e.date).length;
+     const hr=el('tr','events-day');const cell=td(hr,new Date(e.date+'T00:00:00Z').toLocaleDateString('en-GB',{weekday:'short',day:'numeric',month:'short',timeZone:'UTC'})+' · '+count+' event'+(count>1?'s':''));
+     cell.colSpan=5;cell.style.cssText='color:var(--amber,#f0a54a);font-weight:700;padding-top:14px;border-bottom:1px solid rgba(240,165,74,.35)';host.append(hr);}
+   const tr=el('tr');const k=String(e.symbol||'').toUpperCase();
    const name=td(tr,'');const link=el('button','constituent-open',e.company||e.symbol);link.type='button';link.onclick=()=>openConstituent(e.symbol);name.append(link);
-   td(tr,e.type||'—');td(tr,e.title||'—');td(tr,e.status||'Indicative',e.status==='Issuer-sourced'?'event-confirmed':'event-indicative');
-   const source=td(tr,'');if(e.sourceUrl&&e.sourceUrl.startsWith('https://')){const a=el('a','company-link','CHECK SOURCE');a.href=e.sourceUrl;a.target='_blank';a.rel='noopener noreferrer';source.append(a);}else source.textContent='—';host.append(tr);
+   if(mine.has(k)){const star=el('span','mini',' ★');star.title='One of your companies';name.append(star);}
+   td(tr,[...(member.get(k)||[])].map(x=>label[x]).join(', ')||'—');
+   td(tr,typeName[e.type]||e.type||'—');td(tr,capText(k),'n');
+   const basis=td(tr,'');const tag=e.status==='Issuer-sourced'?'Confirmed':String(e.status||'').includes('index summary')?'Estimate · summary':'Estimate · profile';
+   if(e.sourceUrl&&e.sourceUrl.startsWith('https://')){const a=el('a','company-link',tag);a.href=e.sourceUrl;a.target='_blank';a.rel='noopener noreferrer';basis.append(a);}else basis.textContent=tag;
+   tr.className=e.status==='Issuer-sourced'?'event-confirmed':'';host.append(tr);
  }
- $('events-note').textContent=match.length+' matching events (showing first 300). Detailed profiles use Yahoo calendars; every other FTSE 100/250, S&P 500 and Nasdaq 100 constituent uses its fortnightly financial summary, so dates fill in as summaries are collected. None are issuer confirmations.';
+ $('events-note').textContent=match.length+' events'+(match.length>300?' (first 300 shown — narrow the selection)':'')+
+   '. Largest companies first within each day. Estimates come from Yahoo and are not issuer confirmations; check before trading.';
 }
-
 function sources(){const w=D.warnings||[];$('source-summary').textContent=(D.quotes||[]).length+' market instruments; '+(D.history||[]).length+' daily closes; '+(D.uk_rates||[]).length+' UK rates dates; '+(D.us_rates||[]).length+' US rates dates; '+(D.eu_rates||[]).length+' euro rates dates; '+(D.macro||[]).length+' economic series; '+(D.movers||[]).length+' equity mover markets; '+(D.companies||[]).length+' detailed company profiles; '+(D.fundamentalsCoverage?.summaries||0)+' cached constituent financial summaries; '+(D.news||[]).length+' news headlines; '+(D.calendar||[]).length+' verified release dates; '+(D.sovereign_yields||[]).length+' sovereign-yield months. Data generated '+(D.generatedAt||'unknown')+'. Cached source series: '+(D.cachedSeries||0)+'.';
  $('warnings').textContent=w.length?(w.length+' retrieval warning(s): '+w.slice(0,9).join(' | ')+(w.length>9?' | plus '+(w.length-9)+' more':'')):'No reported retrieval failures. The underlying feeds may still contain delayed or stale prices.';
 }
@@ -3902,8 +3928,10 @@ function init(){setLatest();reorderSections();
   $('valuation-to-constituents').onclick=()=>{state.constMarket=valuationSelection;activateWorkspace('equities',{scroll:false});$('const-market').value=valuationSelection;renderConstituents();$('constituents').scrollIntoView({behavior:'smooth',block:'start'});};
   $('events-search').oninput=e=>{eventState.query=e.target.value.trim().toLowerCase();renderCompanyEvents();};
   $('events-filter').onchange=e=>{eventState.filter=e.target.value;renderCompanyEvents();};
-  $('events-selected-company').onclick=()=>{eventState.query=state.companySymbol.toLowerCase();$('events-search').value=state.companySymbol;renderCompanyEvents();};
-  $('events-all').onclick=()=>{eventState.query='';eventState.filter='all';$('events-search').value='';$('events-filter').value='all';renderCompanyEvents();};
+  $('events-group').onchange=e=>{eventState.group=e.target.value;renderCompanyEvents();};
+  $('events-when').onchange=e=>{eventState.when=e.target.value;renderCompanyEvents();};
+  $('events-selected-company').onclick=()=>{eventState.query=state.companySymbol.toLowerCase();eventState.group='all';eventState.when='180';$('events-group').value='all';$('events-when').value='180';$('events-search').value=state.companySymbol;renderCompanyEvents();};
+  $('events-all').onclick=()=>{eventState.query='';eventState.filter='all';eventState.group='key';eventState.when='30';$('events-search').value='';$('events-filter').value='all';$('events-group').value='key';$('events-when').value='30';renderCompanyEvents();};
   $('movers-market').onchange=e=>{state.moversMarket=e.target.value;renderMovers();};
   $('const-market').onchange=e=>{state.constMarket=e.target.value;renderConstituents();};
   $('const-search').oninput=e=>{state.constSearch=e.target.value.trim().toLowerCase();renderConstituents();};
