@@ -42,6 +42,7 @@ jobs:
           python test_equity_research.py
           python test_research_release1.py
           python test_shell_live_validation.py
+          python test_research_release2.py
 
       - name: Download data and build terminal
         run: >-

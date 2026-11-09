@@ -1,0 +1,1680 @@
+{
+  "schema": 1,
+  "description": "Derived short evidence from actual public SEC filings; original source and retrieval dates retained. Test fixture, never a production company report.",
+  "records": {
+    "SHEL.L": {
+      "documents": [
+        {
+          "url": "https://www.sec.gov/Archives/edgar/data/1306965/000162828026068044/quarterlyexhibit992-q32026.htm",
+          "published": "2026-10-29",
+          "period": "2026-09-30",
+          "filingReportDate": "2026-09-30",
+          "title": "99.2",
+          "kind": "results",
+          "form": "6-K",
+          "retrievedAt": "2026-11-09T22:16:00+00:00",
+          "schema": 1,
+          "id": "ebf163ca42f9948e",
+          "hash": "060058de071373d782aae6814a8a4b6ac96d134488043882d7df766900cf94b1",
+          "revenueBreakdown": {
+            "segments": null,
+            "geography": null
+          },
+          "reportedResults": [
+            {
+              "metric": "Income attributable to Shell plc shareholders",
+              "value": 12057000000.0,
+              "period": "2026-09-30",
+              "basis": "First reported quarter column, reported/GAAP where labelled; not an analyst estimate"
+            },
+            {
+              "metric": "Adjusted EBITDA",
+              "value": 22736000000.0,
+              "period": "2026-09-30",
+              "basis": "First reported quarter column, reported/GAAP where labelled; not an analyst estimate"
+            },
+            {
+              "metric": "Cash flow from operating activities",
+              "value": 21043000000.0,
+              "period": "2026-09-30",
+              "basis": "First reported quarter column, reported/GAAP where labelled; not an analyst estimate"
+            }
+          ],
+          "topics": {
+            "pricingPower": [],
+            "switchingCosts": [],
+            "marketPosition": [],
+            "costStructure": [],
+            "competition": [],
+            "catalysts": [
+              {
+                "excerpt": "In addition, as part of the acquisition of ARC, Shell took on net debt and leases of $2.5 billion, of which debt of $1.9 \u2026",
+                "classification": "reported_statement",
+                "timeReferences": [
+                  "2026"
+                ]
+              },
+              {
+                "excerpt": "The acquisition of ARC resulted in a 0.8 percentage point reduction in gearing.",
+                "classification": "reported_statement",
+                "timeReferences": []
+              },
+              {
+                "excerpt": "The transaction is expected to complete in early 2027, subject to regulatory approval and closing conditions.",
+                "classification": "management_expectation",
+                "timeReferences": [
+                  "2027"
+                ]
+              },
+              {
+                "excerpt": "In September 2026, we completed the previously announced agreement to acquire ARC Resources Ltd. (\u201cARC\u201d), following receipt of all required shareholder, court and regulatory \u2026",
+                "classification": "reported_statement",
+                "timeReferences": [
+                  "2026"
+                ]
+              }
+            ],
+            "risks": [
+              {
+                "excerpt": "Future long-term commodity price assumptions, which represent a significant estimate, were subject to change in the second quarter 2026.",
+                "classification": "reported_statement",
+                "timeReferences": [
+                  "2026"
+                ]
+              },
+              {
+                "excerpt": "In line with IFRS, the net asset fair values were determined at the date of acquisition, particularly in respect of Property, plant and equipment \u2026",
+                "classification": "management_expectation",
+                "timeReferences": []
+              },
+              {
+                "excerpt": "Commodity prices applied were based on an average of commodity price forecasts by independent consultants.",
+                "classification": "reported_statement",
+                "timeReferences": []
+              },
+              {
+                "excerpt": "Identified items in the third quarter 2026 amounted to a net gain of $0.8 billion and included favourable movements due to the fair value \u2026",
+                "classification": "reported_statement",
+                "timeReferences": [
+                  "2026"
+                ]
+              }
+            ]
+          },
+          "commoditySensitivities": [],
+          "guidance": [
+            {
+              "metric": "capital expenditure",
+              "horizon": "2026",
+              "amountText": "$23-$25 billion",
+              "unit": "USD",
+              "qualifier": "stated",
+              "basis": "cash capex",
+              "relativeHorizon": null,
+              "classification": "management_expectation",
+              "published": "2026-10-29",
+              "excerpt": "Our cash capital expenditure for the full year 2026 is expected to be $23-$25 billion."
+            }
+          ],
+          "links": []
+        },
+        {
+          "url": "https://www.sec.gov/Archives/edgar/data/1306965/000162828026050763/shel-20260630.htm",
+          "published": "2026-07-30",
+          "period": "2026-06-30",
+          "filingReportDate": "2026-06-30",
+          "title": "99.2",
+          "kind": "results",
+          "form": "6-K",
+          "retrievedAt": "2026-11-09T23:28:22+00:00",
+          "schema": 1,
+          "id": "a2ab6db890b15d14",
+          "hash": "98022c2d9c7477b10d56436caa860192decd720a9e919861451ed5224860d77f",
+          "revenueBreakdown": {
+            "segments": null,
+            "geography": null
+          },
+          "reportedResults": [
+            {
+              "metric": "Income attributable to Shell plc shareholders",
+              "value": 10821000000.0,
+              "period": "2026-06-30",
+              "basis": "First reported quarter column, reported/GAAP where labelled; not an analyst estimate"
+            },
+            {
+              "metric": "Adjusted EBITDA",
+              "value": 20710000000.0,
+              "period": "2026-06-30",
+              "basis": "First reported quarter column, reported/GAAP where labelled; not an analyst estimate"
+            },
+            {
+              "metric": "Cash flow from operating activities",
+              "value": 21432000000.0,
+              "period": "2026-06-30",
+              "basis": "First reported quarter column, reported/GAAP where labelled; not an analyst estimate"
+            }
+          ],
+          "topics": {
+            "pricingPower": [],
+            "switchingCosts": [],
+            "marketPosition": [],
+            "costStructure": [
+              {
+                "excerpt": "Our continued focus on performance, discipline and simplification has helped deliver $5.8 billion of pre-tax structural cost reductions 2 since 2022.",
+                "classification": "reported_statement",
+                "timeReferences": [
+                  "2022"
+                ]
+              },
+              {
+                "excerpt": "See Reference J \"Structural cost reduction\" for further details.",
+                "classification": "reported_statement",
+                "timeReferences": []
+              },
+              {
+                "excerpt": "The structural cost reduction target is used for the purpose of demonstrating how management drives cost discipline across the entire organisation, simplifying our processes \u2026",
+                "classification": "management_expectation",
+                "timeReferences": []
+              },
+              {
+                "excerpt": "Structural cost reduction describes the decrease in underlying operating expenses as a result of operational efficiencies, divestments, workforce reductions and other cost-saving measures that \u2026",
+                "classification": "management_expectation",
+                "timeReferences": [
+                  "2022"
+                ]
+              }
+            ],
+            "competition": [],
+            "catalysts": [
+              {
+                "excerpt": "The transaction is expected to close in the third quarter of 2026 subject to remaining regulatory approval.",
+                "classification": "management_expectation",
+                "timeReferences": [
+                  "2026"
+                ]
+              },
+              {
+                "excerpt": "The transaction has an effective date of July 1, 2025, and is expected to close by the end of 2026, subject to regulatory approvals.",
+                "classification": "management_expectation",
+                "timeReferences": [
+                  "2025",
+                  "2026"
+                ]
+              },
+              {
+                "excerpt": "The transaction is expected to complete by the end of 2026, subject to regulatory approval and closing conditions.",
+                "classification": "management_expectation",
+                "timeReferences": [
+                  "2026"
+                ]
+              },
+              {
+                "excerpt": "Shell also enters into contracts for tolling, pipeline and storage capacity.",
+                "classification": "reported_statement",
+                "timeReferences": []
+              }
+            ],
+            "risks": [
+              {
+                "excerpt": "In assessing the appropriateness of the going concern assumption over the period to December 31, 2027 (the \u2018going concern period\u2019), management have stress tested \u2026",
+                "classification": "reported_statement",
+                "timeReferences": [
+                  "2027"
+                ]
+              },
+              {
+                "excerpt": "Future long-term commodity price assumptions, which represent a significant estimate, were subject to change in the second quarter 2026 (see Note 7).",
+                "classification": "reported_statement",
+                "timeReferences": [
+                  "2026"
+                ]
+              },
+              {
+                "excerpt": "by lower commodity prices applied in impairment testing.",
+                "classification": "reported_statement",
+                "timeReferences": []
+              },
+              {
+                "excerpt": "We are exposed to risks that could adversely affect the resilience of our overall portfolio of businesses.",
+                "classification": "possible_scenario",
+                "timeReferences": []
+              }
+            ]
+          },
+          "commoditySensitivities": [],
+          "guidance": [
+            {
+              "metric": "capital expenditure",
+              "horizon": "2026",
+              "amountText": "$24-$26 billion",
+              "unit": "USD",
+              "qualifier": "stated",
+              "basis": "cash capex",
+              "relativeHorizon": null,
+              "classification": "management_expectation",
+              "published": "2026-07-30",
+              "excerpt": "Our cash capital expenditure for the full year 2026 is expected to be $24-$26 billion."
+            }
+          ],
+          "links": []
+        },
+        {
+          "url": "https://www.sec.gov/Archives/edgar/data/1306965/000162828026017024/shel-20251231.htm",
+          "published": "2026-03-12",
+          "period": "2025-12-31",
+          "filingReportDate": "2025-12-31",
+          "title": "SHEL.L 20-F 2026-03-12",
+          "kind": "annual",
+          "form": "20-F",
+          "retrievedAt": "2026-11-09T21:46:43+00:00",
+          "schema": 1,
+          "id": "9e25fe48b60d5b55",
+          "hash": "36cf6ea8840a01f4a1855105d22be83a813660bb426f233c440482776c856455",
+          "revenueBreakdown": {
+            "segments": {
+              "period": "2025-12-31",
+              "start": "2025-01-01",
+              "axis": "ifrs-full:SegmentsAxis",
+              "tag": "Revenue",
+              "currency": "USD",
+              "basis": "Reported revenue by one XBRL axis; entries may overlap (e.g. a country within a region). Do not sum geographic rows or infer market shares.",
+              "rows": [
+                {
+                  "label": "Integrated Gas",
+                  "value": 38457000000.0,
+                  "member": "shel:IntegratedGasMember"
+                },
+                {
+                  "label": "Upstream",
+                  "value": 5105000000.0,
+                  "member": "shel:UpstreamMember"
+                },
+                {
+                  "label": "Marketing Segment",
+                  "value": 111855000000.0,
+                  "member": "shel:MarketingSegmentMember"
+                },
+                {
+                  "label": "Chemicals And Products Segment",
+                  "value": 77071000000.0,
+                  "member": "shel:ChemicalsAndProductsSegmentMember"
+                },
+                {
+                  "label": "Renewables And Energy Solutions Segment",
+                  "value": 34359000000.0,
+                  "member": "shel:RenewablesAndEnergySolutionsSegmentMember"
+                },
+                {
+                  "label": "Corporate Segment1",
+                  "value": 39000000.0,
+                  "member": "shel:CorporateSegment1Member"
+                }
+              ]
+            },
+            "geography": {
+              "period": "2025-12-31",
+              "start": "2025-01-01",
+              "axis": "ifrs-full:GeographicalAreasAxis",
+              "tag": "Revenue",
+              "currency": "USD",
+              "basis": "Reported revenue by one XBRL axis; entries may overlap (e.g. a country within a region). Do not sum geographic rows or infer market shares.",
+              "rows": [
+                {
+                  "label": "Europe",
+                  "value": 91808000000.0,
+                  "member": "srt:EuropeMember"
+                },
+                {
+                  "label": "Asia Oceania And Africa",
+                  "value": 90838000000.0,
+                  "member": "shel:AsiaOceaniaAndAfricaMember"
+                },
+                {
+                  "label": "US",
+                  "value": 57728000000.0,
+                  "member": "country:US"
+                },
+                {
+                  "label": "Other Americas",
+                  "value": 26512000000.0,
+                  "member": "shel:OtherAmericasMember"
+                },
+                {
+                  "label": "GB",
+                  "value": 28746000000.0,
+                  "member": "country:GB"
+                }
+              ]
+            }
+          },
+          "reportedResults": [],
+          "topics": {
+            "pricingPower": [
+              {
+                "excerpt": "In the USA, firms accumulated inventories during the first half of 2025 as a result of tariff front-running, allowing them to delay price increases.",
+                "classification": "reported_statement",
+                "timeReferences": [
+                  "2025"
+                ]
+              }
+            ],
+            "switchingCosts": [
+              {
+                "excerpt": "NBS invests in projects that conserve, enhance and restore ecosystems \u2013 such as forests, grasslands and wetlands \u2013 to prevent GHG emissions or reduce \u2026",
+                "classification": "reported_statement",
+                "timeReferences": []
+              },
+              {
+                "excerpt": "Achieving a positive impact on biodiversity can take many years because complex ecosystems need time to develop after conservation efforts.",
+                "classification": "reported_statement",
+                "timeReferences": []
+              },
+              {
+                "excerpt": "The buoys are designed to prevent damage caused by diving vessels' anchors, helping to protect ecosystems and preserve marine biodiversity.",
+                "classification": "reported_statement",
+                "timeReferences": []
+              }
+            ],
+            "marketPosition": [
+              {
+                "excerpt": "Furthermore, the mainstream arrival of generative AI has the ability to modify how companies improve efficiency and where they compete, potentially altering dynamics of \u2026",
+                "classification": "reported_statement",
+                "timeReferences": []
+              },
+              {
+                "excerpt": "This has negatively affected, and in the future could negatively affect, our licence to operate; our brand, reputation and competitive position; and could reduce \u2026",
+                "classification": "possible_scenario",
+                "timeReferences": []
+              },
+              {
+                "excerpt": "Shell Lubricants has been the number one global finished lubricants supplier in terms of market share for 19 consecutive years, according to Kline & \u2026",
+                "classification": "reported_statement",
+                "timeReferences": [
+                  "2024"
+                ]
+              },
+              {
+                "excerpt": "\uffee Societal expectations around energy security and affordability, and mitigating climate change, continue to shift, creating uncertainty, with a potential impact on Shell's licence \u2026",
+                "classification": "management_expectation",
+                "timeReferences": []
+              }
+            ],
+            "costStructure": [
+              {
+                "excerpt": "We reached $5.1 billion in structural cost reductions by the end of 2025, compared with 2022, three years ahead of our target, with more \u2026",
+                "classification": "management_expectation",
+                "timeReferences": [
+                  "2022",
+                  "2025"
+                ]
+              },
+              {
+                "excerpt": "By the end of 2025, we had already achieved structural cost reductions of $5.1 billion since 2022 with more to come.",
+                "classification": "reported_statement",
+                "timeReferences": [
+                  "2022",
+                  "2025"
+                ]
+              },
+              {
+                "excerpt": "Nearly 60% of the structural cost reductions have come from operational efficiencies, a leaner corporate centre and faster value-based decision-making.",
+                "classification": "reported_statement",
+                "timeReferences": []
+              },
+              {
+                "excerpt": "\uffee Increase the structural cost reduction target from $2--3 billion by the end of 2025 to a cumulative $5\u20137 billion by the end of \u2026",
+                "classification": "management_expectation",
+                "timeReferences": [
+                  "2022",
+                  "2025",
+                  "2028"
+                ]
+              }
+            ],
+            "competition": [
+              {
+                "excerpt": "For Shell, fulfilling that responsibility means pursuing investments that help us outperform the competition and increase returns \u2014 all within the reality that there \u2026",
+                "classification": "management_expectation",
+                "timeReferences": []
+              },
+              {
+                "excerpt": "\uffee We face competition in all our businesses, which is amplified by the energy transition and competing products.",
+                "classification": "reported_statement",
+                "timeReferences": []
+              },
+              {
+                "excerpt": "We also compete with state-owned hydrocarbon entities and state-backed utility entities with access to financial resources and local markets.",
+                "classification": "reported_statement",
+                "timeReferences": []
+              },
+              {
+                "excerpt": "Similarly, climate policy approaches that hamper or constrain market efficiency and competition could increase costs and make projects less attractive, challenging our ability to \u2026",
+                "classification": "possible_scenario",
+                "timeReferences": []
+              }
+            ],
+            "catalysts": [
+              {
+                "excerpt": "We increased our interests across our leading deep-water portfolio in the Gulf of America, Brazil and Nigeria, and invested in oil and gas exploration \u2026",
+                "classification": "reported_statement",
+                "timeReferences": []
+              },
+              {
+                "excerpt": "In 2025, we also completed the acquisition of Pavilion Energy in Singapore, strengthening our LNG trading portfolio.",
+                "classification": "reported_statement",
+                "timeReferences": [
+                  "2025"
+                ]
+              },
+              {
+                "excerpt": "We reached these record levels through the successful start-up of new projects such as Whale in the Gulf of America, which reached nameplate capacity \u2026",
+                "classification": "management_expectation",
+                "timeReferences": []
+              },
+              {
+                "excerpt": "Northern Lights is now moving forward with phase two, which will more than double its storage capacity.",
+                "classification": "management_expectation",
+                "timeReferences": []
+              }
+            ],
+            "risks": [
+              {
+                "excerpt": "We are exposed to risks that could adversely affect the resilience of our overall portfolio of businesses.",
+                "classification": "possible_scenario",
+                "timeReferences": []
+              },
+              {
+                "excerpt": "These include external risks such as macroeconomic risks, including fluctuating commodity prices, competitive forces and political, geopolitical, legal and fiscal developments.",
+                "classification": "reported_statement",
+                "timeReferences": []
+              },
+              {
+                "excerpt": "\uffee We use a range of commodity price and margin assumptions to evaluate the robustness of our capital allocation across our different projects and \u2026",
+                "classification": "reported_statement",
+                "timeReferences": []
+              },
+              {
+                "excerpt": "This exposes us to operational risks, market risks including commodity price risk and compliance risks including regulatory, market abuse, sanctions and conduct risks.",
+                "classification": "reported_statement",
+                "timeReferences": []
+              }
+            ]
+          },
+          "commoditySensitivities": [
+            {
+              "classification": "possible_scenario",
+              "basis": "Issuer asset recoverability sensitivity; not an FCFF coefficient",
+              "downShockPct": -10.0,
+              "upShockPct": 10.0,
+              "impairmentLow": 7000000000.0,
+              "impairmentHigh": 10000000000.0,
+              "reversalLow": 2000000000.0,
+              "reversalHigh": 5000000000.0,
+              "currency": "USD",
+              "excerpt": "A change of \u221210% or +10% to the mid-price outlook, as an average percentage over the full period, would result in around $7-10 billion \u2026"
+            }
+          ],
+          "guidance": [
+            {
+              "metric": "cash flow growth",
+              "horizon": "2030",
+              "amountText": "10%",
+              "unit": "%",
+              "qualifier": "around",
+              "basis": "",
+              "relativeHorizon": null,
+              "classification": "management_expectation",
+              "published": "2026-03-12",
+              "excerpt": "We are on track to achieve our target to grow normalised free cash flow per share* by more than 10% per year [C] through \u2026"
+            },
+            {
+              "metric": "shareholder distributions",
+              "horizon": "2025",
+              "amountText": "50%",
+              "unit": "%",
+              "qualifier": "stated",
+              "basis": "",
+              "relativeHorizon": null,
+              "classification": "management_expectation",
+              "published": "2026-03-12",
+              "excerpt": "In 2025, we delivered shareholder distributions at the top end of our target of 40--50% of cash flow from operations* through the cycle [D]."
+            },
+            {
+              "metric": "cash flow growth",
+              "horizon": "2030",
+              "amountText": "10%",
+              "unit": "%",
+              "qualifier": "stated",
+              "basis": "",
+              "relativeHorizon": null,
+              "classification": "management_expectation",
+              "published": "2026-03-12",
+              "excerpt": "This will support us in achieving our target to grow normalised free cash flow per share* by more than 10% on average per year \u2026"
+            },
+            {
+              "metric": "capital expenditure",
+              "horizon": "2025/2028",
+              "amountText": "$21 billion",
+              "unit": "USD",
+              "qualifier": "stated",
+              "basis": "cash capex",
+              "relativeHorizon": null,
+              "classification": "management_expectation",
+              "published": "2026-03-12",
+              "excerpt": "We plan cash capital expenditure within the range of $20--22 billion per year between 2025 and 2028, with $21 billion in 2025."
+            },
+            {
+              "metric": "capital expenditure",
+              "horizon": "2026",
+              "amountText": "$6 billion",
+              "unit": "USD",
+              "qualifier": "around",
+              "basis": "cash capex",
+              "relativeHorizon": null,
+              "classification": "management_expectation",
+              "published": "2026-03-12",
+              "excerpt": "Our cash capital expenditure is expected to be around $6 billion in 2026 in Integrated Gas."
+            },
+            {
+              "metric": "capital expenditure",
+              "horizon": "2026",
+              "amountText": "$7 billion",
+              "unit": "USD",
+              "qualifier": "around",
+              "basis": "cash capex",
+              "relativeHorizon": null,
+              "classification": "management_expectation",
+              "published": "2026-03-12",
+              "excerpt": "Cash capital expenditure is expected to be around $7 billion in 2026."
+            },
+            {
+              "metric": "capital expenditure",
+              "horizon": "2026",
+              "amountText": "$2-3 billion",
+              "unit": "USD",
+              "qualifier": "range",
+              "basis": "cash capex",
+              "relativeHorizon": null,
+              "classification": "management_expectation",
+              "published": "2026-03-12",
+              "excerpt": "Our cash capital expenditure is expected to be in the range of $2-3 billion in 2026."
+            },
+            {
+              "metric": "capital expenditure",
+              "horizon": "2026",
+              "amountText": "$3 billion",
+              "unit": "USD",
+              "qualifier": "around",
+              "basis": "cash capex",
+              "relativeHorizon": null,
+              "classification": "management_expectation",
+              "published": "2026-03-12",
+              "excerpt": "Our cash capital expenditure is expected to be around $3 billion in 2026."
+            },
+            {
+              "metric": "capital expenditure",
+              "horizon": "2025/2026",
+              "amountText": "$12-14 billion",
+              "unit": "USD",
+              "qualifier": "around",
+              "basis": "cash capex",
+              "relativeHorizon": null,
+              "classification": "management_expectation",
+              "published": "2026-03-12",
+              "excerpt": "Cash capital expenditure in 2026 is expected to be around $12-14 billion for Integrated Gas and Upstream ($14.0 billion in 2025), and around $8 \u2026"
+            }
+          ],
+          "links": []
+        }
+      ],
+      "unparsedSources": [],
+      "warnings": [],
+      "checkedAt": "2026-11-09T23:49:37+00:00",
+      "schema": 1,
+      "reportedCompetitors": []
+    },
+    "MSFT": {
+      "documents": [
+        {
+          "url": "https://www.sec.gov/Archives/edgar/data/789019/000119312526436122/msft-ex99_1.htm",
+          "published": "2026-10-28",
+          "period": "2026-09-30",
+          "filingReportDate": "2026-10-28",
+          "title": "Press release, dated October 28, 2026 issued by Microsoft Corporation",
+          "kind": "results",
+          "form": "8-K",
+          "retrievedAt": "2026-11-09T23:21:14+00:00",
+          "schema": 1,
+          "id": "8afeb5cf39b1733c",
+          "hash": "ab54cef5bf6d52f53c3a915c97834a509b037c025ea219d1ade0167b044b2b9c",
+          "revenueBreakdown": {
+            "segments": {
+              "period": "2026-09-30",
+              "start": null,
+              "axis": "issuer reported business areas",
+              "tag": "issuer narrative revenue statement",
+              "currency": "USD",
+              "basis": "Reported quarter business-area revenue, not market share. Segment definitions may change; verify issuer definitions.",
+              "rows": [
+                {
+                  "label": "Agents and Infra",
+                  "value": 76800000000.0,
+                  "member": "issuer revenue statement"
+                },
+                {
+                  "label": "Devices and Consumer",
+                  "value": 15500000000.0,
+                  "member": "issuer revenue statement"
+                }
+              ]
+            },
+            "geography": null
+          },
+          "reportedResults": [
+            {
+              "metric": "Net income",
+              "value": 36629000000.0,
+              "period": "2026-09-30",
+              "basis": "First reported quarter column, reported/GAAP where labelled; not an analyst estimate"
+            },
+            {
+              "metric": "Revenue",
+              "value": 92279000000.0,
+              "period": "2026-09-30",
+              "basis": "First reported quarter column, reported/GAAP where labelled; not an analyst estimate"
+            },
+            {
+              "metric": "Operating income",
+              "value": 45915000000.0,
+              "period": "2026-09-30",
+              "basis": "First reported quarter column, reported/GAAP where labelled; not an analyst estimate"
+            }
+          ],
+          "topics": {
+            "pricingPower": [],
+            "switchingCosts": [],
+            "marketPosition": [
+              {
+                "excerpt": "cyberattacks and security vulnerabilities that could lead to reduced revenue, increased costs, liability claims, or harm to our reputation or competitive position; \u2026",
+                "classification": "possible_scenario",
+                "timeReferences": []
+              }
+            ],
+            "costStructure": [],
+            "competition": [
+              {
+                "excerpt": "intense competition in all of our markets that could adversely affect our results of operations; \u2026",
+                "classification": "possible_scenario",
+                "timeReferences": []
+              }
+            ],
+            "catalysts": [
+              {
+                "excerpt": "Search and advertising revenue excluding traffic acquisition costs increased 12% \u2026",
+                "classification": "reported_statement",
+                "timeReferences": []
+              },
+              {
+                "excerpt": "Search and advertising revenue excluding traffic acquisition costs \u2026",
+                "classification": "reported_statement",
+                "timeReferences": []
+              },
+              {
+                "excerpt": "acquisitions, joint ventures, and strategic alliances that could have an adverse effect on our business; \u2026",
+                "classification": "possible_scenario",
+                "timeReferences": []
+              },
+              {
+                "excerpt": "inability to develop and expand adequate infrastructure; \u2026",
+                "classification": "reported_statement",
+                "timeReferences": []
+              }
+            ],
+            "risks": [
+              {
+                "excerpt": "cyberattacks and security vulnerabilities that could lead to reduced revenue, increased costs, liability claims, or harm to our reputation or competitive position; \u2026",
+                "classification": "possible_scenario",
+                "timeReferences": []
+              },
+              {
+                "excerpt": "substantial investments in cloud and AI strategy that depend on customer demand, technological developments, competitive dynamics, and regulatory condition; \u2026",
+                "classification": "reported_statement",
+                "timeReferences": []
+              },
+              {
+                "excerpt": "products and services, how they are used by customers, and how third-party products and services interact with them, presenting security, privacy, and execution risks; \u2026",
+                "classification": "reported_statement",
+                "timeReferences": []
+              },
+              {
+                "excerpt": "potential consequences of new, existing, and evolving legal and regulatory requirements; \u2026",
+                "classification": "reported_statement",
+                "timeReferences": []
+              }
+            ]
+          },
+          "commoditySensitivities": [],
+          "guidance": [],
+          "links": []
+        },
+        {
+          "url": "https://www.sec.gov/Archives/edgar/data/789019/000119312526436133/msft-20260930.htm",
+          "published": "2026-10-28",
+          "period": "2026-09-30",
+          "filingReportDate": "2026-09-30",
+          "title": "MSFT 10-Q 2026-10-28",
+          "kind": "interim",
+          "form": "10-Q",
+          "retrievedAt": "2026-11-09T23:21:14+00:00",
+          "schema": 1,
+          "id": "049d1a9065596b53",
+          "hash": "02b4114045c34fdd95c32b1efbf9acde4afffc094d887031b19b0be5bb5fc825",
+          "revenueBreakdown": {
+            "segments": null,
+            "geography": null
+          },
+          "reportedResults": [
+            {
+              "metric": "Total revenue",
+              "value": 92279000000.0,
+              "period": "2026-09-30",
+              "basis": "First reported quarter column, reported/GAAP where labelled; not an analyst estimate"
+            },
+            {
+              "metric": "Operating income",
+              "value": 45915000000.0,
+              "period": "2026-09-30",
+              "basis": "First reported quarter column, reported/GAAP where labelled; not an analyst estimate"
+            },
+            {
+              "metric": "Net income",
+              "value": 36629000000.0,
+              "period": "2026-09-30",
+              "basis": "First reported quarter column, reported/GAAP where labelled; not an analyst estimate"
+            },
+            {
+              "metric": "Revenue",
+              "value": 76795000000.0,
+              "period": "2026-09-30",
+              "basis": "First reported quarter column, reported/GAAP where labelled; not an analyst estimate"
+            }
+          ],
+          "topics": {
+            "pricingPower": [],
+            "switchingCosts": [
+              {
+                "excerpt": "An important element of our business model has been to create platform-based ecosystems on which many participants can build diverse solutions.",
+                "classification": "reported_statement",
+                "timeReferences": []
+              },
+              {
+                "excerpt": "A well-established ecosystem creates beneficial network effects among users, application developers, and the platform provider that can accelerate growth.",
+                "classification": "reported_statement",
+                "timeReferences": []
+              },
+              {
+                "excerpt": "Our success depends on our ability to execute effectively across product development, go-to-market, customer acquisition, and customer retention initiatives.",
+                "classification": "reported_statement",
+                "timeReferences": []
+              },
+              {
+                "excerpt": "Our products operate in conjunction with and are dependent on products and components across a broad ecosystem of third parties.",
+                "classification": "reported_statement",
+                "timeReferences": []
+              }
+            ],
+            "marketPosition": [
+              {
+                "excerpt": "Continuing to bring to market compelling cloud-based and AI products and services that generate increasing traffic and market share.",
+                "classification": "reported_statement",
+                "timeReferences": []
+              },
+              {
+                "excerpt": "Failure to do so could reduce adoption, market share, and revenue growth.",
+                "classification": "possible_scenario",
+                "timeReferences": []
+              },
+              {
+                "excerpt": "Cyberattacks and security vulnerabilities could lead to reduced revenue, increased costs, liability claims, or harm to our reputation or competitive position.",
+                "classification": "possible_scenario",
+                "timeReferences": []
+              },
+              {
+                "excerpt": "Cyber incidents and attacks, individually or in the aggregate, could adversely affect our financial condition, results of operations, competitive position, and reputation, and expose \u2026",
+                "classification": "possible_scenario",
+                "timeReferences": []
+              }
+            ],
+            "costStructure": [
+              {
+                "excerpt": "Expansion of our vertically-integrated capabilities, including developing proprietary hardware, infrastructure, and artificial intelligence (\u201cAI\u201d) models, could increase our cost structure, reduce margins, and expose \u2026",
+                "classification": "possible_scenario",
+                "timeReferences": []
+              },
+              {
+                "excerpt": "The cost structure for AI products and services is subject to significant uncertainty, including with respect to model training and inference costs, the availability \u2026",
+                "classification": "reported_statement",
+                "timeReferences": []
+              },
+              {
+                "excerpt": "The volatility of U.S. tariffs has triggered economic uncertainty and could impact cloud and devices supply chain cost competitiveness.",
+                "classification": "possible_scenario",
+                "timeReferences": []
+              }
+            ],
+            "competition": [
+              {
+                "excerpt": "Our competitors are developing new software and devices, while also deploying competing cloud-based services for consumers and businesses.",
+                "classification": "reported_statement",
+                "timeReferences": []
+              },
+              {
+                "excerpt": "These events or circumstances could include a significant change in the business climate, legal factors, operating performance indicators, competition, or sale or disposition of \u2026",
+                "classification": "possible_scenario",
+                "timeReferences": []
+              },
+              {
+                "excerpt": "We face intense competition across all markets for our products and services, which could adversely affect our results of operations.",
+                "classification": "possible_scenario",
+                "timeReferences": []
+              },
+              {
+                "excerpt": "Our competitors range in size from diversified global companies with significant research and development resources to small, specialized firms who may be more effective \u2026",
+                "classification": "possible_scenario",
+                "timeReferences": []
+              }
+            ],
+            "catalysts": [
+              {
+                "excerpt": "Acquisition of companies, net of cash acquired and divestitures, and purchases of intangible and other assets \u2026",
+                "classification": "reported_statement",
+                "timeReferences": []
+              },
+              {
+                "excerpt": "The fair values of these investments are determined based on valuation techniques using the best information available, and may include quoted market prices, market \u2026",
+                "classification": "possible_scenario",
+                "timeReferences": []
+              },
+              {
+                "excerpt": "In November 2024, the Financial Accounting Standards Board issued a new standard to expand disclosures about income statement expenses.",
+                "classification": "reported_statement",
+                "timeReferences": [
+                  "2024"
+                ]
+              },
+              {
+                "excerpt": "The measurement periods for the valuation of assets acquired and liabilities assumed end as soon as information on the facts and circumstances that existed \u2026",
+                "classification": "reported_statement",
+                "timeReferences": []
+              }
+            ],
+            "risks": [
+              {
+                "excerpt": "Changes in fair value, excluding credit losses and impairments, are recorded in other comprehensive income.",
+                "classification": "reported_statement",
+                "timeReferences": []
+              },
+              {
+                "excerpt": "To determine credit losses, we employ a systematic methodology that considers available quantitative and qualitative evidence.",
+                "classification": "reported_statement",
+                "timeReferences": []
+              },
+              {
+                "excerpt": "We record an allowance for doubtful accounts which reflects our best estimate of credit losses inherent in the accounts receivable and financing receivable balances.",
+                "classification": "reported_statement",
+                "timeReferences": []
+              },
+              {
+                "excerpt": "Further, global, regional, and local economic developments and changes in global trade policies such as restrictions on international trade, including tariffs and other controls \u2026",
+                "classification": "possible_scenario",
+                "timeReferences": []
+              }
+            ]
+          },
+          "commoditySensitivities": [],
+          "guidance": [
+            {
+              "metric": "RPO recognition",
+              "horizon": null,
+              "amountText": "30 %",
+              "unit": "%",
+              "qualifier": "around",
+              "basis": "",
+              "relativeHorizon": "next 12 months",
+              "classification": "management_expectation",
+              "published": "2026-10-28",
+              "excerpt": "We expect to recognize approximately 30 % of both our total company remaining performance obligation revenue and commercial remaining performance obligation revenue over the \u2026"
+            }
+          ],
+          "links": []
+        },
+        {
+          "url": "https://www.sec.gov/Archives/edgar/data/789019/000119312526323660/msft-20260630.htm",
+          "published": "2026-07-29",
+          "period": "2026-06-30",
+          "filingReportDate": "2026-06-30",
+          "title": "MSFT 10-K 2026-07-29",
+          "kind": "annual",
+          "form": "10-K",
+          "retrievedAt": "2026-11-09T23:12:40+00:00",
+          "schema": 1,
+          "id": "f6fe718fc495159d",
+          "hash": "12b8ee05410579669cd1f1f6b0d53a18425ba084858bef9fe7ec6da30fcad7ce",
+          "revenueBreakdown": {
+            "segments": {
+              "period": "2026-06-30",
+              "start": "2025-07-01",
+              "axis": "us-gaap:StatementBusinessSegmentsAxis",
+              "tag": "RevenueFromContractWithCustomerExcludingAssessedTax",
+              "currency": "USD",
+              "basis": "Reported revenue by one XBRL axis; entries may overlap (e.g. a country within a region). Do not sum geographic rows or infer market shares.",
+              "rows": [
+                {
+                  "label": "Productivity And Business Processes",
+                  "value": 139996000000.0,
+                  "member": "msft:ProductivityAndBusinessProcessesMember"
+                },
+                {
+                  "label": "Intelligent Cloud",
+                  "value": 137791000000.0,
+                  "member": "msft:IntelligentCloudMember"
+                },
+                {
+                  "label": "More Personal Computing",
+                  "value": 54052000000.0,
+                  "member": "msft:MorePersonalComputingMember"
+                }
+              ]
+            },
+            "geography": {
+              "period": "2026-06-30",
+              "start": "2025-07-01",
+              "axis": "srt:StatementGeographicalAxis",
+              "tag": "RevenueFromContractWithCustomerExcludingAssessedTax",
+              "currency": "USD",
+              "basis": "Reported revenue by one XBRL axis; entries may overlap (e.g. a country within a region). Do not sum geographic rows or infer market shares.",
+              "rows": [
+                {
+                  "label": "US",
+                  "value": 170794000000.0,
+                  "member": "country:US"
+                },
+                {
+                  "label": "Non Us",
+                  "value": 161045000000.0,
+                  "member": "us-gaap:NonUsMember"
+                }
+              ]
+            }
+          },
+          "reportedResults": [],
+          "topics": {
+            "pricingPower": [],
+            "switchingCosts": [
+              {
+                "excerpt": "The gamer remains at the heart of the XBOX ecosystem.",
+                "classification": "reported_statement",
+                "timeReferences": []
+              },
+              {
+                "excerpt": "We are focused on growing the platform and expanding to new ecosystems to engage as many gamers as possible.",
+                "classification": "reported_statement",
+                "timeReferences": []
+              },
+              {
+                "excerpt": "XBOX is designed to benefit users by providing access to a network of certified applications and services and to benefit our developer and partner \u2026",
+                "classification": "reported_statement",
+                "timeReferences": []
+              },
+              {
+                "excerpt": "XBOX and our cloud gaming services face competition from various online gaming ecosystems and game streaming services.",
+                "classification": "reported_statement",
+                "timeReferences": []
+              }
+            ],
+            "marketPosition": [
+              {
+                "excerpt": "Continuing to bring to market compelling cloud-based and AI products and services that generate increasing traffic and market share.",
+                "classification": "reported_statement",
+                "timeReferences": []
+              },
+              {
+                "excerpt": "Failure to do so could reduce adoption, market share, and revenue growth.",
+                "classification": "possible_scenario",
+                "timeReferences": []
+              },
+              {
+                "excerpt": "Cyberattacks and security vulnerabilities could lead to reduced revenue, increased costs, liability claims, or harm to our reputation or competitive position.",
+                "classification": "possible_scenario",
+                "timeReferences": []
+              },
+              {
+                "excerpt": "Cyber incidents and attacks, individually or in the aggregate, could adversely affect our financial condition, results of operations, competitive position, and reputation, or expose \u2026",
+                "classification": "possible_scenario",
+                "timeReferences": []
+              }
+            ],
+            "costStructure": [
+              {
+                "excerpt": "Our cloud business benefits from three economies of scale: datacenters that deploy computational resources at significantly lower cost per unit than smaller ones; datacenters \u2026",
+                "classification": "reported_statement",
+                "timeReferences": []
+              },
+              {
+                "excerpt": "Expansion of our vertically-integrated capabilities, including developing proprietary hardware, infrastructure, and artificial intelligence (\u201cAI\u201d) models, could increase our cost structure, reduce margins, and expose \u2026",
+                "classification": "possible_scenario",
+                "timeReferences": []
+              },
+              {
+                "excerpt": "The cost structure for AI products and services is subject to significant uncertainty, including with respect to model training and inference costs, the availability \u2026",
+                "classification": "reported_statement",
+                "timeReferences": []
+              },
+              {
+                "excerpt": "The volatility of U.S. tariffs has triggered economic uncertainty and could impact cloud and devices supply chain cost competitiveness.",
+                "classification": "possible_scenario",
+                "timeReferences": []
+              }
+            ],
+            "competition": [
+              {
+                "excerpt": "Competitors to Office include software and global application vendors, web-based and mobile application companies, AI-first application companies, as well as local application developers.",
+                "classification": "reported_statement",
+                "timeReferences": []
+              },
+              {
+                "excerpt": "Windows faces competition from various software products and from alternative platforms and devices.",
+                "classification": "reported_statement",
+                "timeReferences": []
+              },
+              {
+                "excerpt": "Our Enterprise Mobility + Security offerings compete with products from a range of competitors including identity vendors, security solution vendors, and numerous other security \u2026",
+                "classification": "reported_statement",
+                "timeReferences": []
+              },
+              {
+                "excerpt": "LinkedIn faces competition from online professional networks; recruiting, talent management, and human resource services companies; job boards; companies that provide learning and development products \u2026",
+                "classification": "reported_statement",
+                "timeReferences": []
+              }
+            ],
+            "catalysts": [
+              {
+                "excerpt": "Microsoft 365 Commercial revenue is mainly affected by a combination of continued installed base growth and average revenue per user expansion, as well as \u2026",
+                "classification": "reported_statement",
+                "timeReferences": []
+              },
+              {
+                "excerpt": "Growth depends on our ability to reach new users, add value to our core product set with new features including AI tools, and continue \u2026",
+                "classification": "reported_statement",
+                "timeReferences": []
+              },
+              {
+                "excerpt": "Dynamics revenue is driven by the number of users licensed and applications consumed, expansion of average revenue per user, and the continued shift to \u2026",
+                "classification": "reported_statement",
+                "timeReferences": []
+              },
+              {
+                "excerpt": "We offer supercomputing power for AI at scale to run large workloads, complemented by our rapidly expanding portfolio of AI cloud services (including the \u2026",
+                "classification": "reported_statement",
+                "timeReferences": []
+              }
+            ],
+            "risks": [
+              {
+                "excerpt": "We believe our cloud\u2019s global scale, coupled with our broad portfolio of identity and security solutions, allows us to effectively solve complex cybersecurity challenges \u2026",
+                "classification": "reported_statement",
+                "timeReferences": []
+              },
+              {
+                "excerpt": "Our operations and financial results are subject to various risks and uncertainties, including those described below, that could adversely affect our business, operations, financial \u2026",
+                "classification": "possible_scenario",
+                "timeReferences": []
+              },
+              {
+                "excerpt": "Our cloud and AI strategy requires substantial investments and depends on evolving customer demand, technological developments, competitive dynamics, and regulatory conditions, any of which \u2026",
+                "classification": "possible_scenario",
+                "timeReferences": []
+              },
+              {
+                "excerpt": "The markets for cloud-based and AI products and services are highly dynamic, characterized by shifting customer expectations, increasing regulatory and governmental scrutiny, intense competition, \u2026",
+                "classification": "management_expectation",
+                "timeReferences": []
+              }
+            ]
+          },
+          "commoditySensitivities": [],
+          "guidance": [
+            {
+              "metric": "RPO recognition",
+              "horizon": null,
+              "amountText": "30 %",
+              "unit": "%",
+              "qualifier": "around",
+              "basis": "",
+              "relativeHorizon": "next 12 months",
+              "classification": "management_expectation",
+              "published": "2026-07-29",
+              "excerpt": "We expect to recognize approximately 30 % of both our total company remaining performance obligation revenue and commercial remaining performance obligation revenue over the \u2026"
+            }
+          ],
+          "links": []
+        },
+        {
+          "url": "https://www.sec.gov/Archives/edgar/data/789019/000119312526323632/msft-ex99_1.htm",
+          "published": "2026-07-29",
+          "period": "2026-06-30",
+          "filingReportDate": "2026-07-29",
+          "title": "Press release, dated July 29, 2026 issued by Microsoft Corporation",
+          "kind": "results",
+          "form": "8-K",
+          "retrievedAt": "2026-11-09T23:21:14+00:00",
+          "schema": 1,
+          "id": "c98dbff588e3b9db",
+          "hash": "00aa076a5bf8ea2275e08a9a9d98c9c1392085eb33187a0e9ac94641510376c1",
+          "revenueBreakdown": {
+            "segments": {
+              "period": "2026-06-30",
+              "start": null,
+              "axis": "issuer reported business areas",
+              "tag": "issuer narrative revenue statement",
+              "currency": "USD",
+              "basis": "Reported quarter business-area revenue, not market share. Segment definitions may change; verify issuer definitions.",
+              "rows": [
+                {
+                  "label": "Productivity and Business Processes",
+                  "value": 37800000000.0,
+                  "member": "issuer revenue statement"
+                },
+                {
+                  "label": "Intelligent Cloud",
+                  "value": 39300000000.0,
+                  "member": "issuer revenue statement"
+                },
+                {
+                  "label": "More Personal Computing",
+                  "value": 12900000000.0,
+                  "member": "issuer revenue statement"
+                }
+              ]
+            },
+            "geography": null
+          },
+          "reportedResults": [
+            {
+              "metric": "Net Income",
+              "value": 35766000000.0,
+              "period": "2026-06-30",
+              "basis": "First reported quarter column, reported/GAAP where labelled; not an analyst estimate"
+            },
+            {
+              "metric": "Revenue",
+              "value": 90007000000.0,
+              "period": "2026-06-30",
+              "basis": "First reported quarter column, reported/GAAP where labelled; not an analyst estimate"
+            },
+            {
+              "metric": "Operating Income",
+              "value": 40603000000.0,
+              "period": "2026-06-30",
+              "basis": "First reported quarter column, reported/GAAP where labelled; not an analyst estimate"
+            }
+          ],
+          "topics": {
+            "pricingPower": [],
+            "switchingCosts": [],
+            "marketPosition": [
+              {
+                "excerpt": "cyberattacks and security vulnerabilities that could lead to reduced revenue, increased costs, liability claims, or harm to our reputation or competitive position; \u2026",
+                "classification": "possible_scenario",
+                "timeReferences": []
+              }
+            ],
+            "costStructure": [],
+            "competition": [
+              {
+                "excerpt": "intense competition in all of our markets that could adversely affect our results of operations; \u2026",
+                "classification": "possible_scenario",
+                "timeReferences": []
+              }
+            ],
+            "catalysts": [
+              {
+                "excerpt": "Search advertising revenue excluding traffic acquisition costs increased 10% (up 9% in constant currency) \u2026",
+                "classification": "reported_statement",
+                "timeReferences": []
+              },
+              {
+                "excerpt": "Search advertising revenue excluding traffic acquisition costs \u2026",
+                "classification": "reported_statement",
+                "timeReferences": []
+              },
+              {
+                "excerpt": "acquisitions, joint ventures, and strategic alliances that could have an adverse effect on our business; \u2026",
+                "classification": "possible_scenario",
+                "timeReferences": []
+              },
+              {
+                "excerpt": "inability to develop and expand adequate infrastructure; \u2026",
+                "classification": "reported_statement",
+                "timeReferences": []
+              }
+            ],
+            "risks": [
+              {
+                "excerpt": "cyberattacks and security vulnerabilities that could lead to reduced revenue, increased costs, liability claims, or harm to our reputation or competitive position; \u2026",
+                "classification": "possible_scenario",
+                "timeReferences": []
+              },
+              {
+                "excerpt": "These include a $3.2 billion gain from our investment in Anthropic and lower-than-expected expenses related to the Voluntary Retirement Program which were partially offset \u2026",
+                "classification": "management_expectation",
+                "timeReferences": []
+              },
+              {
+                "excerpt": "substantial investments in cloud and AI strategy that depend on customer demand, technological developments, competitive dynamics, and regulatory condition; \u2026",
+                "classification": "reported_statement",
+                "timeReferences": []
+              },
+              {
+                "excerpt": "products and services, how they are used by customers, and how third-party products and services interact with them, presenting security, privacy, and execution risks; \u2026",
+                "classification": "reported_statement",
+                "timeReferences": []
+              }
+            ]
+          },
+          "commoditySensitivities": [],
+          "guidance": [],
+          "links": []
+        }
+      ],
+      "unparsedSources": [],
+      "warnings": [],
+      "checkedAt": "2026-11-09T23:49:39+00:00",
+      "schema": 1,
+      "reportedCompetitors": []
+    },
+    "HSBA.L": {
+      "documents": [
+        {
+          "url": "https://www.sec.gov/Archives/edgar/data/1089113/000108911326000030/livedocq32026earningsrelea.htm",
+          "published": "2026-10-27",
+          "period": null,
+          "filingReportDate": "2026-09-30",
+          "title": "HSBA.L 6-K 2026-10-27",
+          "kind": "results",
+          "form": "6-K",
+          "retrievedAt": "2026-11-09T23:13:05+00:00",
+          "schema": 1,
+          "id": "54280b5c9eb34c80",
+          "hash": "7b8b52d4ade4a3be540171265f04318db4a8922ab788d6cc1eb6cf26a214fd11",
+          "revenueBreakdown": {
+            "segments": null,
+            "geography": null
+          },
+          "reportedResults": [],
+          "topics": {
+            "pricingPower": [
+              {
+                "excerpt": "with 31 December 2025 as a result of sustained oil price increases feeding through to elevated policy rates, deeper economic contraction and \u2026",
+                "classification": "reported_statement",
+                "timeReferences": [
+                  "2025"
+                ]
+              }
+            ],
+            "switchingCosts": [],
+            "marketPosition": [
+              {
+                "excerpt": "in the Chinese mainland have also improved as it benefits from growth in AI-related technology exports and gains global market share in other \u2026",
+                "classification": "reported_statement",
+                "timeReferences": []
+              }
+            ],
+            "costStructure": [
+              {
+                "excerpt": "pay accrual relative to 3Q25, partly mitigated by the cost reduction benefits from our organisational simplification.",
+                "classification": "reported_statement",
+                "timeReferences": []
+              },
+              {
+                "excerpt": "technology, partly offset by the cost reduction benefits from our organisational simplification.",
+                "classification": "reported_statement",
+                "timeReferences": []
+              },
+              {
+                "excerpt": "partly mitigated by cost reductions from our organisational simplification.",
+                "classification": "reported_statement",
+                "timeReferences": []
+              },
+              {
+                "excerpt": "than in 9M25, including higher planned spend and investment in technology and the impact of inflation, partly offset by cost reductions from \u2026",
+                "classification": "management_expectation",
+                "timeReferences": []
+              }
+            ],
+            "competition": [
+              {
+                "excerpt": "rights violations, diplomatic tensions and strategic competition between China and the US, which may extend to and involve other countries \u2026",
+                "classification": "possible_scenario",
+                "timeReferences": []
+              },
+              {
+                "excerpt": "exposure to counterparty risk, including third parties using us as a conduit for illegal activities without our knowledge; and price competition \u2026",
+                "classification": "reported_statement",
+                "timeReferences": []
+              },
+              {
+                "excerpt": "requirements; and the effects of competition in the markets where we operate including increased competition from non-bank financial \u2026",
+                "classification": "reported_statement",
+                "timeReferences": []
+              },
+              {
+                "excerpt": "intelligence, including generative artificial intelligence, by HSBC, third-party service providers, counterparties, customers, competitors and \u2026",
+                "classification": "reported_statement",
+                "timeReferences": []
+              }
+            ],
+            "catalysts": [
+              {
+                "excerpt": "capacity to invest, grow and deliver strong returns for our shareholders.\u201d \u2026",
+                "classification": "reported_statement",
+                "timeReferences": []
+              },
+              {
+                "excerpt": "over sovereign creditworthiness, fiscal capacity and debt sustainability resulting in higher long-term government debt yields, which could also \u2026",
+                "classification": "possible_scenario",
+                "timeReferences": []
+              },
+              {
+                "excerpt": "prepare our financial statements; our ability to successfully execute planned strategic acquisitions and disposals; our success in adequately \u2026",
+                "classification": "management_expectation",
+                "timeReferences": []
+              },
+              {
+                "excerpt": "and our capacity to measure the environmental and social impacts from our financing activity (including as a result of data limitations and \u2026",
+                "classification": "reported_statement",
+                "timeReferences": []
+              }
+            ],
+            "risks": [
+              {
+                "excerpt": "mainly from banking net interest income (\u2018banking NII\u2019) and lower expected credit losses and other credit impairment charges (\u2018ECL\u2019).",
+                "classification": "management_expectation",
+                "timeReferences": []
+              },
+              {
+                "excerpt": "inflationary pressures, commodity price changes, and ongoing developments in the commercial real estate sector and the residential \u2026",
+                "classification": "reported_statement",
+                "timeReferences": []
+              },
+              {
+                "excerpt": "market volatility, supply chain restrictions and disruptions, sustained increases in energy prices and key commodity prices, claims of human \u2026",
+                "classification": "reported_statement",
+                "timeReferences": []
+              },
+              {
+                "excerpt": "which may adversely affect HSBC by creating regulatory, reputational and market risks; the efficacy of government, customer, and HSBC\u2019s \u2026",
+                "classification": "possible_scenario",
+                "timeReferences": []
+              }
+            ]
+          },
+          "commoditySensitivities": [],
+          "guidance": [
+            {
+              "metric": "share repurchase programme",
+              "horizon": "2026",
+              "amountText": "$1bn",
+              "unit": "USD",
+              "qualifier": "stated",
+              "basis": "",
+              "relativeHorizon": null,
+              "classification": "management_expectation",
+              "published": "2026-10-27",
+              "excerpt": "We also intend to initiate a share buy-back of up to $1bn, which we expect to complete by our 2026 full- \u2026"
+            },
+            {
+              "metric": "RoTE",
+              "horizon": "2026/2027/2028",
+              "amountText": "17%",
+              "unit": "%",
+              "qualifier": "stated",
+              "basis": "",
+              "relativeHorizon": null,
+              "classification": "management_expectation",
+              "published": "2026-10-27",
+              "excerpt": "We remain confident in achieving the targets we set out in February 2026, including a RoTE of 17% or better for 2026, 2027 and \u2026"
+            },
+            {
+              "metric": "revenue growth",
+              "horizon": "2026/2027/2028",
+              "amountText": "5%",
+              "unit": "%",
+              "qualifier": "stated",
+              "basis": "",
+              "relativeHorizon": null,
+              "classification": "management_expectation",
+              "published": "2026-10-27",
+              "excerpt": "We continue to target year-on-year growth in revenue from 2026 to 2028, rising to 5% growth in 2028 compared with 2027, excluding \u2026"
+            },
+            {
+              "metric": "dividend payout ratio",
+              "horizon": "2026/2027/2028",
+              "amountText": "50%",
+              "unit": "%",
+              "qualifier": "stated",
+              "basis": "",
+              "relativeHorizon": null,
+              "classification": "management_expectation",
+              "published": "2026-10-27",
+              "excerpt": "We maintain our dividend payout ratio target basis of 50% for 2026, 2027 and 2028."
+            },
+            {
+              "metric": "banking NII",
+              "horizon": "2026",
+              "amountText": "$46bn",
+              "unit": "USD",
+              "qualifier": "at least",
+              "basis": "",
+              "relativeHorizon": null,
+              "classification": "management_expectation",
+              "published": "2026-10-27",
+              "excerpt": "We continue to expect banking NII of at least $46bn in 2026 ."
+            },
+            {
+              "metric": "acquisition revenue/cost synergies",
+              "horizon": null,
+              "amountText": "$0.5bn",
+              "unit": "USD",
+              "qualifier": "stated",
+              "basis": "",
+              "relativeHorizon": null,
+              "classification": "management_expectation",
+              "published": "2026-10-27",
+              "excerpt": "the privatisation of Hang Seng Bank, we expect to realise $0.5bn in annualised pre-tax revenue and cost synergies across both our brands in \u2026"
+            },
+            {
+              "metric": "dividend payout ratio",
+              "horizon": "2026",
+              "amountText": "50%",
+              "unit": "%",
+              "qualifier": "stated",
+              "basis": "",
+              "relativeHorizon": null,
+              "classification": "management_expectation",
+              "published": "2026-10-27",
+              "excerpt": "We have established a dividend payout ratio target basis of 50% for 2026."
+            }
+          ],
+          "links": []
+        },
+        {
+          "url": "https://www.sec.gov/Archives/edgar/data/1089113/000108911326000025/hsbc-20260630.htm",
+          "published": "2026-08-04",
+          "period": null,
+          "filingReportDate": "2026-06-30",
+          "title": "HSBA.L 6-K 2026-08-04",
+          "kind": "results",
+          "form": "6-K",
+          "retrievedAt": "2026-11-09T23:13:05+00:00",
+          "schema": 1,
+          "id": "58f4d038283efe53",
+          "hash": "1715c4b4cbfdbcd56222589d8af05387b345e2262244fccf030f3322c3ffa7f1",
+          "revenueBreakdown": {
+            "segments": null,
+            "geography": null
+          },
+          "reportedResults": [],
+          "topics": {
+            "pricingPower": [],
+            "switchingCosts": [],
+            "marketPosition": [
+              {
+                "excerpt": "Our Hong Kong business has a leading market position in our home \u2026",
+                "classification": "reported_statement",
+                "timeReferences": []
+              },
+              {
+                "excerpt": "Our UK business has a leading market position in our home market of the \u2026",
+                "classification": "reported_statement",
+                "timeReferences": []
+              },
+              {
+                "excerpt": "Our CIB business is a market leader in cross-border transaction banking and \u2026",
+                "classification": "reported_statement",
+                "timeReferences": []
+              }
+            ],
+            "costStructure": [
+              {
+                "excerpt": "were partly mitigated by cost reductions from \u2026",
+                "classification": "reported_statement",
+                "timeReferences": []
+              },
+              {
+                "excerpt": "increases were partly mitigated by cost reductions from our \u2026",
+                "classification": "reported_statement",
+                "timeReferences": []
+              }
+            ],
+            "competition": [
+              {
+                "excerpt": "well as new products and services offered by competitors.",
+                "classification": "reported_statement",
+                "timeReferences": []
+              },
+              {
+                "excerpt": "recovery in the Hong Kong CRE sector, heightened strategic competition between the US and China, ongoing and potential cross-border \u2026",
+                "classification": "reported_statement",
+                "timeReferences": []
+              },
+              {
+                "excerpt": "Since 2017, HSBC Bank plc, among other financial institutions, has been defending a complaint filed by the Competition Commission of South \u2026",
+                "classification": "reported_statement",
+                "timeReferences": [
+                  "2017"
+                ]
+              },
+              {
+                "excerpt": "Africa before the South African Competition Tribunal for alleged anti-competitive behaviour in the South African foreign exchange market.",
+                "classification": "reported_statement",
+                "timeReferences": []
+              }
+            ],
+            "catalysts": [
+              {
+                "excerpt": "Disposals, wind-downs, acquisitions and related costs \u2026",
+                "classification": "reported_statement",
+                "timeReferences": []
+              },
+              {
+                "excerpt": "The results of Corporate Centre primarily comprise the financial impact of certain acquisitions and disposals, and the \u2026",
+                "classification": "reported_statement",
+                "timeReferences": []
+              },
+              {
+                "excerpt": "well as new products and services offered by competitors.",
+                "classification": "reported_statement",
+                "timeReferences": []
+              },
+              {
+                "excerpt": "need for timely upskilling and reskilling to maintain capability and capacity.",
+                "classification": "reported_statement",
+                "timeReferences": []
+              }
+            ],
+            "risks": [
+              {
+                "excerpt": "Net operating income before change in expected credit losses and other credit impairment charges (\u2018revenue\u2019) ($m) \u2026",
+                "classification": "management_expectation",
+                "timeReferences": []
+              },
+              {
+                "excerpt": "Expected credit losses and other credit impairment charges (annualised) as % of average gross loans and advances to \u2026",
+                "classification": "management_expectation",
+                "timeReferences": []
+              },
+              {
+                "excerpt": "Net operating income before change in expected credit losses and other credit impairment charges 4 \u2026",
+                "classification": "management_expectation",
+                "timeReferences": []
+              },
+              {
+                "excerpt": "Change in expected credit losses and other credit impairment charges \u2026",
+                "classification": "management_expectation",
+                "timeReferences": []
+              }
+            ]
+          },
+          "commoditySensitivities": [],
+          "guidance": [
+            {
+              "metric": "dividend payout ratio",
+              "horizon": null,
+              "amountText": "50%",
+              "unit": "%",
+              "qualifier": "stated",
+              "basis": "",
+              "relativeHorizon": null,
+              "classification": "management_expectation",
+              "published": "2026-08-04",
+              "excerpt": "We have established a dividend payout ratio target basis of 50% for \u2026"
+            },
+            {
+              "metric": "dividend payout ratio",
+              "horizon": "2026/2027/2028",
+              "amountText": "50%",
+              "unit": "%",
+              "qualifier": "stated",
+              "basis": "",
+              "relativeHorizon": null,
+              "classification": "management_expectation",
+              "published": "2026-08-04",
+              "excerpt": "We maintain our dividend policy of a target payout ratio of 50% of earnings per ordinary share (\u2018EPS\u2019) for each of 2026, 2027 and \u2026"
+            }
+          ],
+          "links": []
+        }
+      ],
+      "unparsedSources": [
+        {
+          "url": "https://www.sec.gov/Archives/edgar/data/1089113/000108911326000010/hsbc-20251231.htm",
+          "published": "2026-02-26",
+          "period": "2025-12-31",
+          "filingReportDate": "2025-12-31",
+          "title": "HSBA.L 20-F 2026-02-26",
+          "kind": "annual",
+          "form": "20-F",
+          "reason": "Document not in offline cache"
+        }
+      ],
+      "warnings": [
+        "HSBA.L 20-F 2026-02-26: Document not in offline cache"
+      ],
+      "checkedAt": "2026-11-09T23:49:43+00:00",
+      "schema": 1,
+      "reportedCompetitors": []
+    }
+  }
+}

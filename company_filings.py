@@ -25,6 +25,7 @@ GAAP = {
  'capex': ['PaymentsToAcquirePropertyPlantAndEquipment'],
  'investingCashFlow': ['NetCashProvidedByUsedInInvestingActivities'],
  'financingCashFlow': ['NetCashProvidedByUsedInFinancingActivities'],
+ 'netBusinessAcquisitions': ['PaymentsToAcquireBusinessesNetOfCashAcquired'],
  'shareBasedComp': ['ShareBasedCompensation'], 'dividendsPaid': ['PaymentsOfDividends'],
  'buybacks': ['PaymentsForRepurchaseOfCommonStock'],
  'totalAssets': ['Assets'], 'equity': ['StockholdersEquity'], 'totalLiabilities': ['Liabilities'],
@@ -50,7 +51,7 @@ IFRS = {
 }
 INSTANT = {'totalAssets', 'equity', 'totalLiabilities', 'totalDebt', 'currentAssets',
            'currentLiabilities', 'cash', 'sharesOutstanding', 'receivables', 'inventory', 'goodwill'}
-OUTFLOWS = {'capex', 'dividendsPaid', 'buybacks'}
+OUTFLOWS = {'capex', 'dividendsPaid', 'buybacks', 'netBusinessAcquisitions'}
 
 
 def parse_facts(data, symbol, retrieved, asof=None):
@@ -90,6 +91,7 @@ def parse_facts(data, symbol, retrieved, asof=None):
                 'retrievedAt': retrieved, 'currency': 'shares' if key == 'sharesOutstanding' else currency,
                 'url': f'https://www.sec.gov/Archives/edgar/data/{int(cik)}/{fact["accn"].replace("-", "")}/',
                 'accession': fact['accn'], 'kind': 'reported'}
+            if key=='netBusinessAcquisitions':row['provenance'][key]['basis']='Cash paid to acquire businesses, net of cash acquired; excludes disposal proceeds'
     # Balance-only instants do not count as annual financial periods.
     rows = [r for r in periods.values() if any(k in r for k in ('revenue', 'netProfit', 'operatingCashFlow'))]
     return sorted(rows, key=lambda r: r['fiscalEnd'], reverse=True)[:5]

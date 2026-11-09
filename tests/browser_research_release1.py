@@ -83,6 +83,7 @@ with sync_playwright() as p:
     assert 'Valuation paused' in page.locator('#research-valuation').inner_text()
     # Notes and legacy workspaces remain usable.
     page.locator('#research-tab-4').click()
+    page.locator('#research-business .research-notebook').evaluate('(d)=>d.open=true')
     page.get_by_label('Competitive advantages & supporting evidence',exact=True).fill('Dated evidence test')
     page.locator('#company-pick').select_option('MSFT')
     assert page.get_by_label('Competitive advantages & supporting evidence',exact=True).input_value()==''

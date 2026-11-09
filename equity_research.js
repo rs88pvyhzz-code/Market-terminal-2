@@ -146,7 +146,7 @@ function renderResearchMultiples(host,c){
 }
 function renderResearchValuation(c){
   const host=$('research-valuation');host.replaceChildren();host.append(el('h3','','VALUATION · SOURCED INPUTS / CALCULATIONS / ASSUMPTIONS'));
-  if(researchIsFinancial(c)){host.append(el('p','note','Standard FCFF DCF excluded for banks and insurers. Review regulatory capital, liquidity, RoTE and excess-return or dividend valuation using issuer disclosures.'));renderResearchMultiples(host,c);return;}
+  if(researchIsFinancial(c)){host.append(el('p','note','Standard FCFF DCF excluded for banks and insurers. Review regulatory capital, liquidity, RoTE and excess-return or dividend valuation using issuer disclosures.'));renderResearchMultiples(host,c);researchR2Stress(c,host);return;}
   const data=researchData(c),balance=researchBalance(c),fx=researchFX(c),quote=fx.to,asof=(D.generatedAt||'').slice(0,10),stale=researchBalanceStale(balance,asof);
   if(!researchModels.has(c.symbol))researchModels.set(c.symbol,{fcf:Number.isFinite(data.normalisedFCFF)?data.normalisedFCFF/1e6:null,adjustment:0,debt:Number.isFinite(balance.totalDebt)?balance.totalDebt/1e6:null,cash:Number.isFinite(balance.cash)?balance.cash/1e6:null,shares:balance.sharesOutstanding??null,fx:fx.value,years:5,terminal:2,bear:0,base:5,bull:10,discount:10,debtAdjustment:Number.isFinite(balance.debtAdjustment)?balance.debtAdjustment/1e6:0,acceptDated:false,overrides:new Set()});
   const m=researchModels.get(c.symbol);
@@ -172,6 +172,7 @@ function renderResearchValuation(c){
   const reset=el('button','btn','RESET TO SOURCED INPUTS');reset.type='button';reset.onclick=()=>{researchModels.delete(c.symbol);renderResearchValuation(c);};host.append(reset);
   host.append(el('p','note','Growth, WACC and terminal growth defaults are illustrative user assumptions, not forecasts. Adjustment defaults to zero (none applied). Debt/cash/shares stay dated to the balance above. Values per share use the quote major currency. Other claims and dilution require review.'),output);
   function paint(){
+    researchR2Stress(c,host);researchR2Executive(c);
     for(const [key,tag] of badges)tag.textContent=m.overrides.has(key)?'User assumption / override':reported.has(key)?'Sourced · dated above':calculated.has(key)?'Calculated · FCFF bridge':'User assumption';
     output.replaceChildren();
     if(stale&&!m.acceptDated){output.append(el('p','research-warning','Valuation paused until dated balances are reviewed and accepted.'));return;}
@@ -190,15 +191,17 @@ function renderResearchValuation(c){
 }
 
 function researchNotes(host,c,fields){
+  const notebook=researchDetails(host,'My research notes');notebook.classList.add('research-notebook');host=notebook;
   host.append(el('p','note','Research notebook · your assumptions and judgements, saved locally in this browser. Add dated report links and evidence. Empty fields mean no sourced conclusion is available. No investment rating is generated.'));
   for(const label of fields){const wrap=el('label','note',label),input=el('textarea','field');input.rows=3;input.setAttribute('aria-label',label);const key='mt-research:'+c.symbol+':'+label;try{input.value=localStorage.getItem(key)||researchNotebook.get(key)||'';}catch(_){input.value=researchNotebook.get(key)||'';}input.placeholder='No sourced assessment entered. Record evidence, source URL and date.';const status=el('span','mini');input.oninput=()=>{researchNotebook.set(key,input.value);try{localStorage.setItem(key,input.value);status.textContent='Saved locally';}catch(_){status.textContent='Browser storage unavailable: kept for this session only';}};wrap.append(input,status);host.append(wrap);}
 }
 function renderEquityResearch(c){
   if(!$('research-nav')||!c)return;
   renderResearchOverview(c);renderResearchStatements(c);renderResearchValuation(c);
-  const business=$('research-business');business.replaceChildren();business.append(el('h3','','BUSINESS & COMPETITION'),el('p','note',c.businessSummary||'No sourced business description available.'),el('p','note',`Provider facts retrieved ${c.financialAsOf||'unknown'} · ${c.fundamentalSource||'unavailable'}. Industry: ${c.industry||'unknown'}. Peer comparisons below use the existing comparator; choose economically comparable businesses and verify fiscal periods.`));
+  const business=$('research-business');researchR2Business(c,business);
   researchNotes(business,c,['Competitive advantages & supporting evidence','Competitors, market share & substitution threats','Capital allocation: reinvestment, acquisitions, dividends & buybacks']);
-  const outlook=$('research-outlook');outlook.replaceChildren();outlook.append(el('h3','','OUTLOOK & CATALYSTS'));researchNotes(outlook,c,['Growth drivers & dated catalysts','Bear / base / bull operating thesis','Investment risks, disconfirming evidence & monitoring triggers']);
+  const outlook=$('research-outlook');researchR2Outlook(c,outlook);
+  researchNotes(outlook,c,['Growth drivers & dated catalysts','Bear / base / bull operating thesis','Investment risks, disconfirming evidence & monitoring triggers']);
   const ownership=$('research-ownership');ownership.replaceChildren();ownership.append(el('h3','','OWNERSHIP & POSITIONING · PROVIDER FACTS'));researchTable(ownership,['Measure','Reported'],[['Insider holdings',pc(Number.isFinite(c.heldPercentInsiders)?c.heldPercentInsiders*100:null)],['Institutional holdings',pc(Number.isFinite(c.heldPercentInstitutions)?c.heldPercentInstitutions*100:null)],['Short interest / float',pc(Number.isFinite(c.shortPercentOfFloat)?c.shortPercentOfFloat*100:null)]]);ownership.append(el('p','note',`Retrieved ${c.financialAsOf||'unknown'}; provider observation dates unavailable. Holdings can reflect different filing periods and overlap; this is not a current ownership register.`));
-  forensicState.symbol=c.symbol;renderForensic();
+  forensicState.symbol=c.symbol;renderForensic();researchR2Render(c);
 }

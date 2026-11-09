@@ -1,8 +1,9 @@
 # Company Research — Release 1
 
 Seven existing views are retained. Release 1 automates financial analysis and
-valuation inputs; qualitative research notes remain user-authored. No Release 2
-features, investment ratings, analyst forecasts or generated narratives are added.
+valuation inputs. Its validated calculations remain the foundation of Release 2;
+see [Release 2 research system](RELEASE2_RESEARCH.md) for sourced research,
+cache behaviour, stress testing and evidence gaps. Personal notes remain user-authored.
 
 ## Data sources and units
 
