@@ -25,12 +25,12 @@ RETRY_DAYS = 2
 US_TOP_N = 100
 
 
-def _restore_published():
+def _restore_published(filename=CACHE_NAME):
     repo = os.environ.get('GITHUB_REPOSITORY', '')
     if '/' not in repo:
         return {}
     owner, name = repo.split('/', 1)
-    url = f'https://{owner}.github.io/{name}/{CACHE_NAME}'
+    url = f'https://{owner}.github.io/{name}/{filename}'
     try:
         req = urllib.request.Request(url, headers={'User-Agent': 'PersonalMarketResearch/1.1',
                                                    'Cache-Control': 'no-cache'})
@@ -91,7 +91,7 @@ def _profile(symbol, name, info, annual, status, events, stamp):
         'revenue': latest.get('revenue'), 'operatingProfit': latest.get('operatingProfit'),
         'netProfit': latest.get('netProfit'), 'fiscalEnd': latest.get('fiscalEnd'),
         'financialCurrency': info.get('financialCurrency') or '', 'annual': annual, 'events': events,
-        'fundamentalSource': status, 'financialAsOf': stamp[:10], 'asOf': stamp, 'schema': 3,
+        'fundamentalSource': status, 'financialAsOf': stamp[:10], 'asOf': stamp, 'schema': 4,
     }
 
 
@@ -123,9 +123,9 @@ def collect(movers, fundamentals, detailed, directory, batch=35, offline=False, 
     records = {k: v for k, v in records.items() if k in wanted_syms}
 
     def stale(sym):
-        # Schema 3 adds complete statement coverage and research metadata;
+        # Schema 4 adds filing provenance and dated balance inputs;
         # older cached profiles are refreshed in rotation without waiting a week.
-        if sym in records and records[sym].get('schema') != 3:
+        if sym in records and records[sym].get('schema') != 4:
             return True
         if sym in records:
             return age(records[sym].get('asOf')) >= REFRESH_DAYS and age(attempts.get(sym)) >= RETRY_DAYS
@@ -161,3 +161,8 @@ def publish(directory, public):
         dest = pathlib.Path(public)
         dest.mkdir(parents=True, exist_ok=True)
         (dest / CACHE_NAME).write_text(src.read_text('utf-8'), 'utf-8')
+    history = pathlib.Path(directory) / 'research_valuation_cache.json'
+    if history.exists():
+        dest = pathlib.Path(public)
+        dest.mkdir(parents=True, exist_ok=True)
+        (dest/history.name).write_text(history.read_text('utf-8'), 'utf-8')

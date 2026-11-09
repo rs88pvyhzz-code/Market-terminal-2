@@ -12,12 +12,12 @@ function researchROIC(r,p){
   return tax>=0&&tax<=1&&capital>0?r.operatingProfit*(1-tax)/capital*100:null;
 }
 // FCFF and debt/cash use the same reporting currency; shares are an absolute count.
-function researchDCF({fcf,growth,discount,terminal,years,debt,cash,shares,fx}){
-  if(![fcf,growth,discount,terminal,years,debt,cash,shares,fx].every(Number.isFinite)||fcf<=0||growth<=-1||discount<=terminal||discount<=0||terminal<=-1||shares<=0||fx<=0||debt<0||cash<0||!Number.isInteger(years)||years<1||years>20)return null;
+function researchDCF({fcf,growth,discount,terminal,years,debt,cash,shares,fx,debtAdjustment=0}){
+  if(![fcf,growth,discount,terminal,years,debt,cash,shares,fx,debtAdjustment].every(Number.isFinite)||fcf<=0||growth<=-1||discount<=terminal||discount<=0||terminal<=-1||shares<=0||fx<=0||debt<0||cash<0||!Number.isInteger(years)||years<1||years>20)return null;
   let pv=0,flow=fcf;const flows=[];
   for(let y=1;y<=years;y++){flow*=1+growth;const discounted=flow/(1+discount)**y;pv+=discounted;flows.push({year:y,flow,discounted});}
   const terminalPV=flow*(1+terminal)/(discount-terminal)/(1+discount)**years;
-  const enterprise=pv+terminalPV,equity=enterprise-debt+cash;
+  const enterprise=pv+terminalPV,equity=enterprise-debt+cash-debtAdjustment;
   const price=equity*1e6/shares*fx;
   if(![enterprise,equity,price,terminalPV].every(Number.isFinite))return null;
   return {enterprise,equity,price,terminalPV,flows};
@@ -29,18 +29,65 @@ function researchReverse(inputs,target){
   for(let i=0;i<100;i++){const mid=(lo+hi)/2;if(researchDCF({...inputs,growth:mid}).price<target)lo=mid;else hi=mid;}
   return (lo+hi)/2;
 }
+function researchIsFinancial(c){return ['HSBA.L','HSBC','JPM','LLOY.L','BARC.L'].includes(c.symbol)||forensicIsFinancial(c);}
+function researchFXValue(from,to,gbpUSD,gbpEUR){
+  if(!from||!to)return null;if(from===to)return 1;
+  const gbp={GBP:1,USD:Number.isFinite(gbpUSD)&&gbpUSD>0?1/gbpUSD:null,EUR:Number.isFinite(gbpEUR)&&gbpEUR>0?1/gbpEUR:null};
+  return gbp[from]>0&&gbp[to]>0?gbp[from]/gbp[to]:null;
+}
+function researchFX(c){
+  const date=(c.priceAsOf||D.generatedAt||'').slice(0,10),from=c.financialCurrency,to=['GBp','GBX'].includes(c.priceCurrency)?'GBP':c.priceCurrency;
+  const series=symbol=>{const pts=histMap.get(symbol)||[];return pts.filter(p=>p.date<=date&&p.v>0&&Date.parse(date)-Date.parse(p.date)<=5*86400000).at(-1);};
+  const usd=series('GBPUSD=X'),eur=series('GBPEUR=X'),value=researchFXValue(from,to,usd?.v,eur?.v);
+  const needed=from===to?[]:[from,to].filter(x=>x!=='GBP');
+  return {value,date:needed.length?needed.map(x=>x==='USD'?usd?.date:eur?.date).filter(Boolean).sort()[0]:date,source:from===to?'Same currency (identity)':'Yahoo observed FX via existing price history',from,to};
+}
+function researchBalance(c){
+  const row=c.researchBalance;
+  if(row&&row.currency===c.financialCurrency)return row;
+  const annual=(c.annual||[]).find(r=>Number.isFinite(r.totalDebt)||Number.isFinite(r.cash))||{};
+  const known=['SHEL.L','HSBA.L','MSFT'].includes(c.symbol);
+  return {totalDebt:annual.totalDebt,cash:annual.cash,sharesOutstanding:known?annual.sharesOutstanding:null,period:annual.fiscalEnd,
+    source:'Annual reported balances (fallback)',retrievedAt:c.financialAsOf,currency:c.financialCurrency,shareBasis:known?'ordinary quoted shares; 1:1':null};
+}
+function researchBalanceStale(balance,date){
+  const age=(Date.parse(date)-Date.parse(balance.period))/86400000,retrieval=(Date.parse(date)-Date.parse(balance.retrievedAt))/86400000;
+  const shareAge=(Date.parse(date)-Date.parse(balance.sharesPeriod||balance.period))/86400000,shareRetrieval=(Date.parse(date)-Date.parse(balance.sharesRetrievedAt||balance.retrievedAt))/86400000;
+  return !Number.isFinite(age)||age<0||age>180||!Number.isFinite(retrieval)||retrieval>7||!Number.isFinite(shareAge)||shareAge<0||shareAge>180||!Number.isFinite(shareRetrieval)||shareRetrieval>7;
+}
+function researchData(c){return c.research||{annual:[],cagr:{},normalisedFCFF:null,normalisationPeriods:[],financialSector:researchIsFinancial(c)};}
+function researchDetails(host,title,open=false){const detail=el('details','research-detail');detail.open=open;detail.append(el('summary','',title));host.append(detail);return detail;}
+function researchCard(host,label,value,note){const card=el('div','research-card');card.append(el('span','mini',label),el('strong','',value),el('small','note',note));host.append(card);}
+function researchTrend(value,suffix='%'){return Number.isFinite(value)?(value>0?'+':'')+fmt(value,1)+suffix:'—';}
+function renderResearchOverview(c){
+  const host=$('research-overview'),kpis=$('company-kpis');host.replaceChildren();const data=researchData(c),r=data.annual[0]||{},p=data.annual[1]||{},fin=researchIsFinancial(c),ccy=c.financialCurrency||'';
+  const grid=el('div','research-dashboard');host.append(grid);
+  researchCard(grid,'PRICE',Number.isFinite(c.price)?fmt(c.price,2)+' '+(c.priceCurrency||''):'—',pc(c.changePct)+' · '+(c.priceAsOf||'No quote'));
+  const leverage=!fin&&Number.isFinite(r.totalDebt)&&Number.isFinite(r.cash)?researchRatio(r.totalDebt-r.cash,r.ebitda):null;
+  researchCard(grid,'FINANCIAL STRENGTH',fin?'Sector review':leverage==null?'—':fmt(leverage,2)+'× net debt / EBITDA',fin?'Banks: review regulatory capital and liquidity in issuer reports.':leverage==null?'Requires debt, cash and positive EBITDA.':leverage<0?'Net cash (cash exceeds debt).':leverage>3?'Above 3× screening threshold; inspect maturities.':'At or below 3× screening threshold; not a credit rating.');
+  const marginChange=Number.isFinite(r.operatingMargin)&&Number.isFinite(p.operatingMargin)?r.operatingMargin-p.operatingMargin:null;
+  researchCard(grid,'PROFITABILITY',fin?pc(r.roe):pc(r.roic),fin?'Calculated ROE; not RoTE.':'Calculated ROIC · operating margin '+pc(r.operatingMargin)+(marginChange==null?'':' · '+researchTrend(marginChange,'pp')+' YoY'));
+  researchCard(grid,'REVENUE GROWTH',pc(r.growth?.revenue),'YoY · '+(data.cagrPeriods?.revenue?.years||0)+'y CAGR '+pc(data.cagr?.revenue));
+  researchCard(grid,'CASH GENERATION',fin?'Sector review':companyAmount(r.fcf,ccy),fin?'Generic corporate FCF excluded for financial companies.':'Calculated OCF − |capex| · conversion '+(Number.isFinite(r.cashConversion)?fmt(r.cashConversion,2)+'×':'—'));
+  researchCard(grid,'VALUATION',c.trailingPE>0?fmt(c.trailingPE,1)+'× P/E':'—',fin?'P/B '+(c.priceToBook>0?fmt(c.priceToBook,2)+'×':'—'):'EV / EBITDA '+(c.enterpriseToEbitda>0?fmt(c.enterpriseToEbitda,1)+'×':'—')+' · observed provider ratios');
+  host.append(el('p','note',`Accounts: ${r.fiscalEnd||'unavailable'} · ${ccy||'currency unknown'} · retrieved ${String(c.financialAsOf||'unknown').slice(0,10)}. Facts and calculated measures; no composite score or investment rating.`));
+  const detail=researchDetails(host,'All reported snapshot metrics & source methodology');if(kpis)detail.append(kpis);
+  const rules=researchDetails(host,'Dashboard rules');rules.append(el('p','note','Financial strength uses (reported debt − cash) / positive EBITDA; 3× is a visible screening threshold, not a sector rating. ROIC uses after-tax operating profit over average equity + debt − cash; ROE uses profit / average equity. Growth compares adjacent annual periods only. Cash conversion is operating cash flow / positive shareholder net profit. No missing value is treated as zero. Banks and insurers require regulatory measures not available from generic accounts.'));
+}
+
 function setupResearchViews(){
   if($('research-nav'))return;
   const root=$('companies'),nav=el('div','period-controls');nav.id='research-nav';nav.setAttribute('role','tablist');nav.setAttribute('aria-label','Company research views');root.append(nav);
   researchViews.forEach((name,i)=>{const b=el('button','btn',name);b.id='research-tab-'+i;b.type='button';b.setAttribute('role','tab');b.setAttribute('aria-controls','research-view-'+i);b.onclick=()=>showResearchView(i);b.onkeydown=e=>{if(['ArrowRight','ArrowLeft','Home','End'].includes(e.key)){e.preventDefault();const n=e.key==='Home'?0:e.key==='End'?6:(i+(e.key==='ArrowRight'?1:6))%7;showResearchView(n);$('research-tab-'+n).focus();}};nav.append(b);const v=el('section','research-view');v.id='research-view-'+i;v.setAttribute('role','tabpanel');v.setAttribute('aria-labelledby',b.id);root.append(v);});
   const move=(id,i)=>{if($(id))$('research-view-'+i).append($(id));};
   move('company-kpis',0);move('company-news-panel',0);
-  const main=root.querySelector('.company-main'),income=main?.querySelector('.company-fin');if(income)$('research-view-1').append(income);if(main)$('research-view-3').append(main);
+  const main=root.querySelector('.company-main'),income=main?.querySelector('.company-fin');if(income){const legacy=researchDetails($('research-view-1'),'Legacy income-statement summary');legacy.append(income);};if(main)$('research-view-3').append(main);
   move('company-risk-panel',3);move('peer-panel',4);move('company-events-panel',5);move('forensic-panel',6);
   // Keep the established accounting renderer, always tied to the selected company.
   $('forensic-panel').querySelector('.research-controls').hidden=true;
   $('forensic-panel').querySelector('h2').textContent='ACCOUNTING CHECKS';
-  for(const [i,id] of [[1,'research-statements'],[2,'research-valuation'],[4,'research-business'],[5,'research-outlook'],[6,'research-ownership']]){const node=el('div');node.id=id;$('research-view-'+i).prepend(node);}
+  for(const [i,id] of [[0,'research-overview'],[1,'research-statements'],[2,'research-valuation'],[4,'research-business'],[5,'research-outlook'],[6,'research-ownership']]){const node=el('div');node.id=id;$('research-view-'+i).prepend(node);}
+  const legacyNote=root.querySelector(':scope > p.note');if(legacyNote){const d=researchDetails($('research-view-0'),'Data coverage & methodology');d.append(legacyNote);}
   showResearchView(0);renderEquityResearch(ensureCompany(state.companySymbol));
 }
 function showResearchView(i){
@@ -48,55 +95,101 @@ function showResearchView(i){
   if(i===1||i===3)requestAnimationFrame(()=>{renderCompany();});
 }
 function researchTable(host,headers,rows){const scroll=el('div','small-scroll'),t=el('table','watch');const head=el('thead'),tr=el('tr');headers.forEach(s=>tr.append(el('th','',s)));head.append(tr);t.append(head);const body=el('tbody');rows.forEach(cells=>{const row=el('tr');cells.forEach((s,i)=>row.append(el('td',i?'n':'',s)));body.append(row);});t.append(body);scroll.append(t);host.append(scroll);}
+let researchFinancialYears=5;
 function renderResearchStatements(c){
-  const host=$('research-statements');host.replaceChildren();const rows=[...(c.annual||[])].sort((a,b)=>b.fiscalEnd.localeCompare(a.fiscalEnd)).slice(0,5),ccy=c.financialCurrency||'';
-  host.append(el('h3','','FIVE-YEAR FINANCIAL STATEMENTS'),el('p','note',`${rows.length} of 5 annual periods available. Missing periods and line items remain —. Reporting currency: ${ccy||'unknown'}. Retrieved: ${c.financialAsOf||'unknown'}. Source: ${c.fundamentalSource||'unavailable'}.`));
-  const source=el('a','company-link','CHECK PROVIDER STATEMENTS');source.href='https://finance.yahoo.com/quote/'+encodeURIComponent(c.symbol)+'/financials/';source.target='_blank';source.rel='noopener noreferrer';host.append(source);
-  const groups=[['Income statement',[['Revenue','revenue'],['Gross profit','grossProfit'],['Operating profit','operatingProfit'],['Pre-tax profit','pretaxProfit'],['Tax expense','taxExpense'],['Net profit','netProfit']]],['Balance sheet',[['Total assets','totalAssets'],['Total liabilities','totalLiabilities'],['Equity','equity'],['Current assets','currentAssets'],['Current liabilities','currentLiabilities'],['Debt','totalDebt'],['Cash','cash'],['Receivables','receivables'],['Inventory','inventory'],['Goodwill','goodwill']]],['Cash flow & capital allocation',[['Operating cash flow','operatingCashFlow'],['Capital expenditure','capex'],['Investing cash flow','investingCashFlow'],['Financing cash flow','financingCashFlow'],['Dividends paid','dividendsPaid'],['Buybacks','buybacks'],['Share-based compensation','shareBasedComp'],['FCF = operating cash flow − |capex|',researchFCF]]]];
-  for(const [title,fields] of groups){host.append(el('h3','',title));researchTable(host,['Metric',...rows.map(r=>r.fiscalEnd)],fields.map(([label,key])=>[label,...rows.map(r=>companyAmount(typeof key==='function'?key(r):r[key],ccy))]));}
-  const ratio=(a,b)=>{const v=researchRatio(a,b);return v==null?'—':fmt(v,2)+'×';},margin=(a,b)=>{const v=researchRatio(a,b);return v==null?'—':fmt(v*100,2)+'%';};
-  const fin=forensicIsFinancial(c);
-  const metrics=[['Gross margin',r=>margin(r.grossProfit,r.revenue)],['Operating margin',r=>margin(r.operatingProfit,r.revenue)],['Net margin',r=>margin(r.netProfit,r.revenue)],['FCF margin',r=>margin(researchFCF(r),r.revenue)],['Cash conversion',r=>r.netProfit>0?ratio(r.operatingCashFlow,r.netProfit):'—'],['Debt / equity',r=>!fin&&r.equity>0?ratio(r.totalDebt,r.equity):'—'],['Current ratio',r=>!fin?ratio(r.currentAssets,r.currentLiabilities):'—'],['Interest cover',r=>!fin&&r.interestExpense>0?ratio(r.operatingProfit,r.interestExpense):'—'],['Net debt / operating profit',r=>!fin&&r.operatingProfit>0&&Number.isFinite(r.totalDebt)&&Number.isFinite(r.cash)?ratio(r.totalDebt-r.cash,r.operatingProfit):'—'],['ROIC (derived)',(r,i)=>fin?'—':pc(researchROIC(r,rows[i+1]))]];
-  host.append(el('h3','','MARGINS, RETURNS & DEBT RATIOS'));researchTable(host,['Metric',...rows.map(r=>r.fiscalEnd)],metrics.map(([name,fn])=>[name,...rows.map(fn)]));
-  host.append(el('p','note','ROIC = operating profit × (1 − effective tax rate) / average (equity + debt − cash). Requires two periods and a valid tax rate; approximate, sector-dependent. Generic debt ratios and ROIC are suppressed for financial companies. Cash-flow classification differs under IFRS and US GAAP. FCF is a derived equity cash-flow proxy, not unlevered FCFF.'));
-  const chartHost=el('div','chart');chartHost.id='research-financial-chart';host.append(el('h3','','HISTORICAL REVENUE, PROFIT & CASH FLOW'),chartHost);
-  const sets=[['Revenue','revenue',AMBER],['Operating profit','operatingProfit',BLUE],['Operating cash flow','operatingCashFlow',AQUA],['FCF',researchFCF,UP]].map(([name,key,color])=>({name,color,pts:rows.slice().reverse().map(r=>({date:r.fiscalEnd,v:typeof key==='function'?key(r):r[key]})).filter(p=>Number.isFinite(p.v))}));
-  chart(chartHost.id,sets,{format:v=>companyAmount(v,ccy)});
-  const margins=el('div','chart');margins.id='research-margin-chart';host.append(el('h3','','HISTORICAL MARGINS & ROIC'),margins);
-  chart(margins.id,[['Operating margin',AMBER,(r)=>{const x=researchRatio(r.operatingProfit,r.revenue);return x==null?null:x*100;}],['FCF margin',AQUA,(r)=>{const x=researchRatio(researchFCF(r),r.revenue);return x==null?null:x*100;}],['ROIC',BLUE,(r,i)=>fin?null:researchROIC(r,rows[i+1])]].map(([name,color,fn])=>({name,color,pts:rows.map((r,i)=>({date:r.fiscalEnd,v:fn(r,i)})).reverse().filter(p=>Number.isFinite(p.v))})),{format:v=>fmt(v,2)+'%'});
+  const host=$('research-statements');host.replaceChildren();const data=researchData(c),all=data.annual||[],ccy=c.financialCurrency||'',fin=researchIsFinancial(c);
+  host.append(el('h3','','FINANCIAL ANALYSIS'));
+  const controls=el('div','period-controls research-periods');host.append(controls);
+  for(const years of [1,3,5,10]){const b=el('button','btn'+(researchFinancialYears===years?' active':''),years+'Y');b.disabled=all.length<years;b.title=b.disabled?`${years} annual periods are not available`:years+' annual periods';b.onclick=()=>{researchFinancialYears=years;renderResearchStatements(c);};controls.append(b);}
+  const rows=all.slice(0,researchFinancialYears);
+  host.append(el('p','note',`${all.length} of 5 annual periods sourced · ${ccy||'currency unknown'} · retrieved ${String(c.financialAsOf||'unknown').slice(0,10)}. Reported inputs + calculated growth and returns. 10Y is enabled only with sufficient data.`));
+  const compact=el('div','research-dashboard');host.append(compact);const L=all[0]||{};
+  for(const [label,value,note] of [['Revenue',companyAmount(L.revenue,ccy),'YoY '+pc(L.growth?.revenue)],['EBITDA',fin?'Sector excluded':companyAmount(L.ebitda,ccy),L.ebitdaKind||'Unavailable'],['Operating profit',companyAmount(L.operatingProfit,ccy),'Margin '+pc(L.operatingMargin)],['FCF',fin?'Sector excluded':companyAmount(L.fcf,ccy),'Calculated OCF − |capex|']])researchCard(compact,label,value,note);
+  const pct=v=>pc(v),multiple=v=>Number.isFinite(v)?fmt(v,2)+'×':'—';
+  researchTable(host,['Calculated metric',...rows.map(r=>'FY '+r.fiscalYear)],
+    [['Revenue growth',r=>pct(r.growth?.revenue)],['EBITDA growth',r=>fin?'—':pct(r.growth?.ebitda)],['Operating profit growth',r=>pct(r.growth?.operatingProfit)],['OCF growth',r=>fin?'—':pct(r.growth?.operatingCashFlow)],['FCF growth',r=>fin?'—':pct(r.growth?.fcf)],['Gross margin',r=>fin?'—':pct(r.grossMargin)],['Operating margin',r=>pct(r.operatingMargin)],['Net margin',r=>pct(r.netMargin)],['FCF margin',r=>fin?'—':pct(r.fcfMargin)],['Cash conversion',r=>fin?'—':multiple(r.cashConversion)],['ROIC',r=>fin?'—':pct(r.roic)],['ROE',r=>pct(r.roe)],['Debt / equity',r=>fin?'—':multiple(r.debtToEquity)],['Debt growth',r=>fin?'—':pct(r.growth?.totalDebt)],['Share-count growth',r=>pct(r.growth?.sharesOutstanding)]].map(([name,fn])=>[name,...rows.map(fn)]));
+  const growth=researchDetails(host,'CAGR · calculated over sourced intervals');
+  researchTable(growth,['Metric','CAGR','Period'],[['Revenue','revenue'],['EBITDA','ebitda'],['Operating profit','operatingProfit'],['Operating cash flow','operatingCashFlow'],['FCF','fcf'],['Shares outstanding','sharesOutstanding']].map(([name,k])=>[name,fin&&['ebitda','operatingCashFlow','fcf'].includes(k)?'—':pc(data.cagr?.[k]),data.cagrPeriods?.[k]?.start&&data.cagrPeriods?.[k]?.end?`${data.cagrPeriods[k].start} → ${data.cagrPeriods[k].end}`:'—']));
+  growth.append(el('p','note','CAGR uses the actual interval between oldest and latest available fiscal dates and positive endpoints. Growth from a zero/negative base is not meaningful and stays blank. Margin trends are percentage-point changes; cash conversion requires positive net profit.'));
+  const chartHost=el('div','chart');chartHost.id='research-financial-chart';host.append(el('h3','','REVENUE, OPERATING PROFIT & CASH'),chartHost);
+  chart(chartHost.id,[['Revenue','revenue',AMBER],['Operating profit','operatingProfit',BLUE],['Operating cash flow','operatingCashFlow',AQUA],['FCF','fcf',UP]].filter(x=>!fin||!['fcf','operatingCashFlow'].includes(x[1])).map(([name,key,color])=>({name,color,pts:rows.slice().reverse().map(r=>({date:r.fiscalEnd,v:r[key]})).filter(p=>Number.isFinite(p.v))})),{format:v=>companyAmount(v,ccy)});
+  const margins=el('div','chart');margins.id='research-margin-chart';host.append(el('h3','','MARGINS & RETURNS'),margins);
+  chart(margins.id,[['Operating margin','operatingMargin',AMBER],[fin?'ROE':'ROIC',fin?'roe':'roic',BLUE],['FCF margin','fcfMargin',AQUA]].filter(x=>!fin||x[1]!=='fcfMargin').map(([name,key,color])=>({name,color,pts:rows.slice().reverse().map(r=>({date:r.fiscalEnd,v:r[key]})).filter(p=>Number.isFinite(p.v))})),{format:v=>fmt(v,2)+'%'});
+  const detail=researchDetails(host,'Detailed annual financial statements · reported inputs');
+  const groups=[['Income statement',[['Revenue','revenue'],['Gross profit','grossProfit'],['EBITDA (provider or calculated)','ebitda'],['Operating profit','operatingProfit'],['Pre-tax profit','pretaxProfit'],['Tax expense','taxExpense'],['Interest expense','interestExpense'],['Shareholder net profit','netProfit']]],['Balance sheet',[['Assets','totalAssets'],['Liabilities','totalLiabilities'],['Equity','equity'],['Current assets','currentAssets'],['Current liabilities','currentLiabilities'],['Debt','totalDebt'],['Cash','cash'],['Receivables','receivables'],['Inventory','inventory'],['Goodwill','goodwill'],['Shares outstanding (millions)','sharesOutstanding']]],['Cash flow & allocation',[['Operating cash flow','operatingCashFlow'],['Capital expenditure','capex'],['Investing cash flow','investingCashFlow'],['Financing cash flow','financingCashFlow'],['D&A','depreciation'],['Working-capital cash contribution','workingCapitalCashChange'],['Dividends paid','dividendsPaid'],['Buybacks','buybacks'],['Share-based pay','shareBasedComp']]]];
+  for(const [title,fields] of groups){detail.append(el('h3','',title));researchTable(detail,['Metric',...rows.map(r=>'FY '+r.fiscalYear)],fields.map(([name,key])=>[name,...rows.map(r=>key==='sharesOutstanding'?(Number.isFinite(r[key])?fmt(r[key]/1e6,2):'—'):fin&&key==='ebitda'?'—':companyAmount(r[key],ccy))]));}
+  const sources=researchDetails(host,'Field-level sources, filing dates & definitions');
+  sources.append(el('p','note','SEC issuer filings take precedence by matching fiscal date and currency. Later restated facts can replace earlier values; this is a latest-restated financial view, not a point-in-time backtest. Yahoo supplies unmapped fields. FCF = OCF − |capex| differs from issuer-specific FCF definitions (including Shell). EBITDA is not adjusted EBITDA. ROIC = EBIT × (1 − effective tax rate) / average (equity + debt − cash). Financial companies exclude generic corporate FCF, EBITDA leverage and ROIC.'));
+  const labels={revenue:'Revenue',operatingProfit:'Operating profit',netProfit:'Net profit',totalDebt:'Debt',cash:'Cash',sharesOutstanding:'Shares',operatingCashFlow:'OCF',capex:'Capex',depreciation:'D&A',workingCapitalCashChange:'Working-capital cash contribution'};
+  for(const r of rows){const period=researchDetails(sources,r.fiscalEnd+' · source register');researchTable(period,['Field','Source','Period','Filed','Retrieved'],[...new Set([...Object.keys(labels),...Object.keys(r.provenance||{})])].map(k=>{const p=r.provenance?.[k]||{};return [labels[k]||k,p.source||'Unavailable',p.period||r.fiscalEnd,p.filed||'Not supplied',String(p.retrievedAt||'Unknown').slice(0,10)];}));for(const p of Object.values(r.provenance||{})){if(p.url?.startsWith('https://www.sec.gov/')){const a=el('a','company-link','OPEN ISSUER FILING · '+(p.filed||''));a.href=p.url;a.target='_blank';a.rel='noopener noreferrer';period.append(a);break;}}}
 }
+
 function researchInput(host,label,value,onchange){const wrap=el('label','mini',label+' '),input=el('input','field');input.type='number';input.step='any';input.value=value??'';input.setAttribute('aria-label',label);input.oninput=()=>onchange(input.value===''?null:Number(input.value));wrap.append(input);host.append(wrap);return input;}
-function renderResearchValuation(c){
-  const host=$('research-valuation');host.replaceChildren();host.append(el('h3','','DCF & REVERSE DCF · USER ASSUMPTIONS'));
-  host.append(el('p','note','Unlevered free cash flow to the firm (FCFF) model. Enter a normalised FCFF after operating taxes and reinvestment, before interest. Reported operating cash flow less capex is shown in Financials but is not automatically substituted. All inputs below are modelling assumptions, not forecasts or investment ratings. Defaults for growth and discount rates are illustrative.'));
-  if(forensicIsFinancial(c)){host.append(el('p','note','Generic FCFF DCF is disabled for banks and insurers; use a sector-appropriate excess-return or dividend model.'));return;}
-  const latest=(c.annual||[])[0]||{},quote=['GBp','GBX'].includes(c.priceCurrency)?'GBP':c.priceCurrency;
-  if(!researchModels.has(c.symbol))researchModels.set(c.symbol,{fcf:null,debt:Number.isFinite(latest.totalDebt)?latest.totalDebt/1e6:null,cash:Number.isFinite(latest.cash)?latest.cash/1e6:null,shares:latest.sharesOutstanding??null,fx:c.financialCurrency&&c.financialCurrency===quote?1:null,years:5,terminal:2,bear:0,base:5,bull:10,discount:10});
-  const m=researchModels.get(c.symbol),inputs=el('div','research-inputs');host.append(inputs);
-  const output=el('div');output.setAttribute('aria-live','polite');
-  const definitions=[['Normalised FCFF (reporting currency, millions)','fcf'],['Debt (reporting currency, millions)','debt'],['Cash (reporting currency, millions)','cash'],['Shares outstanding (absolute count)','shares'],[`FX: ${quote||'quote major currency'} per ${c.financialCurrency||'reporting currency'}`,'fx'],['Forecast years (1–20)','years'],['Discount rate / WACC (%)','discount'],['Terminal growth (%)','terminal'],['Bear FCFF growth (%)','bear'],['Base FCFF growth (%)','base'],['Bull FCFF growth (%)','bull']];
-  for(const [label,key] of definitions)researchInput(inputs,label,m[key],v=>{m[key]=v;paint();});
-  host.append(el('p','note',`Debt, cash and shares initially use the latest available FY ${latest.fiscalEnd||'unknown'}; edit to reflect current balances, dilution and other claims. FX is a user assumption (1 only when currencies match). Value per share is in ${quote||'unknown quote currency'}; GBp/GBX market quotes are divided by 100. Models remain in memory per company during this session.`),output);
-  function paint(){output.replaceChildren();const assumptions=['fcf','debt','cash','shares','fx','years','discount','terminal','bear','base','bull'];
-    if(!assumptions.every(k=>Number.isFinite(m[k]))||!quote||!c.financialCurrency){output.append(el('p','note','Enter all model inputs and verify both currencies. Missing data cannot support a valuation.'));return;}
-    const params={...m,discount:m.discount/100,terminal:m.terminal/100},base=researchDCF({...params,growth:m.base/100});
-    if(!base||m.bear<=-100||m.bear>m.base||m.base>m.bull){output.append(el('p','note','Invalid assumptions: FCFF, shares and FX must be positive; debt/cash non-negative; WACC > terminal growth; integer years 1–20; growth > −100%; bear ≤ base ≤ bull.'));return;}
-    const market=researchQuoteMajor(c.price,c.priceCurrency);
-    researchTable(output,['Scenario (assumption)','FCFF growth','Enterprise value (reporting m)','Equity value (reporting m)',`Value/share (${quote})`,'vs market price'],['bear','base','bull'].map(key=>{const r=researchDCF({...params,growth:m[key]/100});return [key.toUpperCase(),pc(m[key]),r?fmt(r.enterprise):'—',r?fmt(r.equity):'—',r?fmt(r.price):'—',r&&market>0?pc((r.price/market-1)*100):'—'];}));
-    output.append(el('p','note',`Market quote: ${market==null?'unavailable':fmt(market)+' '+quote} · ${c.priceAsOf||'date unknown'}. Base terminal value is ${fmt(base.terminalPV/base.enterprise*100,1)}% of enterprise value. Debt bridge excludes unentered minority interests, leases and other claims; adjust debt input where appropriate.`));
-    output.append(el('h3','','BASE CASE CASH-FLOW PROJECTION · ASSUMPTIONS'));researchTable(output,['Year','FCFF (reporting m)','Present value (reporting m)'],base.flows.map(r=>[String(r.year),fmt(r.flow),fmt(r.discounted)]));
-    const implied=researchReverse({...params,growth:0},market);output.append(el('h3','','REVERSE DCF'),el('p','note',implied==null?'Implied growth unavailable: missing market price or no solution within −90% to +100% annual growth.':`Market price implies ${fmt(implied*100)}% annual FCFF growth over ${m.years} years, holding the other base inputs fixed. This is an implied assumption, not a forecast.`));
-    output.append(el('h3','','SENSITIVITY · BASE VALUE/SHARE BY WACC AND TERMINAL GROWTH'));
-    const gs=[m.terminal-1,m.terminal,m.terminal+1];researchTable(output,['WACC / terminal g',...gs.map(g=>fmt(g)+'%')],[-2,-1,0,1,2].map(d=>[fmt(m.discount+d)+'%',...gs.map(g=>{const r=researchDCF({...params,growth:m.base/100,discount:(m.discount+d)/100,terminal:g/100});return r?fmt(r.price):'—';})]));
-  }paint();
+let researchMultipleYears=5;
+function renderResearchMultiples(host,c){
+  const detail=researchDetails(host,'Historical valuation multiples · observed snapshots',true),history=c.valuationHistory||[];
+  detail.append(el('p','note','P/E, EV/EBITDA and P/B are saved when sourced during scheduled builds. History starts at the first observed snapshot; current ratios are never copied backwards. Dates are retrieval dates, not financial periods.'));
+  if(!history.length){detail.append(el('p','note','No observed multiple snapshots available yet.'));return;}
+  const last=history.at(-1).date,span=(Date.parse(last)-Date.parse(history[0].date))/86400000;
+  const controls=el('div','period-controls research-periods');detail.append(controls);
+  for(const years of [1,3,5,10]){const b=el('button','btn',years+'Y');b.disabled=span<years*340;b.onclick=()=>{researchMultipleYears=years;renderResearchValuation(c);};controls.append(b);}
+  const rows=history.filter(r=>Date.parse(last)-Date.parse(r.date)<=researchMultipleYears*365.25*86400000);
+  const table=researchDetails(detail,`${rows.length} observed snapshot(s) · latest ${last}`,true);researchTable(table,['Observed','P/E TTM','EV / EBITDA','P/B'],rows.slice(-12).reverse().map(r=>[r.date,...['trailingPE','enterpriseToEbitda','priceToBook'].map(k=>k==='enterpriseToEbitda'&&researchIsFinancial(c)?'—':r[k]>0?fmt(r[k],2)+'×':'—')]));
+  if(rows.length>1){const node=el('div','chart');node.id='research-multiples-chart';detail.append(node);chart(node.id,[['P/E','trailingPE',AMBER],['EV/EBITDA','enterpriseToEbitda',BLUE],['P/B','priceToBook',AQUA]].filter(x=>!researchIsFinancial(c)||x[1]!=='enterpriseToEbitda').map(([name,k,color])=>({name,color,pts:rows.filter(r=>r[k]>0).map(r=>({date:r.date,v:r[k]}))})),{format:v=>fmt(v,2)+'×'});}
+  else detail.append(el('p','note','One dated snapshot: a historical chart needs at least two observations.'));
 }
+function renderResearchValuation(c){
+  const host=$('research-valuation');host.replaceChildren();host.append(el('h3','','VALUATION · SOURCED INPUTS / CALCULATIONS / ASSUMPTIONS'));
+  if(researchIsFinancial(c)){host.append(el('p','note','Standard FCFF DCF excluded for banks and insurers. Review regulatory capital, liquidity, RoTE and excess-return or dividend valuation using issuer disclosures.'));renderResearchMultiples(host,c);return;}
+  const data=researchData(c),balance=researchBalance(c),fx=researchFX(c),quote=fx.to,asof=(D.generatedAt||'').slice(0,10),stale=researchBalanceStale(balance,asof);
+  if(!researchModels.has(c.symbol))researchModels.set(c.symbol,{fcf:Number.isFinite(data.normalisedFCFF)?data.normalisedFCFF/1e6:null,adjustment:0,debt:Number.isFinite(balance.totalDebt)?balance.totalDebt/1e6:null,cash:Number.isFinite(balance.cash)?balance.cash/1e6:null,shares:balance.sharesOutstanding??null,fx:fx.value,years:5,terminal:2,bear:0,base:5,bull:10,discount:10,debtAdjustment:Number.isFinite(balance.debtAdjustment)?balance.debtAdjustment/1e6:0,acceptDated:false,overrides:new Set()});
+  const m=researchModels.get(c.symbol);
+  const provenance=el('div','research-provenance');host.append(provenance);
+  provenance.append(el('p','note',`Reported balance: ${balance.period||'unavailable'} · ${balance.source||'unavailable'} · published ${balance.published||'not supplied'} · retrieved ${String(balance.retrievedAt||'unknown').slice(0,10)}. Shares: ${balance.shareBasis||'basis unverified; enter a verified quoted share count'}.`));
+  provenance.append(el('p','note',`Ordinary shares: ${Number.isFinite(balance.sharesOutstanding)?fmt(balance.sharesOutstanding,0):'unavailable'} · as of ${balance.sharesPeriod||balance.period||'unknown'} · ${balance.sharesSource||balance.source||'unavailable'} · published ${balance.sharesPublished||'not supplied'} · retrieved ${String(balance.sharesRetrievedAt||balance.retrievedAt||'unknown').slice(0,10)}.`));
+  if(Number.isFinite(balance.reportedNetDebt))provenance.append(el('p','note',`Issuer net debt: ${companyAmount(balance.reportedNetDebt,c.financialCurrency)} = gross debt − cash + debt-related derivatives/collateral (${companyAmount(balance.debtAdjustment,c.financialCurrency)}). These financing adjustments are separate from FCFF normalisation.`));
+  for(const [url,label] of [[balance.url,'ISSUER DEBT RECONCILIATION'],[balance.sharesUrl,'ISSUER SHARE CAPITAL']]){if(url?.startsWith('https://')){const a=el('a','company-link',label);a.href=url;a.target='_blank';a.rel='noopener noreferrer';provenance.append(a);}}
+  provenance.append(el('p','note',`FX: ${fx.value==null?'unavailable':fmt(fx.value,6)} ${quote||'?'} per ${c.financialCurrency||'?'} · observed ${fx.date||'unknown'} · ${fx.source}. Market quotes in GBp/GBX divide by 100; statements and market capitalisation do not.`));
+  if(stale){const label=el('label','note research-warning'),check=el('input');check.type='checkbox';check.checked=m.acceptDated;check.setAttribute('aria-label','Use dated balances after review');check.onchange=()=>{m.acceptDated=check.checked;paint();};label.append(check,document.createTextNode(' Balance data are old (>180 days), not recently retrieved (>7 days), or undated. Review and explicitly accept these dated inputs to use the model. They are not current balances.'));host.append(label);}
+  if(Number.isFinite(balance.leaseLiabilities))provenance.append(el('p','note',`Total debt includes ${companyAmount(balance.leaseLiabilities,c.financialCurrency)} lease liabilities. Historical FCFF is not fully adjusted for new lease commitments or acquired businesses; review forward reinvestment and lease assumptions.`));
+  const bridge=researchDetails(host,'Normalised FCFF calculation & limitations');
+  bridge.append(el('p','note',data.fcffMethod||'No complete sourced FCFF calculation available.'));
+  researchTable(bridge,['Fiscal period','EBIT','NOPAT','D&A','Capex outflow','WC cash contribution','FCFF proxy'],(data.annual||[]).slice(0,3).map(r=>[r.fiscalEnd,...['operatingProfit','nopat','depreciation','capex','workingCapitalCashChange','fcffProxy'].map(k=>Number.isFinite(r[k])?fmt((k==='capex'?-Math.abs(r[k]):r[k])/1e6,2):'—')]));
+  bridge.append(el('p','note',`Reporting-currency millions. Median starting point: ${Number.isFinite(data.normalisedFCFF)?fmt(data.normalisedFCFF/1e6,2):'unavailable'} from ${(data.normalisationPeriods||[]).join(', ')||'no complete periods'}. No adjustment for impairments, disposals, noncash lease additions, acquisitions or non-operating D&A is invented. Review cash-flow classification and add documented adjustments. Missing working-capital data prevents automatic FCFF.`));
+  researchTable(bridge,['Fiscal period','Operating cash flow','− |Capex|','OCF − capex FCF','OCF → operating proxy bridge','FCFF proxy'],(data.annual||[]).slice(0,3).map(r=>[r.fiscalEnd,...['operatingCashFlow','capex','fcf','ocfToFcffBridge','fcffProxy'].map(k=>Number.isFinite(r[k])?fmt((k==='capex'?-Math.abs(r[k]):r[k])/1e6,2):'—')]));
+  bridge.append(el('p','note','The OCF-to-operating-proxy bridge is the calculated residual NOPAT + D&A + working-capital cash contribution − reported OCF. It reconciles the measures mathematically; it is not a separately reported adjustment. Cash taxes versus tax expense, joint ventures, noncash items and classifications need review. Historical normalisation is not a forecast of the current acquired business portfolio.'));
+  const inputs=el('div','research-inputs');host.append(inputs);const output=el('div');output.setAttribute('aria-live','polite');
+  const fields=[['Normalised FCFF (reporting currency, millions)','fcf'],['FCFF adjustment (reporting millions, assumption)','adjustment'],['Debt (reporting currency, millions)','debt'],['Cash (reporting currency, millions)','cash'],['Debt-related adjustment (reporting millions)','debtAdjustment'],['Shares outstanding (absolute count)','shares'],[`FX: ${quote||'quote major currency'} per ${c.financialCurrency||'reporting currency'}`,'fx'],['Forecast years (1–20)','years'],['Discount rate / WACC (%)','discount'],['Terminal growth (%)','terminal'],['Bear FCFF growth (%)','bear'],['Base FCFF growth (%)','base'],['Bull FCFF growth (%)','bull']];
+  const reported=new Set(['debt','cash','shares','fx',...(Number.isFinite(balance.debtAdjustment)?['debtAdjustment']:[])]),calculated=new Set(['fcf']);
+  const badges=[];
+  for(const [label,key] of fields){const input=researchInput(inputs,label,m[key],v=>{m[key]=v;m.overrides.add(key);paint();});const tag=el('small','research-input-kind');input.parentElement.append(tag);badges.push([key,tag]);}
+  const reset=el('button','btn','RESET TO SOURCED INPUTS');reset.type='button';reset.onclick=()=>{researchModels.delete(c.symbol);renderResearchValuation(c);};host.append(reset);
+  host.append(el('p','note','Growth, WACC and terminal growth defaults are illustrative user assumptions, not forecasts. Adjustment defaults to zero (none applied). Debt/cash/shares stay dated to the balance above. Values per share use the quote major currency. Other claims and dilution require review.'),output);
+  function paint(){
+    for(const [key,tag] of badges)tag.textContent=m.overrides.has(key)?'User assumption / override':reported.has(key)?'Sourced · dated above':calculated.has(key)?'Calculated · FCFF bridge':'User assumption';
+    output.replaceChildren();
+    if(stale&&!m.acceptDated){output.append(el('p','research-warning','Valuation paused until dated balances are reviewed and accepted.'));return;}
+    if(!['fcf','adjustment','debt','cash','shares','fx','debtAdjustment','years','discount','terminal','bear','base','bull'].every(k=>Number.isFinite(m[k]))||!quote||!c.financialCurrency){output.append(el('p','note','Incomplete sourced inputs. Enter verified missing values as explicit user assumptions. No valuation is fabricated.'));return;}
+    const params={...m,fcf:m.fcf+m.adjustment,discount:m.discount/100,terminal:m.terminal/100},base=researchDCF({...params,growth:m.base/100});
+    if(!base||m.bear<=-100||m.bear>m.base||m.base>m.bull){output.append(el('p','research-warning','Invalid assumptions: adjusted FCFF, shares and FX must be positive; debt/cash non-negative; WACC > terminal growth; integer years 1–20; growth > −100%; bear ≤ base ≤ bull.'));return;}
+    const market=researchQuoteMajor(c.price,c.priceCurrency);
+    output.append(el('p','note',`FCFF used (reporting m): ${fmt(m.fcf,2)} starting point + ${fmt(m.adjustment,2)} user adjustment = ${fmt(params.fcf,2)}. ${m.overrides.has('fcf')?'Starting point overridden by user.':'Starting point calculated from sourced annual components.'}`));
+    researchTable(output,['Scenario','FCFF growth',`Value/share ${quote}`,'vs market price'],['bear','base','bull'].map(k=>{const r=researchDCF({...params,growth:m[k]/100});return [k.toUpperCase(),pc(m[k]),r?fmt(r.price,2):'—',r&&market>0?pc((r.price/market-1)*100):'—'];}));
+    output.append(el('p','note',`Observed quote: ${market==null?'unavailable':fmt(market,2)+' '+quote} · ${c.priceAsOf||'date unknown'}. Base terminal value: ${fmt(base.terminalPV/base.enterprise*100,1)}% of enterprise value. Model outputs are calculated, not investment ratings.`));
+    const projected=researchDetails(output,'Projected FCFF & enterprise-to-equity bridge · assumptions');researchTable(projected,['Year','FCFF (reporting m)','Present value'],base.flows.map(r=>[String(r.year),fmt(r.flow,2),fmt(r.discounted,2)]));researchTable(projected,['Model bridge','Reporting-currency m'],[['Enterprise value',fmt(base.enterprise,2)],['Less debt',fmt(m.debt,2)],['Plus cash',fmt(m.cash,2)],['Less debt-related adjustment',fmt(m.debtAdjustment,2)],['Net financing deduction',fmt(m.debt-m.cash+m.debtAdjustment,2)],['Equity value',fmt(base.equity,2)]]);
+    const implied=researchReverse(params,market);output.append(el('h3','','REVERSE DCF'),el('p','note',implied==null?'No solution in −90% to +100% growth, or market price unavailable.':`Market price implies ${fmt(implied*100,2)}% annual FCFF growth for ${m.years} years, with all other inputs fixed. An implied assumption, not a forecast.`));
+    const sensitivity=researchDetails(output,'Sensitivity · value/share by WACC and terminal growth',true),gs=[m.terminal-1,m.terminal,m.terminal+1];researchTable(sensitivity,['WACC / g',...gs.map(g=>fmt(g,1)+'%')],[-2,-1,0,1,2].map(d=>[fmt(m.discount+d,1)+'%',...gs.map(g=>{const r=researchDCF({...params,growth:m.base/100,discount:(m.discount+d)/100,terminal:g/100});return r?fmt(r.price,2):'—';})]));
+  }
+  paint();renderResearchMultiples(host,c);
+}
+
 function researchNotes(host,c,fields){
   host.append(el('p','note','Research notebook · your assumptions and judgements, saved locally in this browser. Add dated report links and evidence. Empty fields mean no sourced conclusion is available. No investment rating is generated.'));
   for(const label of fields){const wrap=el('label','note',label),input=el('textarea','field');input.rows=3;input.setAttribute('aria-label',label);const key='mt-research:'+c.symbol+':'+label;try{input.value=localStorage.getItem(key)||researchNotebook.get(key)||'';}catch(_){input.value=researchNotebook.get(key)||'';}input.placeholder='No sourced assessment entered. Record evidence, source URL and date.';const status=el('span','mini');input.oninput=()=>{researchNotebook.set(key,input.value);try{localStorage.setItem(key,input.value);status.textContent='Saved locally';}catch(_){status.textContent='Browser storage unavailable: kept for this session only';}};wrap.append(input,status);host.append(wrap);}
 }
 function renderEquityResearch(c){
   if(!$('research-nav')||!c)return;
-  renderResearchStatements(c);renderResearchValuation(c);
+  renderResearchOverview(c);renderResearchStatements(c);renderResearchValuation(c);
   const business=$('research-business');business.replaceChildren();business.append(el('h3','','BUSINESS & COMPETITION'),el('p','note',c.businessSummary||'No sourced business description available.'),el('p','note',`Provider facts retrieved ${c.financialAsOf||'unknown'} · ${c.fundamentalSource||'unavailable'}. Industry: ${c.industry||'unknown'}. Peer comparisons below use the existing comparator; choose economically comparable businesses and verify fiscal periods.`));
   researchNotes(business,c,['Competitive advantages & supporting evidence','Competitors, market share & substitution threats','Capital allocation: reinvestment, acquisitions, dividends & buybacks']);
   const outlook=$('research-outlook');outlook.replaceChildren();outlook.append(el('h3','','OUTLOOK & CATALYSTS'));researchNotes(outlook,c,['Growth drivers & dated catalysts','Bear / base / bull operating thesis','Investment risks, disconfirming evidence & monitoring triggers']);
