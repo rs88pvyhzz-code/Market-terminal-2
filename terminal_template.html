@@ -404,6 +404,12 @@ h2{font:600 15px/1.35 var(--font);color:var(--amber);margin:0}h3{font:500 13px v
 .research-view .watch th,.research-view .watch td{padding:7px 6px;white-space:normal;overflow-wrap:anywhere;min-width:0}
 .research-view .watch td.n{font-variant-numeric:tabular-nums;white-space:nowrap}.research-view .watch th{font-size:10px}
 .research-view .watch th:first-child,.research-view .watch td:first-child{min-width:100px;max-width:180px}
+.research-view .watch.research-table{border-spacing:0}
+.research-view .watch.research-table--annual{table-layout:fixed;min-width:calc(var(--research-year-count) * 136px)}
+.research-view .watch.research-table th,.research-view .watch.research-table td{padding:8px 6px;line-height:1.5;vertical-align:middle}
+.research-view .watch.research-table .n{text-align:right;font-variant-numeric:tabular-nums lining-nums}
+.research-view .watch.research-table th:first-child,.research-view .watch.research-table td:first-child{text-align:left}
+.research-view .watch.research-table--annual th:first-child,.research-view .watch.research-table--annual td:first-child{min-width:0;max-width:none}
 .research-input-kind{color:var(--amber);font-size:10px;letter-spacing:0;line-height:1.4}
 .research-warning{display:block;background:#302318;border:1px solid #835c2e;color:#ffc479;padding:10px;margin:10px 0;font-size:12px;line-height:1.5}
 .research-provenance{border-left:2px solid var(--amber);padding-left:10px}.research-provenance p{margin:5px 0}
