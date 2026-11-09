@@ -10,10 +10,10 @@ import gilt_market
 
 ROOT = pathlib.Path(__file__).resolve().parent
 html = (ROOT / 'terminal_template.html').read_text('utf-8')
-a, b = html.index('function giltDay('), html.index('function renderGilts(')
+a, b = html.index('function giltDay('), html.index('function giltTaxRate(')
 model = html[a:b]
 n = html.index('function giltTaxRate(')
-net = html[n:html.index('function renderGilts(', n)].replace(
+net = html[n:html.index('const ladderState', n)].replace(
     "document.getElementById('mt-gilt-tax-rate')?.value", 'undefined')
 rows, day = gilt_market.parse_dmo_xlsx((ROOT / 'dmo_gilt_prices.xlsx').read_bytes())
 

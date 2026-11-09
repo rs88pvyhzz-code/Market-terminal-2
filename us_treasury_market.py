@@ -144,12 +144,18 @@ def public_json(url):
     return json.loads(raw)
 
 
+# The original site keeps its saved snapshot; a new repository falls back to it
+# until it has published its own.
+LEGACY_PAGES='https://rs88pvyhzz-code.github.io/market-terminal/'
+
 def prior_file(path,url):
     if path.exists():
         try:return json.loads(path.read_text('utf-8'))
         except (OSError,ValueError):pass
-    try:return public_json(url)
-    except Exception:return None
+    for candidate in (url,url.replace(_PAGES,LEGACY_PAGES)):
+        try:return public_json(candidate)
+        except Exception:continue
+    return None
 
 
 def collect(core,opts):

@@ -598,6 +598,24 @@ h2{font:600 15px/1.35 var(--font);color:var(--amber);margin:0}h3{font:500 13px v
   </div>
   <div class="research-stats" id="gilt-stats"></div>
   <p class="note" id="gilt-calc-note">Yield, accrued interest, duration and DV01 are <b>approximate</b>; the DMO spreadsheet has no published yield. The DMO price is a historical retail-service quote, not an executable offer. The model applies DMO conventions (T+3 settlement for DMO prices, T+1 for your own price, actual/actual accrual, 7-business-day ex-dividend) but ignores bank holidays and irregular first coupons, and excludes dealing costs. Index-linked gilts have real clean prices and inflation-adjusted dirty prices; a nominal YTM is <b>not</b> calculated for them.</p>
+  <section id="gilt-ladder" style="margin:18px 0 22px">
+  <div class="row"><div><h3>GILT LADDER BUILDER</h3>
+   <p class="note">Pick the conventional gilt with the best after-tax yield maturing in each year to fund a fixed amount of spending. Coupons from later gilts reduce what earlier years need. Uses the coupon tax rate selected above.</p></div>
+   <span class="mini" id="ladder-basis">—</span></div>
+  <div class="inputs" style="display:flex;gap:10px;flex-wrap:wrap;align-items:center">
+   <label class="mini" for="ladder-amount">CASH NEEDED EACH YEAR (£, AFTER TAX)</label>
+   <input class="field" id="ladder-amount" type="number" inputmode="numeric" min="1000" step="1000" value="50000" style="max-width:150px">
+   <label class="mini" for="ladder-start">FIRST YEAR</label>
+   <input class="field" id="ladder-start" type="number" inputmode="numeric" min="2026" max="2080" step="1" style="max-width:110px">
+   <label class="mini" for="ladder-years">NUMBER OF YEARS</label>
+   <input class="field" id="ladder-years" type="number" inputmode="numeric" min="1" max="40" step="1" value="10" style="max-width:90px">
+  </div>
+  <div class="research-stats" id="ladder-stats"></div>
+  <div class="constituents-scroll" style="max-height:460px"><table class="watch" style="min-width:900px"><thead><tr>
+   <th>Year</th><th>Gilt</th><th>Matures</th><th class="n">Nominal to buy</th><th class="n">Cost today</th><th class="n">Gross YTM</th><th class="n">Net YTM</th><th class="n">Cash in year (net)</th>
+  </tr></thead><tbody id="ladder-rows"></tbody></table></div>
+  <p class="note" id="ladder-note">Indicative only, not advice. Costs use DMO dated offer (dirty) prices; your broker's prices and dealing charges will differ. Coupon tax is deducted in the year each coupon is paid; the gain to par is CGT-exempt. Holdings above £5,000 nominal fall within the accrued income scheme, which shifts some tax between years but is not modelled. The personal savings allowance is ignored.</p>
+  </section>
   <div class="row"><h3>INDIVIDUAL GILT PRICE HISTORY</h3><div class="pills" id="gilt-period"><button class="btn" data-gilt-range="1M">1M</button><button class="btn" data-gilt-range="3M">3M</button><button class="btn" data-gilt-range="1Y">1Y</button><button class="btn active" data-gilt-range="MAX">MAX</button></div></div>
   <div class="chart" id="gilt-chart"></div><p class="note">Individual price history starts with this upgrade and grows as daily snapshots are saved. Existing benchmark yield history remains in the panels below; these are different series.</p>
   <p class="note">Source: <a target="_blank" rel="noopener noreferrer" href="https://www.dmo.gov.uk/data/pdfdatareport?reportCode=D10B">UK Debt Management Office, D10B daily Gilt Purchase and Sale Service</a>. Crown copyright under the Open Government Licence. Prices are retained with their original report date; missing automatic updates never become invented current prices.</p>
@@ -2405,6 +2423,85 @@ function giltNetYield(b,clean,rate,valuationDate,officialDirty=null){
   for(let i=0;i<90;i++){const mid=(lo+hi)/2;if(pv(mid)>cost)lo=mid;else hi=mid;}
   return (lo+hi)/2;
 }
+// GILT LADDER — backward induction: fund the last year first; coupons from later
+// rungs (net of tax) reduce what each earlier year must buy.
+const ladderState={amount:50000,start:null,years:10};
+function ladderMoney(x){return x==null||!Number.isFinite(x)?'—':'£'+Math.round(x).toLocaleString('en-GB');}
+function giltPayments(b){
+  // Dated cash per £100 nominal for a DMO-quoted gilt bought at its quote date.
+  const f=giltCashflows(b,b.asOf,true);if(!f)return null;
+  const out=[];let d=giltDay(b.maturity);const settle=giltDay(f.settlement);const dates=[];
+  while(d>settle){dates.push(d);d=giltMonths(d,-6);}
+  dates.reverse();
+  dates.forEach((date,k)=>{const coupon=(k===0&&f.exDividend)?0:b.coupon/2;out.push({date,coupon,principal:k===dates.length-1?100:0});});
+  return {settle,payments:out};
+}
+function renderGiltLadder(){
+  const host=$('ladder-rows');if(!host)return;host.replaceChildren();const stats=$('ladder-stats');stats.replaceChildren();
+  const tax=giltTaxRate()/100,amount=Number($('ladder-amount').value),startIn=$('ladder-start'),years=Math.round(Number($('ladder-years').value));
+  const pool=giltList.filter(g=>!g.indexLinked&&g.quoted&&g.askClean>0&&g.askDirty>0);
+  const quoteDate=pool[0]?.asOf;
+  if(!startIn.value){const base=quoteDate?Number(quoteDate.slice(0,4)):new Date().getUTCFullYear();startIn.value=String(base+1);}
+  const start=Math.round(Number(startIn.value));
+  $('ladder-basis').textContent=quoteDate?'DMO offer prices dated '+quoteDate+' · coupon tax '+Math.round(tax*100)+'%':'No quoted gilts';
+  const fail=msg=>{const tr=el('tr');const c=td(tr,msg);c.colSpan=8;host.append(tr);};
+  if(!pool.length)return fail('No dated DMO gilt prices available.');
+  if(!(amount>0)||!(years>=1&&years<=40)||!(start>=2000))return fail('Enter an amount, a first year and a number of years.');
+  // Choose one gilt per year: best after-tax yield maturing that calendar year;
+  // if none, the latest gilt maturing earlier within the ladder (money then waits in cash).
+  const metrics=new Map(pool.map(g=>[g.isin,{g,net:giltNetYield(g,g.askClean,tax*100,g.asOf,g.askDirty),gross:giltValuation(g,g.askClean,g.asOf,g.askDirty)?.ytm}]));
+  const plan=[];
+  for(let y=start;y<start+years;y++){
+    let options=pool.filter(g=>Number(g.maturity.slice(0,4))===y),early=false;
+    if(!options.length){early=true;options=pool.filter(g=>{const my=Number(g.maturity.slice(0,4));return my<y&&my>=start;});
+      const latest=options.reduce((m,g)=>g.maturity>m?g.maturity:m,'');options=options.filter(g=>g.maturity===latest);}
+    const best=options.map(g=>metrics.get(g.isin)).filter(m=>m.net!=null).sort((a,b)=>b.net-a.net)[0];
+    plan.push({year:y,pick:best?.g||null,early});
+  }
+  const rungs=new Map();
+  for(const p of plan){if(!p.pick)continue;const r=rungs.get(p.pick.isin)||{g:p.pick,years:[]};r.years.push(p.year);rungs.set(p.pick.isin,r);}
+  const need=new Map(plan.map(p=>[p.year,amount]));
+  const netIncome=new Map();                       // net cash per calendar year from rungs already bought
+  const bought=[];
+  for(const r of [...rungs.values()].sort((a,b)=>b.g.maturity.localeCompare(a.g.maturity))){
+    const pay=giltPayments(r.g);if(!pay)continue;
+    const maturityYear=Number(r.g.maturity.slice(0,4));
+    // Need in the years this gilt covers, less net coupons already arriving in those years from later rungs.
+    const required=r.years.reduce((s,y)=>s+need.get(y)-(netIncome.get(y)||0),0);
+    const perHundredInYear=pay.payments.filter(x=>x.date.getUTCFullYear()===maturityYear).reduce((s,x)=>s+x.principal+x.coupon*(1-tax),0);
+    const nominal=Math.max(0,required)/perHundredInYear*100;
+    for(const x of pay.payments){const y=x.date.getUTCFullYear();if(y===maturityYear)continue;
+      netIncome.set(y,(netIncome.get(y)||0)+nominal/100*x.coupon*(1-tax));}
+    netIncome.set(maturityYear,(netIncome.get(maturityYear)||0)+nominal/100*perHundredInYear);
+    bought.push({...r,nominal,cost:nominal*r.g.askDirty/100,pay});
+  }
+  // Net cash flows for the portfolio IRR (settlement date to each payment date).
+  const flows=[];let totalCost=0,settle=null;
+  for(const b of bought){totalCost+=b.cost;settle=b.pay.settle;
+    for(const x of b.pay.payments)flows.push({date:x.date,amt:b.nominal/100*(x.principal+x.coupon*(1-tax))});}
+  const yrs=d=>(d-settle)/(365.25*86400000);
+  const npv=r=>flows.reduce((s,f)=>s+f.amt/Math.pow(1+r,yrs(f.date)),0)-totalCost;
+  let lo=-0.5,hi=1,irr=null;if(settle&&npv(lo)>0&&npv(hi)<0){for(let i=0;i<100;i++){const m=(lo+hi)/2;if(npv(m)>0)lo=m;else hi=m;}irr=(lo+hi)/2*100;}
+  const received=flows.reduce((s,f)=>s+f.amt,0);
+  for(const p of plan){
+    const tr=el('tr');const b=bought.find(x=>x.years.includes(p.year));const m=p.pick?metrics.get(p.pick.isin):null;
+    td(tr,String(p.year));
+    td(tr,p.pick?(p.pick.shortTicker?p.pick.shortTicker+' · ':'')+p.pick.name+(p.early?' (matures earlier; hold cash)':''):'No suitable gilt');
+    td(tr,p.pick?.maturity||'—');
+    const first=b&&b.years[0]===p.year;
+    td(tr,first?ladderMoney(b.nominal):b?'(same gilt)':'—','n');td(tr,first?ladderMoney(b.cost):'—','n');
+    td(tr,m?.gross!=null?fmt(m.gross,3)+'%':'—','n');td(tr,m?.net!=null?fmt(m.net,3)+'%':'—','n');
+    const cashY=flows.filter(f=>f.date.getUTCFullYear()===p.year).reduce((s,f)=>s+f.amt,0);
+    td(tr,ladderMoney(cashY),'n');host.append(tr);
+  }
+  const missing=plan.filter(p=>!p.pick).length;
+  for(const [k,v,n] of [['Total cost today',ladderMoney(totalCost),'Dirty prices incl. accrued interest; before dealing costs'],
+      ['Total cash received (net)',ladderMoney(received),years+' years × '+ladderMoney(amount)+(missing?' · '+missing+' year(s) unfunded':'')],
+      ['Ladder net yield (IRR)',irr!=null?fmt(irr,2)+'%':'—','After coupon tax, annual compounding'],
+      ['Gross-equivalent rate',irr!=null&&tax<1?fmt(irr/(1-tax),2)+'%':'—','Taxable deposit rate needed to match'],
+      ['Price date',quoteDate||'—',quoteDate&&((new Date((D.generatedAt||'').slice(0,10))-new Date(quoteDate))/864e5>4)?'STALE: refresh the DMO prices before acting':'DMO retail-service offer prices']])
+    stats.append(researchTile(k,v,n));
+}
 function renderGilts(){
   const table=$('gilt-rows');table.replaceChildren();
   const rows=giltList.filter(g=>(giltState.type==='all'||(giltState.type==='linked'&&g.indexLinked)||(giltState.type==='conventional'&&!g.indexLinked))&&
@@ -2464,6 +2561,7 @@ function renderGilts(){
   if(pts.length>=2)chart('gilt-chart',[{name:(b.shortTicker||b.isin)+' DMO offer clean',color:AMBER,pts}],{format:x=>'£'+fmt(x,2),aria:b.name+' DMO dated offer clean prices'});
   else empty('gilt-chart',dates.length===1?'One DMO observation saved; the chart grows when later dated DMO files are collected.':'No historical DMO price snapshots yet.');
   document.querySelectorAll('[data-gilt-range]').forEach(btn=>btn.classList.toggle('active',btn.dataset.giltRange===giltState.range));
+  renderGiltLadder();
 }
 // U.S. TREASURY MONITOR — fixed-coupon YTM is a valuation model, not a quoted yield.
 const ustList=D.us_treasuries||[];
@@ -2535,6 +2633,7 @@ function init(){setLatest();reorderSections();
   $('gilt-search').oninput=e=>{giltState.search=e.target.value.toLowerCase().trim();renderGilts();};
   $('gilt-type').onchange=e=>{giltState.type=e.target.value;renderGilts();};
   $('gilt-sort').onchange=e=>{giltState.sort=e.target.value;renderGilts();};
+  for(const id of ['ladder-amount','ladder-start','ladder-years'])$(id).oninput=()=>renderGiltLadder();
   $('gilt-clean-input').oninput=e=>{const raw=e.target.value,n=Number(raw);if(raw==='')giltState.manual.set(giltState.symbol,'');else if(Number.isFinite(n)&&n>0&&n<300)giltState.manual.set(giltState.symbol,n);else return;renderGilts();};
   document.querySelectorAll('[data-gilt-range]').forEach(b=>b.onclick=()=>{giltState.range=b.dataset.giltRange;renderGilts();});if(!D.quotes.length){empty('main-chart','No quote data embedded. Run: python build_terminal.py');empty('compare-chart','No quote data embedded.');}
   if(D.quotes.length&&!qMap.has(state.sym))state.sym=D.quotes[0].symbol;

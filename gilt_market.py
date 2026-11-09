@@ -193,11 +193,14 @@ def _recent_business_days(today, count=2):
 
 def collect(core,opts):
     warnings=[];candidates=[];downloaded=False
-    if SEED.exists():
+    # Any uploaded DMO D10B Excel file counts, whatever it is called: the newest
+    # report date wins. Upload the DMO download as-is; no renaming needed.
+    for book in sorted(ROOT.glob('*.xls*')):
         try:
-            seed_rows,day=parse_dmo_xlsx(SEED.read_bytes())
+            seed_rows,day=parse_dmo_xlsx(book.read_bytes())
             candidates.append({'asOf':day.isoformat(),'bonds':seed_rows})
-        except Exception as e:warnings.append('DMO spreadsheet could not be parsed: '+str(e)[:150])
+        except Exception as e:
+            if book==SEED:warnings.append('DMO spreadsheet could not be parsed: '+str(e)[:150])
     if LATEST.exists():
         try:
             p=_accept_snapshot(json.loads(LATEST.read_text('utf-8')))
