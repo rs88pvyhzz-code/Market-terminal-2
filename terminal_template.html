@@ -2413,7 +2413,7 @@ function giltValuation(b,clean,valuationDate,officialDirty=null){
   const duration=weighted/dirty/(1+y/200),dv01=dirty*duration*0.0001;
   return {clean,dirty,ytm:y,accrued:f.accrued,exDividend:f.exDividend,running:100*b.coupon/clean,duration,dv01,capitalGain:100-clean,settlement:f.settlement};
 }
-function giltTaxRate(){const v=Number(document.getElementById('mt-gilt-tax-rate')?.value);return Number.isFinite(v)?v:45;}
+function giltTaxRate(){const v=Number(document.getElementById('mt-gilt-tax-rate')?.value);return Number.isFinite(v)?v:20;}
 function giltNetYield(b,clean,rate,valuationDate,officialDirty=null){
   if(b.indexLinked||!(clean>0))return null;
   const dmo=officialDirty!=null&&Number(officialDirty)>0,f=giltCashflows(b,valuationDate,dmo);if(!f)return null;
