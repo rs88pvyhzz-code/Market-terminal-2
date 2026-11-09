@@ -405,6 +405,7 @@ h2{font:600 15px/1.35 var(--font);color:var(--amber);margin:0}h3{font:500 13px v
     <button type="button" role="tab" id="tab-fx" aria-controls="view-fx" data-workspace="fx" aria-selected="false">MARKETS</button>
     <button type="button" role="tab" id="tab-equities" aria-controls="view-equities" data-workspace="equities" aria-selected="false">EQUITIES</button>
     <button type="button" role="tab" id="tab-companies" aria-controls="view-companies" data-workspace="companies" aria-selected="false">COMPANY RESEARCH</button>
+    <button type="button" role="tab" id="tab-forensic" aria-controls="view-forensic" data-workspace="forensic" aria-selected="false">FORENSIC</button>
     <button type="button" role="tab" id="tab-bonds" aria-controls="view-bonds" data-workspace="bonds" aria-selected="false">BONDS & RATES</button>
     <button type="button" role="tab" id="tab-analytics" aria-controls="view-analytics" data-workspace="analytics" aria-selected="false">ANALYTICS</button>
     <button type="button" role="tab" id="tab-etfs" aria-controls="view-etfs" data-workspace="etfs" aria-selected="false">ETF TRACKERS</button>
@@ -670,6 +671,25 @@ h2{font:600 15px/1.35 var(--font);color:var(--amber);margin:0}h3{font:500 13px v
     <div class="company-news-links"><a id="company-google-news" target="_blank" rel="noopener noreferrer" href="https://news.google.com/">SEARCH LATEST COMPANY NEWS</a><a id="company-yahoo-news" target="_blank" rel="noopener noreferrer" href="https://finance.yahoo.com/">YAHOO FINANCE COMPANY PAGE</a></div>
   </section>
   <p class="note">Search covers the saved constituents of the S&amp;P 500, Nasdaq 100, FTSE 100 and FTSE 250. The collector prioritises companies with large daily moves, storing up to 10 years of share-price history for a small selection and gathering up to 40 new financial summaries per scheduled run. Historical accounts remain limited to preselected detailed profiles. The website is a static snapshot, not a live on-demand data API. Missing figures are shown as —; financial reports and share prices can use different currencies.</p>
+</section>
+<section class="panel" id="forensic-panel">
+  <div class="row"><div><h2>FORENSIC ACCOUNTS CHECK</h2>
+  <p class="note">Automatic red-flag screen on up to four years of reported accounts: earnings quality, cash conversion, working capital, dilution, margins and balance-sheet strain. It points you to where to look; it does not prove anything. For a narrative review with sources, use FULL REVIEW IN CLAUDE.</p></div>
+  <span class="mini" id="forensic-coverage"></span></div>
+  <div class="research-controls">
+    <label for="forensic-query" class="mini">COMPANY</label>
+    <input id="forensic-query" type="search" class="field" list="company-suggestions" autocomplete="off" placeholder="Type Shell, Hiscox, AAPL…" aria-label="Company for forensic check">
+    <button class="btn" id="forensic-go" type="button">CHECK</button>
+    <button class="btn" id="forensic-claude" type="button">FULL REVIEW IN CLAUDE</button>
+  </div>
+  <p id="forensic-alert" class="mover-warning" style="display:none" aria-live="polite"></p>
+  <div class="company-ident"><div><strong id="forensic-name">Choose a company</strong><span class="company-symbol" id="forensic-symbol"></span><div class="note" id="forensic-sector"></div></div></div>
+  <div class="research-stats" id="forensic-summary"></div>
+  <div class="constituents-scroll" style="display:block;max-width:100%;overflow:auto"><table class="watch" style="min-width:640px"><thead><tr>
+    <th>Test</th><th>Result</th><th class="n">Latest</th><th class="n">Prior</th><th style="min-width:260px">Why it matters</th></tr></thead><tbody id="forensic-rows"></tbody></table></div>
+  <h3 style="margin-top:16px">ACCOUNTS USED</h3>
+  <div class="constituents-scroll" style="display:block;max-width:100%;overflow:auto"><table class="watch" style="min-width:820px"><thead id="forensic-years-head"></thead><tbody id="forensic-years"></tbody></table></div>
+  <p class="note">Source: annual statements via Yahoo Finance (unofficial, unaudited extraction). Thresholds are screening rules of thumb, not accounting standards. Banks and insurers need sector tests (combined ratio, reserve development, solvency), so generic tests are switched off for them.</p>
 </section>
 <section class="panel" id="company-events-panel">
   <div class="row"><div><h2>COMPANY EARNINGS &amp; CORPORATE EVENTS</h2>
@@ -1986,6 +2006,7 @@ function reorderSections(){
     ['fx','GLOBAL MARKET DATA','Major markets · prices · interactive historical charts',['monitor']],
     ['equities','EQUITY MARKETS','Daily movers · full index constituents',['movers','equity-screener','constituents']],
     ['companies','COMPANY RESEARCH','Prices & financials · peer comparison · news · earnings diary',['companies','peer-panel','company-news-panel','company-events-panel']],
+    ['forensic','FORENSIC ACCOUNTS','Earnings quality · cash conversion · dilution · balance-sheet red flags',['forensic-panel']],
     ['bonds','BONDS & RATES','Government bonds · corporate credit · yield curves',['gilts','us-treasuries','corporate-credit','rates','real','us-spread-panel','sovereign','cross-rates']],
     ['analytics','VALUATIONS & MARKET ANALYTICS','Breadth · sectors · rolling risk · valuations · ETF data accuracy · comparisons',['analytics-breadth','analytics-sectors','analytics-rolling','market-valuations','compare','score-panel']],
     ['etfs','ETF RESEARCH','TER · tracking error · country funds · equities · bonds',['etf-tracker-panel']],
@@ -2492,7 +2513,7 @@ function initWatchlist(){
  $('watchlist-basis').onchange=e=>{watchState.basis=e.target.value;const w=watchlistRecords.find(r=>r.symbol===watchState.symbol);if(w){renderWatchlistChart(w,watchQuoteMap.get(w.symbol));renderWatchlistRelative(w,watchQuoteMap.get(w.symbol));}};
 }
 
-const WORKSPACES=['overview','fx','equities','companies','bonds','analytics','etfs','economics','watchlist','quality'];
+const WORKSPACES=['overview','fx','equities','companies','forensic','bonds','analytics','etfs','economics','watchlist','quality'];
 let activeWorkspace='overview', searchHits=[], searchCursor=0;
 const workspaceForSection={'etf-tracker-panel':'etfs','personal-watchlist-panel':'watchlist','analytics-breadth':'analytics','analytics-sectors':'analytics','analytics-rolling':'analytics','market-valuations':'analytics','corporate-credit':'bonds','company-events-panel':'companies','us-treasuries':'bonds',gilts:'bonds',news:'overview',headline:'overview',monitor:'fx',movers:'equities','equity-screener':'equities',constituents:'equities',companies:'companies','peer-panel':'companies',rates:'bonds',real:'bonds',sovereign:'bonds',macro:'economics',calendar:'economics',compare:'analytics','quality-panel':'quality',sources:'quality'};
 function paintWorkspace(key){
@@ -2500,6 +2521,7 @@ function paintWorkspace(key){
     case 'overview': renderNews(); renderPulse(); break;
     case 'equities': renderMovers(); renderScreener(); renderConstituents(); break;
     case 'companies': renderCompany(); renderPeers(); renderCompanyEvents(); break;
+    case 'forensic': renderForensic(); break;
     case 'bonds': renderGilts(); renderCredit(); renderRates(); usSpread(); renderReal(); renderSovereign(); break;
     case 'etfs': renderEtfTracker(); break;
     case 'economics': renderMacro(); renderEconomicPrints(); renderCalendar(); break;
@@ -3755,6 +3777,113 @@ function renderGiltLadder(){
       ['Price date',quoteDate||'—',quoteDate&&((new Date((D.generatedAt||'').slice(0,10))-new Date(quoteDate))/864e5>4)?'STALE: refresh the DMO prices before acting':'DMO retail-service offer prices']])
     stats.append(researchTile(k,v,n));
 }
+
+// ---------- FORENSIC ACCOUNTS CHECK ----------
+const forensicState={symbol:''};
+function forensicIsFinancial(c){const t=((c.sector||'')+' '+(c.industry||'')).toLowerCase();
+  return /financial services|insurance|bank|reinsurance|capital markets|asset management|credit services/.test(t);}
+function forensicTests(c){
+  const yrs=(c.annual||[]).filter(r=>r&&(r.revenue!=null||r.netProfit!=null)).slice().sort((a,b)=>String(b.fiscalEnd).localeCompare(String(a.fiscalEnd)));
+  const L=yrs[0]||{},P=yrs[1]||{},fin=forensicIsFinancial(c),out=[];
+  const g=(a,b)=>a!=null&&b!=null&&b!==0?(a/b-1)*100:null;
+  const pct=v=>v==null||!Number.isFinite(v)?'—':(v>0?'+':'')+fmt(v,1)+'%';
+  const x=v=>v==null||!Number.isFinite(v)?'—':fmt(v,2)+'×';
+  const pp=v=>v==null||!Number.isFinite(v)?'—':fmt(v,1)+'%';
+  const add=(name,latest,prior,status,why)=>out.push({name,latest,prior,status,why});
+  const grade=(v,watch,flag,higherIsWorse=true)=>v==null||!Number.isFinite(v)?'n/a':higherIsWorse?(v>flag?'FLAG':v>watch?'WATCH':'OK'):(v<flag?'FLAG':v<watch?'WATCH':'OK');
+  const fcf=r=>r.operatingCashFlow!=null&&r.capex!=null?r.operatingCashFlow+r.capex:null;
+  const nd=r=>r.totalDebt!=null&&r.cash!=null?r.totalDebt-r.cash:null;
+  const m=(a,b)=>a!=null&&b?a/b*100:null;
+  if(!fin){
+    const revG=g(L.revenue,P.revenue),recG=g(L.receivables,P.receivables),invG=g(L.inventory,P.inventory);
+    add('Receivables growth vs revenue growth',pct(recG)+' vs '+pct(revG),'',grade(recG!=null&&revG!=null?recG-revG:null,7,15),
+      'Receivables outgrowing sales can mean looser credit terms or revenue booked before cash is collected.');
+    if(L.inventory!=null)add('Inventory growth vs revenue growth',pct(invG)+' vs '+pct(revG),'',grade(invG!=null&&revG!=null?invG-revG:null,7,15),
+      'Stock building faster than sales can signal weakening demand or future write-downs.');
+    const cc=r=>r.operatingCashFlow!=null&&r.netProfit>0?r.operatingCashFlow/r.netProfit:null;
+    add('Cash conversion (operating cash flow ÷ net profit)',x(cc(L)),x(cc(P)),grade(cc(L),1.0,0.8,false),
+      'Profits that do not turn into cash are the most common sign of aggressive accounting.');
+    const avgA=L.totalAssets!=null&&P.totalAssets!=null?(L.totalAssets+P.totalAssets)/2:L.totalAssets;
+    const accr=L.netProfit!=null&&L.operatingCashFlow!=null&&avgA?(L.netProfit-L.operatingCashFlow)/avgA*100:null;
+    add('Accruals ratio ((profit − cash flow) ÷ assets)',pp(accr),'',grade(accr,2,5),
+      'High accruals mean earnings rest on estimates rather than cash; they tend to reverse.');
+    const dist=r=>(r.buybacks!=null||r.dividendsPaid!=null)?-((r.buybacks||0)+(r.dividendsPaid||0)):null;
+    const cover=fcf(L)!=null&&dist(L)>0?fcf(L)/dist(L):null;
+    add('Free cash flow ÷ dividends and buybacks',x(cover),x(fcf(P)!=null&&dist(P)>0?fcf(P)/dist(P):null),
+      fcf(L)!=null&&fcf(L)<0&&dist(L)>0?'FLAG':grade(cover,1.1,0.9,false),'Paying out more than free cash flow means distributions are funded by debt or asset sales.');
+    const sbc=L.shareBasedComp!=null&&L.operatingCashFlow>0?L.shareBasedComp/L.operatingCashFlow*100:null;
+    add('Share-based pay ÷ operating cash flow',pp(sbc),'',grade(sbc,10,20),'Large share-based pay flatters cash flow while diluting shareholders.');
+    const gm=r=>m(r.grossProfit,r.revenue),om=r=>m(r.operatingProfit,r.revenue);
+    add('Gross margin',pp(gm(L)),pp(gm(P)),grade(gm(L)!=null&&gm(P)!=null?gm(P)-gm(L):null,1.5,3),'Falling gross margin points to pricing pressure or rising input costs.');
+    add('Operating margin',pp(om(L)),pp(om(P)),grade(om(L)!=null&&om(P)!=null?om(P)-om(L):null,2,4),'A falling operating margin shows costs outrunning sales.');
+    const lev=r=>nd(r)!=null&&r.operatingProfit>0?nd(r)/r.operatingProfit:null;
+    add('Net debt ÷ operating profit',x(lev(L)),x(lev(P)),grade(lev(L),2.5,4),'Rising leverage reduces room for error if profits fall.');
+    const ic=L.operatingProfit!=null&&L.interestExpense>0?L.operatingProfit/L.interestExpense:null;
+    add('Interest cover (operating profit ÷ interest)',x(ic),'',grade(ic,6,3,false),'Thin interest cover leaves little buffer against higher rates or weaker trading.');
+    const cd=r=>r.capex!=null&&r.depreciation>0?Math.abs(r.capex)/r.depreciation:null;
+    add('Capital spending ÷ depreciation',x(cd(L)),x(cd(P)),cd(L)!=null&&cd(P)!=null&&cd(L)<0.8&&cd(P)<0.8?'WATCH':cd(L)==null?'n/a':'OK',
+      'Spending persistently below depreciation can flatter free cash flow at the expense of the asset base.');
+  }
+  const sh=g(L.sharesOutstanding,P.sharesOutstanding);
+  add('Change in shares outstanding',pct(sh),'',grade(sh,1,3),'Share count rising despite buybacks means owners are being diluted (acquisitions, share schemes).');
+  const gw=L.goodwill!=null&&L.equity>0?L.goodwill/L.equity*100:null;
+  add('Goodwill ÷ equity',pp(gw),'',grade(gw,50,100),'Book value made up largely of goodwill is vulnerable to impairment.');
+  return {tests:out,years:yrs,financial:fin};
+}
+function forensicPrompt(c,res){
+  const lines=res.tests.filter(t=>t.status!=='n/a').map(t=>'- '+t.name+': '+t.latest+(t.prior?' (prior '+t.prior+')':'')+' → '+t.status).join('\n');
+  const sector=res.financial
+    ? 'It is a financial company: focus on reserve development (prior-year releases as a share of underwriting profit, accident-year combined ratio), reserve confidence and risk adjustment, solvency ratio trend, investment result including unrealised losses, catastrophe exposure, capital returns versus share-scheme purchases, and adjusted versus statutory returns.'
+    : 'Check receivables and inventory against revenue, cash conversion, accruals, capitalised costs, changes in accounting policies or estimates, impairment assumptions, related parties, leases and off-balance-sheet obligations, dilution versus buybacks, and adjusted versus statutory profit.';
+  return 'Act as a forensic accountant. Company: '+c.name+' ('+c.symbol+').\n'+
+    'Search for the latest annual report and most recent interim or quarterly results, and cite sources with page or section references.\n'+sector+'\n'+
+    'My terminal\'s automated screen (Yahoo Finance data, may be wrong) shows:\n'+lines+'\n'+
+    'Verify these against the filings. Separate confirmed facts from potential concerns, give confidence levels, compare with the prior period, and finish with what evidence would change your view.';
+}
+function renderForensic(){
+  const sym=forensicState.symbol||state.companySymbol||((D.companies||[])[0]||{}).symbol;
+  const withAccounts=new Set([...(D.companies||[]).filter(c=>(c.annual||[]).length).map(c=>c.symbol),...(D.companyProfiles||[]).filter(c=>(c.annual||[]).some(r=>r.operatingCashFlow!=null)).map(c=>c.symbol)]);
+  $('forensic-coverage').textContent=withAccounts.size+' companies with accounts collected';
+  const c=sym?ensureCompany(sym):null;
+  const host=$('forensic-rows'),yh=$('forensic-years-head'),yb=$('forensic-years'),summ=$('forensic-summary'),alert=$('forensic-alert');
+  host.replaceChildren();yh.replaceChildren();yb.replaceChildren();summ.replaceChildren();alert.style.display='none';
+  if(!c){$('forensic-name').textContent='Choose a company';return;}
+  forensicState.symbol=c.symbol;$('forensic-query').value=c.name;
+  $('forensic-name').textContent=c.name;$('forensic-symbol').textContent=c.symbol;
+  $('forensic-sector').textContent=[c.sector,c.industry].filter(Boolean).join(' · ');
+  const res=forensicTests(c);
+  const hasBS=res.years.some(r=>r.operatingCashFlow!=null||r.totalAssets!=null);
+  if(!res.years.length||!hasBS){alert.textContent=res.years.length?'Balance sheet and cash flow lines not collected yet for this company (profiles refresh in rotation, about 35 per build). Use FULL REVIEW IN CLAUDE meanwhile.':
+    'No annual accounts collected for this company: full accounts cover the FTSE 100, the 100 largest US companies and your selected companies. Use FULL REVIEW IN CLAUDE.';alert.style.display='block';}
+  if(res.financial){alert.textContent=(alert.style.display==='block'?alert.textContent+' ':'')+'Financial company: generic working-capital and cash-flow tests are switched off. Sector tests need the reports; use FULL REVIEW IN CLAUDE.';alert.style.display='block';}
+  const counts={FLAG:0,WATCH:0,OK:0};res.tests.forEach(t=>{if(counts[t.status]!=null)counts[t.status]++;});
+  for(const [k,v,n] of [['Red flags',String(counts.FLAG),'Tests outside the warning threshold'],['Watch',String(counts.WATCH),'Worth a closer look'],['Clear',String(counts.OK),'Within normal range'],
+    ['Latest accounts',res.years[0]?.fiscalEnd||'—',c.financialCurrency||c.priceCurrency||'']])summ.append(researchTile(k,v,n));
+  const colour={FLAG:'var(--red,#ff5c5c)',WATCH:'var(--amber,#ffa028)',OK:'var(--green,#3ecf8e)'};
+  for(const t of res.tests){const tr=el('tr');const nm=td(tr,t.name);nm.style.whiteSpace='normal';nm.style.maxWidth='190px';
+    const st=td(tr,t.status==='n/a'?'No data':t.status);if(colour[t.status]){st.style.color=colour[t.status];st.style.fontWeight='700';}
+    td(tr,t.latest,'n');td(tr,t.prior||'—','n');const w=td(tr,t.why);w.style.whiteSpace='normal';host.append(tr);}
+  const ccy=c.financialCurrency||'';const cols=['Year','Revenue','Operating profit','Net profit','Operating cash flow','Receivables','Inventory','Net debt','Shares (m)'];
+  const hr=el('tr');cols.forEach((h,i)=>{const th=document.createElement('th');th.textContent=h;if(i)th.className='n';hr.append(th);});yh.append(hr);
+  for(const r of res.years){const tr=el('tr');td(tr,r.fiscalYear||String(r.fiscalEnd).slice(0,4));
+    for(const v of [r.revenue,r.operatingProfit,r.netProfit,r.operatingCashFlow,r.receivables,r.inventory,r.totalDebt!=null&&r.cash!=null?r.totalDebt-r.cash:null])td(tr,v==null?'—':companyAmount(v,ccy),'n');
+    td(tr,r.sharesOutstanding==null?'—':fmt(r.sharesOutstanding/1e6,1),'n');yb.append(tr);}
+}
+function forensicOpen(query){
+  const term=String(query||'').trim().toLowerCase();if(!term)return;
+  const list=savedCompanyList();
+  const hit=list.find(c=>c.symbol.toLowerCase()===term||c.name.toLowerCase()===term)||list.find(c=>c.name.toLowerCase().startsWith(term)||c.symbol.toLowerCase().startsWith(term))||list.find(c=>c.name.toLowerCase().includes(term));
+  if(!hit){$('forensic-alert').textContent='No company matching "'+query+'" in the FTSE 100/250, S&P 500, Nasdaq 100 or your list.';$('forensic-alert').style.display='block';return;}
+  forensicState.symbol=hit.symbol;renderForensic();
+}
+function forensicClaude(){
+  const c=forensicState.symbol?ensureCompany(forensicState.symbol):null;if(!c)return;
+  const prompt=forensicPrompt(c,forensicTests(c));
+  try{navigator.clipboard&&navigator.clipboard.writeText(prompt).catch(()=>{});}catch(e){}
+  window.open('https://claude.ai/new?q='+encodeURIComponent(prompt),'_blank','noopener');
+  const a=$('forensic-alert');a.textContent='Opened Claude with the review prompt. If it does not appear in the message box, it is also on your clipboard: paste it in.';a.style.display='block';
+}
+
 function renderGilts(){
   const table=$('gilt-rows');table.replaceChildren();
   const rows=giltList.filter(g=>(giltState.type==='all'||(giltState.type==='linked'&&g.indexLinked)||(giltState.type==='conventional'&&!g.indexLinked))&&
@@ -3886,6 +4015,10 @@ function init(){setLatest();reorderSections();
   $('gilt-search').oninput=e=>{giltState.search=e.target.value.toLowerCase().trim();renderGilts();};
   $('gilt-type').onchange=e=>{giltState.type=e.target.value;renderGilts();};
   $('gilt-sort').onchange=e=>{giltState.sort=e.target.value;renderGilts();};
+  $('forensic-go').onclick=()=>forensicOpen($('forensic-query').value);
+  $('forensic-query').onkeydown=e=>{if(e.key==='Enter')forensicOpen(e.target.value);};
+  $('forensic-query').onchange=e=>forensicOpen(e.target.value);
+  $('forensic-claude').onclick=forensicClaude;
   for(const id of ['ladder-amount','ladder-start','ladder-years'])$(id).oninput=()=>renderGiltLadder();
   $('gilt-clean-input').oninput=e=>{const raw=e.target.value,n=Number(raw);if(raw==='')giltState.manual.set(giltState.symbol,'');else if(Number.isFinite(n)&&n>0&&n<300)giltState.manual.set(giltState.symbol,n);else return;renderGilts();};
   document.querySelectorAll('[data-gilt-range]').forEach(b=>b.onclick=()=>{giltState.range=b.dataset.giltRange;renderGilts();});if(!D.quotes.length){empty('main-chart','No quote data embedded. Run: python build_terminal.py');empty('compare-chart','No quote data embedded.');}

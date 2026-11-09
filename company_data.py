@@ -66,9 +66,59 @@ def annual_income_rows(ticker):
                 'operatingProfit':take(col,['Operating Income']),
                 'netProfit':take(col,['Net Income','Net Income Common Stockholders','Net Income From Continuing And Discontinued Operation']),
                 'pretaxProfit':take(col,['Pretax Income']),
-                'dilutedEps':take(col,['Diluted EPS'])})
+                'dilutedEps':take(col,['Diluted EPS']),
+                'grossProfit':take(col,['Gross Profit']),
+                'interestExpense':take(col,['Interest Expense','Interest Expense Non Operating'])})
+        _add_forensic_fields(ticker, rows)
         return rows
     except Exception: return []
+
+
+# Balance sheet and cash flow lines used by the Forensic tab. Missing lines stay
+# None; nothing is estimated. Labels are yfinance's standard row names.
+_BALANCE = {
+    'receivables': ['Accounts Receivable', 'Receivables', 'Gross Accounts Receivable'],
+    'inventory': ['Inventory'],
+    'totalAssets': ['Total Assets'],
+    'equity': ['Stockholders Equity', 'Common Stock Equity', 'Total Equity Gross Minority Interest'],
+    'totalDebt': ['Total Debt'],
+    'cash': ['Cash And Cash Equivalents', 'Cash Cash Equivalents And Short Term Investments'],
+    'goodwill': ['Goodwill', 'Goodwill And Other Intangible Assets'],
+    'sharesOutstanding': ['Ordinary Shares Number', 'Share Issued'],
+}
+_CASHFLOW = {
+    'operatingCashFlow': ['Operating Cash Flow', 'Cash Flow From Continuing Operating Activities'],
+    'capex': ['Capital Expenditure'],
+    'depreciation': ['Depreciation And Amortization', 'Depreciation Amortization Depletion', 'Reconciled Depreciation'],
+    'shareBasedComp': ['Stock Based Compensation'],
+    'buybacks': ['Repurchase Of Capital Stock', 'Common Stock Payments'],
+    'dividendsPaid': ['Cash Dividends Paid', 'Common Stock Dividend Paid'],
+}
+
+
+def _add_forensic_fields(ticker, rows):
+    for attr, fields in (('balance_sheet', _BALANCE), ('cashflow', _CASHFLOW)):
+        try:
+            frame = getattr(ticker, attr)
+        except Exception:
+            continue
+        if frame is None or getattr(frame, 'empty', True):
+            continue
+        by_year = {}
+        for col in frame.columns:
+            date = col.date().isoformat() if hasattr(col, 'date') else str(col)[:10]
+            by_year[date[:4]] = col
+        for row in rows:
+            col = by_year.get(row.get('fiscalYear'))
+            if col is None:
+                continue
+            for key, names in fields.items():
+                for name in names:
+                    if name in frame.index:
+                        value = _num(frame.loc[name, col])
+                        if value is not None:
+                            row[key] = value
+                            break
 
 
 def _calendar_events(calendar):
