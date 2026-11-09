@@ -44,6 +44,7 @@ import etf_metrics
 import etf_structure
 import etf_issuer_db
 import etf_consolidation
+import company_profiles
 
 ROOT = pathlib.Path(__file__).resolve().parent
 CACHE = ROOT / '.terminal_cache'
@@ -532,6 +533,14 @@ def build(opts):
         movers,companies, ROOT/'.terminal_fundamentals', batch_size=opts.fundamentals_batch,
         offline=opts.offline or opts.no_fundamentals)
     warnings.extend(fwarnings)
+    # Full profiles (accounts, valuation, calendar) for FTSE 100 + the 100 largest US
+    # companies, refreshed in rotation and published for the next build to restore.
+    profiles,profile_coverage,profile_warnings=company_profiles.collect(
+        movers,fundamentals,companies,ROOT/'.terminal_profiles',batch=35,
+        offline=opts.offline or opts.no_fundamentals or opts.no_companies)
+    warnings.extend(profile_warnings)
+    company_profiles.publish(ROOT/'.terminal_profiles',ROOT/'public')
+    print(f'Company profiles: {profile_coverage["profiles"]}/{profile_coverage["universe"]} cached; {profile_coverage["fetchedThisRun"]} refreshed this run',flush=True)
     print(f'Fundamentals: {fcoverage["summaries"]} of {fcoverage["eligible"]} unique constituents have summaries; {fcoverage["available"]} have P/E',flush=True)
     history_symbols, history_coverage, history_warnings=market_price_history.collect(
         sys.modules[__name__], opts, movers, company_history,
@@ -578,7 +587,7 @@ def build(opts):
                     'type':typ,'title':title,'time':None,'status':'Indicative — index summary',
                     'source':'Yahoo Finance summary (unverified, refreshed fortnightly)',
                     'sourceUrl':'https://finance.yahoo.com/quote/'+urllib.parse.quote(sym,safe='.')+'/'})
-    company_events,event_warnings,event_coverage=market_additions.issuer_events(companies,ROOT/'company_events.csv',bulk_events=bulk_events,summary_events=summary_events)
+    company_events,event_warnings,event_coverage=market_additions.issuer_events(companies+profiles,ROOT/'company_events.csv',bulk_events=bulk_events,summary_events=summary_events)
     warnings.extend(event_warnings)
     print(f'Credit: {len(credit_spreads)} / {len(market_additions.CREDIT_SERIES)} FRED series; market valuation: {len(market_valuations)} indices; issuer events: {len(company_events)}',flush=True)
     etf_data,etf_warnings,etf_cached=etf_tracker.collect(sys.modules[__name__],opts,ROOT/'etf_catalog.csv',quotes,hist,watch_quotes,watch_history)
@@ -595,7 +604,7 @@ def build(opts):
     quality['priceHistory']=history_coverage
     return {'etfTracker':etf_data,'personalWatchlist':watchlist,'watchlist_quotes':watch_quotes,'watchlist_history':watch_history,
             'watchlist_news':watch_news,'watchlistCoverage':watch_coverage,
-            'credit_spreads':credit_spreads,'market_valuations':market_valuations,'company_events':company_events,'companyEventCoverage':event_coverage,
+            'credit_spreads':credit_spreads,'market_valuations':market_valuations,'company_events':company_events,'companyEventCoverage':event_coverage,'companyProfiles':profiles,'companyProfilesCoverage':profile_coverage,
             'quality':quality,'economicPrints':economic_prints,'forecastCoverage':{'sourced':forecast_count,'series':len(economic_prints)},
             'us_treasuries':us_bonds,'us_treasury_history':us_treasury_history,'gilts':gilts,'gilt_history':gilt_history,
 'fundamentals':fundamentals,'fundamentalsCoverage':fcoverage,

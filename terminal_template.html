@@ -904,6 +904,7 @@ const state={newsCategory:'ALL',calendarRegion:'ALL',companyRange:'1Y',ratesRang
 const qMap=new Map((D.quotes||[]).map(q=>[q.symbol,q]));
 const companyMap=new Map((D.companies||[]).map(q=>[q.symbol,q]));
 const fundamentalsMap=new Map((D.fundamentals||[]).map(q=>[q.symbol,q]));
+const profileMap=new Map((D.companyProfiles||[]).map(q=>[q.symbol,q]));
 const companyFundamental=(symbol)=>{
   const f=fundamentalsMap.get(symbol),c=companyMap.get(symbol);
   if(!f)return c||null;if(!c)return f;
@@ -925,7 +926,14 @@ function savedCompanyList(){
 }
 function ensureCompany(symbol){
   if(companyMap.has(symbol))return companyMap.get(symbol);
-  const q=indexedStocks.get(symbol);if(!q)return null;
+  const q=indexedStocks.get(symbol),prof=profileMap.get(symbol);if(!q&&!prof)return null;
+  if(prof){
+    // Cached full profile (FTSE 100 / largest US): accounts and valuation from the profile,
+    // price from this build's constituent quote.
+    const c={...prof,price:q?.price??null,changePct:q?.current?q.changePct:null,priceCurrency:q?.currency||'',
+      priceAsOf:q?.asOf||q?.date||null,marketCapCurrency:prof.marketCapCurrency||(q&&(q.currency==='GBp'||q.currency==='GBX')?'GBP':q?.currency||''),
+      warning:'Full profile refreshed weekly ('+(prof.financialAsOf||'date unknown')+'); price from this build.'};
+    companyMap.set(symbol,c);return c;}
   // Price-only placeholder; never imply fundamentals were retrieved.
   const f=fundamentalsMap.get(symbol)||{};
   const c={symbol:q.symbol,name:q.name,price:q.price,changePct:q.current?q.changePct:null,
@@ -946,7 +954,7 @@ function openConstituent(symbol){
   state.companySymbol=symbol;
   activateWorkspace('companies',{scroll:false});
   $('company-pick').value=symbol;
-  const isDetailed=(D.companies||[]).some(x=>x.symbol===symbol);
+  const isDetailed=(D.companies||[]).some(x=>x.symbol===symbol)||profileMap.has(symbol);
   const hasHistory=(companyHistory.get(symbol)||[]).length>1;
   const hasFundamental=!!companyFundamental(symbol)&&companyFundamental(symbol).trailingPE!=null;
   showCompanyAlert(isDetailed?'':
@@ -1405,7 +1413,7 @@ function renderCompany(){
     ['MARKET CAPITALISATION',companyAmount(c.marketCap,c.marketCapCurrency||'')],
     ['TRAILING P/E',c.trailingPE==null?'—':fmt(c.trailingPE,1)+'×'],
     ['FORWARD P/E',c.forwardPE==null?'—':fmt(c.forwardPE,1)+'×'],
-    ['DIVIDEND YIELD',pc(c.dividendYieldPct)],
+    ['DIVIDEND YIELD',c.dividendYieldPct==null?'—':fmt(c.dividendYieldPct,2)+'%'],
     ['REVENUE · FY '+(c.fiscalEnd?c.fiscalEnd.slice(0,4):'—'),companyAmount(c.revenue,fundCCY)],
     ['NET PROFIT · FY '+(c.fiscalEnd?c.fiscalEnd.slice(0,4):'—'),companyAmount(c.netProfit,fundCCY)],
     ['OPERATING PROFIT · FY '+(c.fiscalEnd?c.fiscalEnd.slice(0,4):'—'),companyAmount(c.operatingProfit,fundCCY)],
@@ -1452,7 +1460,7 @@ function renderCompany(){
   const table=el('table');const header=el('tr');
   ['Fiscal year','Revenue','Operating profit','Net profit'].forEach(t=>header.append(el('th','',t)));
   const head=el('thead');head.append(header);table.append(head);
-  const body=el('tbody');for(const row of c.annual){const tr=el('tr');
+  const body=el('tbody');for(const row of c.annual.filter(r=>[r.revenue,r.operatingProfit,r.netProfit].some(v=>v!=null))){const tr=el('tr');
     [row.fiscalYear||row.fiscalEnd,companyAmount(row.revenue,''),companyAmount(row.operatingProfit,''),companyAmount(row.netProfit,'')].forEach(v=>tr.append(el('td','',v)));
     body.append(tr);
   }table.append(body);destination.append(table);
@@ -2410,7 +2418,7 @@ function renderWatchlist(){
  const valuation=[
   ['TRAILING P/E',c.trailingPE==null?'—':fmt(c.trailingPE,1)+'×','Earnings-based valuation'],
   ['FORWARD P/E',c.forwardPE==null?'—':fmt(c.forwardPE,1)+'×','Third-party forecast'],
-  ['DIVIDEND YIELD',pc(c.dividendYieldPct),'Can lag the share-price date'],
+  ['DIVIDEND YIELD',c.dividendYieldPct==null?'—':fmt(c.dividendYieldPct,2)+'%','Can lag the share-price date'],
   ['MARKET CAPITALISATION',companyAmount(c.marketCap,c.marketCapCurrency||''),'Company size, not your holding'],
   ['52-WEEK PRICE RANGE',q?.low52==null||q?.high52==null?'—':fmt(q.low52,2)+' – '+fmt(q.high52,2)+' '+(q.currency||''),'Exchange quote units']
  ];
@@ -2425,11 +2433,11 @@ function renderWatchlist(){
     ['TOTAL DEBT',companyAmount(c.totalDebt,fundCcy),'Company debt; not portfolio debt'],
     ['EV / EBITDA',c.enterpriseToEbitda==null?'—':fmt(c.enterpriseToEbitda,1)+'×','If sourced']];
  }else if(w.assetType==='investment_trust'){
-  data=[...core,riskMeasures[0],['DIVIDEND YIELD',pc(c.dividendYieldPct),'If sourced · may lag'],
+  data=[...core,riskMeasures[0],['DIVIDEND YIELD',c.dividendYieldPct==null?'—':fmt(c.dividendYieldPct,2)+'%','If sourced · may lag'],
    riskMeasures[1],riskMeasures[2],['DISCOUNT TO NAV','—','Not available from this free feed; cannot infer from P/E'],
    riskMeasures[3],riskMeasures[4],['TRUST MARKET CAPITALISATION',companyAmount(c.marketCap,c.marketCapCurrency||''),'Trust market cap, not your holding']];
  }else{
-  data=[...core,['DIVIDEND YIELD',pc(c.dividendYieldPct),'Cash distribution yield where sourced; accumulation ETFs may not distribute'],...riskMeasures,w.assetType==='fund'?
+  data=[...core,['DIVIDEND YIELD',c.dividendYieldPct==null?'—':fmt(c.dividendYieldPct,2)+'%','Cash distribution yield where sourced; accumulation ETFs may not distribute'],...riskMeasures,w.assetType==='fund'?
    ['FUND NAV','—','A platform code is not an exchange ticker; use provider NAV']:
    ['FUND FEES & HOLDINGS','CHECK ISSUER','Fund-level fees and holdings need a verified factsheet']];
  }
