@@ -1,0 +1,53 @@
+{
+  "source": "Shell Annual Report and Accounts 2025, Consolidated Statement of Income (p214), Balance Sheet (p215), Cash Flows (p217) and key financial data",
+  "url": "https://www.sec.gov/Archives/edgar/data/1306965/000162828026017024/shel-20251231.htm",
+  "filed": "2026-03-12",
+  "retrievedAt": "2026-11-09",
+  "units": "USD millions; amounts manually checked against rendered issuer report tables, not Yahoo",
+  "reported": {
+    "2025-12-31": {
+      "revenue": 266886,
+      "netProfit": 17837,
+      "pretaxProfit": 29756,
+      "taxExpense": 11637,
+      "operatingCashFlow": 42863,
+      "totalDebt": 75643,
+      "cash": 30216,
+      "depreciation": 25299,
+      "capex": -18947
+    },
+    "2024-12-31": {
+      "revenue": 284312,
+      "netProfit": 16094,
+      "pretaxProfit": 29922,
+      "taxExpense": 13401,
+      "operatingCashFlow": 54687,
+      "totalDebt": 77078,
+      "cash": 39110,
+      "depreciation": 26872,
+      "capex": -19601
+    },
+    "2023-12-31": {
+      "revenue": 316620,
+      "netProfit": 19359,
+      "pretaxProfit": 32627,
+      "taxExpense": 12991,
+      "operatingCashFlow": 54191,
+      "totalDebt": 81541,
+      "cash": 38774,
+      "depreciation": 31290,
+      "capex": -22993
+    }
+  },
+  "issuerSpecific": {
+    "2025": {
+      "adjustedEBITDA": 56135,
+      "freeCashFlow": 26052,
+      "cashCapitalExpenditure": 20915
+    },
+    "note": "These are Shell-specific non-GAAP measures. The terminal's unadjusted EBITDA and OCF-minus-capex FCF must not be labelled or reconciled as these measures. Shell FCF includes investing cash flows and adjustments; it is not the DCF FCFF proxy."
+  },
+  "secondaryFields": [
+    "capex"
+  ]
+}

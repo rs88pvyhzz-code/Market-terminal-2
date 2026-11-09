@@ -400,6 +400,9 @@ def build(opts):
         demo['credit_spreads']=[]
         demo['market_valuations']=market_additions.market_valuation(demo['movers'],demo.get('fundamentals',[]),demo['companies'],demo['us_rates'],demo['uk_rates'])
         # Demonstration uses only synthetic company data; never show invented facts as live.
+        import company_research
+        for c in demo['companies']:
+            c['research']=company_research.analyse(c.get('annual',[]),company_research.financial_sector(c))
         demo_profiles={c['symbol']:c for c in demo['companies']}
         demo_hist={}
         for r in demo.get('company_history',[]):demo_hist.setdefault(r['symbol'],[]).append(r)
@@ -539,6 +542,8 @@ def build(opts):
         movers,fundamentals,companies,ROOT/'.terminal_profiles',batch=35,
         offline=opts.offline or opts.no_fundamentals or opts.no_companies)
     warnings.extend(profile_warnings)
+    import company_research
+    company_research.enrich(companies,profiles,ROOT/'.terminal_profiles',offline=opts.offline)
     company_profiles.publish(ROOT/'.terminal_profiles',ROOT/'public')
     print(f'Company profiles: {profile_coverage["profiles"]}/{profile_coverage["universe"]} cached; {profile_coverage["fetchedThisRun"]} refreshed this run',flush=True)
     print(f'Fundamentals: {fcoverage["summaries"]} of {fcoverage["eligible"]} unique constituents have summaries; {fcoverage["available"]} have P/E',flush=True)

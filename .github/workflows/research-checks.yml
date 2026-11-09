@@ -18,6 +18,18 @@ jobs:
       - run: python test_etf_tracker.py
       - run: python test_gilt_model.py
       - run: python test_equity_research.py
+      - run: python test_research_release1.py
       - run: python build_terminal.py --demo --output /tmp/research-demo.html
       - run: python terminal_research_upgrade.py /tmp/research-demo.html
       - run: python market_terminal_cleanup.py --post --html /tmp/research-demo.html
+      - name: Install browser test runner
+        run: |
+          python -m pip install playwright
+          python -m playwright install --with-deps chromium
+      - name: Browser regression with sourced fixtures
+        run: python tests/browser_research_release1.py /tmp/research-demo.html
+      - name: Upload review screenshots
+        uses: actions/upload-artifact@v4
+        with:
+          name: company-research-release1-screenshots
+          path: /tmp/research-r1-*.png
