@@ -47,78 +47,66 @@ def _text(v):
     return str(v).strip() if v is not None and str(v).strip() else None
 
 
-def annual_income_rows(ticker):
-    try:
-        frame=ticker.income_stmt
-        if frame is None or frame.empty: return []
-        cols=sorted(frame.columns, reverse=True)[:5]
-        def take(col, names):
-            for k in names:
-                if k in frame.index:
-                    x=_num(frame.loc[k,col]);
-                    if x is not None: return x
-            return None
-        rows=[]
-        for col in cols:
-            date=col.date().isoformat() if hasattr(col,'date') else str(col)[:10]
-            rows.append({'fiscalYear':date[:4],'fiscalEnd':date,
-                'revenue':take(col,['Total Revenue','Operating Revenue']),
-                'operatingProfit':take(col,['Operating Income']),
-                'netProfit':take(col,['Net Income','Net Income Common Stockholders','Net Income From Continuing And Discontinued Operation']),
-                'pretaxProfit':take(col,['Pretax Income']),
-                'dilutedEps':take(col,['Diluted EPS']),
-                'grossProfit':take(col,['Gross Profit']),
-                'interestExpense':take(col,['Interest Expense','Interest Expense Non Operating'])})
-        _add_forensic_fields(ticker, rows)
-        return rows
-    except Exception: return []
-
-
-# Balance sheet and cash flow lines used by the Forensic tab. Missing lines stay
-# None; nothing is estimated. Labels are yfinance's standard row names.
+# Exact fiscal dates are joined across statements; calendar-year joins can mix periods.
+_INCOME = {
+    'revenue': ['Total Revenue', 'Operating Revenue'],
+    'operatingProfit': ['Operating Income'], 'netProfit': ['Net Income', 'Net Income Common Stockholders'],
+    'pretaxProfit': ['Pretax Income'], 'taxExpense': ['Tax Provision'],
+    'dilutedEps': ['Diluted EPS'], 'grossProfit': ['Gross Profit'],
+    'interestExpense': ['Interest Expense', 'Interest Expense Non Operating'],
+}
 _BALANCE = {
-    'receivables': ['Accounts Receivable', 'Receivables', 'Gross Accounts Receivable'],
-    'inventory': ['Inventory'],
-    'totalAssets': ['Total Assets'],
-    'equity': ['Stockholders Equity', 'Common Stock Equity', 'Total Equity Gross Minority Interest'],
-    'totalDebt': ['Total Debt'],
-    'cash': ['Cash And Cash Equivalents', 'Cash Cash Equivalents And Short Term Investments'],
-    'goodwill': ['Goodwill', 'Goodwill And Other Intangible Assets'],
-    'sharesOutstanding': ['Ordinary Shares Number', 'Share Issued'],
+    'receivables': ['Accounts Receivable', 'Receivables'], 'inventory': ['Inventory'],
+    'totalAssets': ['Total Assets'], 'equity': ['Stockholders Equity', 'Common Stock Equity'],
+    'totalLiabilities': ['Total Liabilities Net Minority Interest'],
+    'currentAssets': ['Current Assets'], 'currentLiabilities': ['Current Liabilities'],
+    'totalDebt': ['Total Debt'], 'cash': ['Cash And Cash Equivalents'],
+    'goodwill': ['Goodwill'], 'sharesOutstanding': ['Ordinary Shares Number'],
 }
 _CASHFLOW = {
-    'operatingCashFlow': ['Operating Cash Flow', 'Cash Flow From Continuing Operating Activities'],
-    'capex': ['Capital Expenditure'],
-    'depreciation': ['Depreciation And Amortization', 'Depreciation Amortization Depletion', 'Reconciled Depreciation'],
+    'operatingCashFlow': ['Operating Cash Flow'], 'capex': ['Capital Expenditure'],
+    'investingCashFlow': ['Investing Cash Flow'], 'financingCashFlow': ['Financing Cash Flow'],
+    'depreciation': ['Depreciation And Amortization', 'Depreciation Amortization Depletion'],
     'shareBasedComp': ['Stock Based Compensation'],
-    'buybacks': ['Repurchase Of Capital Stock', 'Common Stock Payments'],
-    'dividendsPaid': ['Cash Dividends Paid', 'Common Stock Dividend Paid'],
+    'buybacks': ['Repurchase Of Capital Stock'], 'dividendsPaid': ['Cash Dividends Paid'],
 }
 
 
-def _add_forensic_fields(ticker, rows):
-    for attr, fields in (('balance_sheet', _BALANCE), ('cashflow', _CASHFLOW)):
+def annual_income_rows(ticker):
+    """Up to five real annual periods; missing provider history is never backfilled."""
+    periods = {}
+    for attr, fields in (('income_stmt', _INCOME), ('balance_sheet', _BALANCE), ('cashflow', _CASHFLOW)):
         try:
             frame = getattr(ticker, attr)
-        except Exception:
-            continue
-        if frame is None or getattr(frame, 'empty', True):
-            continue
-        by_year = {}
-        for col in frame.columns:
-            date = col.date().isoformat() if hasattr(col, 'date') else str(col)[:10]
-            by_year[date[:4]] = col
-        for row in rows:
-            col = by_year.get(row.get('fiscalYear'))
-            if col is None:
+            if frame is None or frame.empty:
                 continue
-            for key, names in fields.items():
-                for name in names:
-                    if name in frame.index:
-                        value = _num(frame.loc[name, col])
-                        if value is not None:
-                            row[key] = value
-                            break
+            for col in frame.columns:
+                date = col.date().isoformat() if hasattr(col, 'date') else str(col)[:10]
+                row = periods.setdefault(date, {'fiscalYear': date[:4], 'fiscalEnd': date})
+                for key, names in fields.items():
+                    for name in names:
+                        if name in frame.index:
+                            value = _num(frame.loc[name, col])
+                            if value is not None:
+                                row[key] = value
+                                break
+        except Exception:
+            continue  # A missing statement must not discard the other statements.
+    return [periods[d] for d in sorted(periods, reverse=True)
+            if any(isinstance(v, (int, float)) for v in periods[d].values())][:5]
+
+
+def research_metadata(info):
+    """Provider facts only; never generate a moat, forecast or investment rating."""
+    return {
+        'businessSummary': _text(info.get('longBusinessSummary')),
+        'website': _text(info.get('website')),
+        'employees': _num(info.get('fullTimeEmployees')),
+        'heldPercentInsiders': _num(info.get('heldPercentInsiders')),
+        'heldPercentInstitutions': _num(info.get('heldPercentInstitutions')),
+        'shortPercentOfFloat': _num(info.get('shortPercentOfFloat')),
+        'sharesOutstanding': _num(info.get('sharesOutstanding')),
+    }
 
 
 def _calendar_events(calendar):
@@ -155,7 +143,8 @@ def financials_for(symbol, offline=False):
         return {},[], 'Fundamental data unavailable: install the optional yfinance package',[]
     try:
         t=yf.Ticker(symbol)
-        info=t.get_info() or {}
+        try: info=t.get_info() or {}
+        except Exception: info={}
         if not isinstance(info,dict):info={}
         rows=annual_income_rows(t)
         status='Yahoo Finance via yfinance (unofficial; figures unverified)'
@@ -184,6 +173,8 @@ def fetch_company(symbol,name,builder,opts):
     latest=annual[0] if annual else {}
     # If a statement is missing, do not silently swap in TTM without relabelling.
     company={
+        **research_metadata(info),
+        'financialAsOf':dt.datetime.now(dt.timezone.utc).isoformat(timespec='seconds'),
         'symbol':symbol,'name':_text(info.get('longName')) or _text(info.get('shortName')) or name,
         'sector':_text(info.get('sector')),'industry':_text(info.get('industry')),
         'exchange':_text(info.get('exchange')),

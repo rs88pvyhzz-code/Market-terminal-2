@@ -652,6 +652,7 @@ def main():
     if not payload['quotes'] and not payload['uk_rates'] and not payload['macro'] and not payload['us_rates']:
         raise SystemExit('No data was retrieved. Check internet access; use --demo to preview the interface.')
     template=(ROOT/'terminal_template.html').read_text('utf-8')
+    template=template.replace('/*__EQUITY_RESEARCH__*/', (ROOT/'equity_research.js').read_text('utf-8'))
     # Links to the repository (e.g. 'edit watchlist') follow whichever repo builds the site.
     repo=__import__('os').environ.get('GITHUB_REPOSITORY')
     if repo and '/' in repo: template=template.replace('rs88pvyhzz-code/market-terminal',repo)

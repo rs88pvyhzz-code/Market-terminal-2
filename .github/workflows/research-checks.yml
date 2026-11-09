@@ -1,0 +1,23 @@
+name: Research regression checks
+on:
+  pull_request:
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  research:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - run: python test_etf_tracker.py
+      - run: python test_gilt_model.py
+      - run: python test_equity_research.py
+      - run: python build_terminal.py --demo --output /tmp/research-demo.html
+      - run: python terminal_research_upgrade.py /tmp/research-demo.html
+      - run: python market_terminal_cleanup.py --post --html /tmp/research-demo.html
