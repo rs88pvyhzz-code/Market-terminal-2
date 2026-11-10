@@ -23,15 +23,63 @@ def headline_text(item):
         if suffix==str(item.get('source','')).lower() or not re.search(r'\d|\b(cuts?|hikes?|rates?|inflation|earnings|guidance|gdp|cpi)\b',suffix):title=headline
     return re.sub(r'\s*--?\s*\d+(?:st|nd|rd|th)\s+update\b.*$','',title)
 
+def significance_evidence(item, text):
+    """Conservative headline evidence, independent of topic/relevance weights.
+
+    A headline is a publisher claim, not independently verified event causation.
+    Unknown materiality is deliberately insufficient for Market Moving.
+    """
+    preview = re.search(r"\b(preview|commentary|analysis|opinion|interview|calendar|recap|odds|what to expect|could|might|may|expected to|forecast to|set to|poised to|to discuss|last week|last month|last year|await\w*)\b", text)
+    if preview or '?' in text:
+        return []
+    evidence = []
+    # Quantified *reported* moves only: expressive words such as 'rally' are insufficient.
+    asset = r"(?:shares?|stocks?|equities|index|indices|ftse|s&p|nasdaq|dow|nikkei|oil|brent|gold|sterling|pound|dollar|euro|yen|vix)"
+    movement = r"(?:rises?|rose|rising|falls?|fell|falling|jumps?|jumped|surges?|surged|plunges?|plunged|gains?|gained|drops?|dropped|rallies|rallied|slides?|slid|tumbles?|tumbled|soars?|soared|up|down)"
+    move = re.search(r'\b'+asset+r'\b.{0,45}?\b'+movement+r'\b\s+(?:by\s+|more than\s+|over\s+|nearly\s+)?([0-9]+(?:\.[0-9]+)?)\s*(?:%|percent\b|per cent\b)', text)
+    if move and float(move[1]) >= THRESHOLDS['priceMovePct'] and not re.search(r'\b(nearly|almost|up to)\b', move[0]):
+        evidence.append(f"Publisher reports a {move[1]}% asset move; significance threshold {THRESHOLDS['priceMovePct']:g}% (no causal attribution)")
+    yield_move = re.search(r'\byields?\b.{0,35}?\b'+movement+r'\b\s+(?:by\s+)?([0-9]+(?:\.[0-9]+)?)\s*(?:basis points?|bps?)\b', text)
+    if yield_move and float(yield_move[1]) >= THRESHOLDS['yieldMoveBp']:
+        evidence.append(f"Publisher reports a {yield_move[1]} bp yield move; significance threshold {THRESHOLDS['yieldMoveBp']:g} bp")
+    # 'Ahead of a decision' is not the decision; an actual quantified move above
+    # can still be material even when it precedes a scheduled announcement.
+    anticipation = re.search(r'\b(ahead of|before|will|next week|next meeting|due to announce|expected|forecast)\b', text)
+    if not anticipation:
+        bank = r'(?:federal reserve|fed|bank of england|ecb|bank rate)'
+        decision = r'(?:cuts?|raises?|hikes?|holds?|increased|reduced|leaves?\b.{0,20}\bunchanged|keeps?\b.{0,20}\bunchanged)'
+        if re.search(r'\b'+bank+r'\b\s+(?:(?:has|unexpectedly|unanimously|again|is|was)\s+|(?:interest|policy)\s+rates?\s+)?'+decision+r'\b',text) and re.search(r'\b(rate|rates|monetary policy)\b',text):
+            evidence.append('Reported central-bank rate decision, not a preview or rate commentary')
+        elif item.get('official') and item.get('source') in ('Federal Reserve','Bank of England','ECB') and re.search(r'\b(fomc statement|monetary policy (?:decision|statement|summary))\b',text):
+            evidence.append('Identified official central-bank monetary-policy decision document')
+        if re.search(r'\b(issues?|issued|delivers?|warns?|warned)\b.{0,30}\bprofit warning\b|\bprofit warning\b.{0,30}\b(issued|announced)\b',text):
+            evidence.append('Explicit reported profit-warning announcement')
+        if not re.search(r'\b(analysts?|brokers?|price target|consensus)\b',text) and re.search(r'\b(cuts?|lowers?|lowered|slashes?|raises?|raised|upgrades?|downgrades?|withdraws?|withdrawn)\b.{0,35}\b(?:(?:profit|earnings|revenue|sales|cash|margin|annual|full-year)\s+){0,3}guidance\b',text):
+            evidence.append('Explicit reported issuer guidance revision; no consensus surprise inferred')
+        # No claim that every acquisition/buyback is material: require a confirmed
+        # transaction and a stated >=1 billion headline value; currency is not converted.
+        transaction = re.search(r'\b(agrees?|agreed|announces?|announced|completes?|completed|signs?|signed)\b.{0,70}\b(acquisition|merger|takeover|buyout|buyback|acquire|buy)\b',text)
+        amount = re.search(r'(?:[$£€]|usd\s*|gbp\s*|eur\s*)([0-9]+(?:\.[0-9]+)?)\s*(billion|bn|b)\b',text)
+        if transaction and amount and float(amount[1]) >= 1 and not re.search(r'\b(talks|rumou?r|considers?|considering|mulls?)\b',text):
+            evidence.append('Reported confirmed transaction with stated value >=1 billion in stated headline currency units ($/£/€/USD/GBP/EUR); nominal threshold, no FX estimate')
+    return evidence
+
+
+def news_order(item):
+    return (item['archived'], 'market_moving' not in item['categories'], -item['rank'], -(timestamp(item.get('published')).timestamp() if timestamp(item.get('published')) else 0))
+
+
 def classify(item, now, watch_names=()):
-    item=dict(item); text=headline_text(item); cats=list(item.get('categories',[])); reasons=[];score=0
+    item=dict(item); text=headline_text(item); cats=[c for c in item.get('categories',[]) if c!='market_moving']; reasons=[];score=0
     for key,pattern,weight in RULES:
-        if re.search(pattern,text):cats.append(key);score+=weight;reasons.append(CATEGORIES[key])
-    if any(n and re.search(r'\b'+re.escape(n.lower())+r'\b',text) for n in watch_names):cats.append('watchlist');score+=25;reasons.append('Watchlist match')
-    if re.search(r'\b(oil|gold|currency|stocks|markets?|vix|sterling|dollar)\b',text):score+=20
-    if item.get('official'):score+=5;reasons.append('Primary source')
-    if re.search(r'\b(oil|gold|currency|stocks|markets?|vix|sterling|dollar|yields?)\b',text) and re.search(r'\b(surge|slump|rally|rout|plunge|jump|rebound|record|tumble|spike|soar)\w*\b',text):score+=20;reasons.append('Reported sharp market movement')
-    if score>=35:cats.insert(0,'market_moving')
+        if re.search(pattern,text):cats.append(key);score+=weight;reasons.append(f'{CATEGORIES[key]} (+{weight})')
+    if any(n and re.search(r'\b'+re.escape(n.lower())+r'\b',text) for n in watch_names):cats.append('watchlist');score+=25;reasons.append('Watchlist match (+25)')
+    if re.search(r'\b(oil|gold|currency|stocks|markets?|vix|sterling|dollar)\b',text):score+=20;reasons.append('Market/commodity relevance (+20)')
+    if item.get('official'):score+=5;reasons.append('Primary source (+5)')
+    if re.search(r'\b(oil|gold|currency|stocks|markets?|vix|sterling|dollar|yields?)\b',text) and re.search(r'\b(surge|slump|rally|rout|plunge|jump|rebound|record|tumble|spike|soar)\w*\b',text):score+=20;reasons.append('Movement wording (+20); not significance evidence')
+    evidence=significance_evidence(item,text)
+    if evidence:cats.insert(0,'market_moving')
+    reasons=['Topic/relevance: '+reason for reason in reasons]+['Significance: '+reason for reason in evidence]
     if not cats:cats=['corporate']
     # An identified official central-bank feed establishes jurisdiction; a
     # commercial publisher's country suffix does not establish story geography.
@@ -42,13 +90,14 @@ def classify(item, now, watch_names=()):
         if re.search(pattern,text) and label not in regions:regions.append(label)
     published=timestamp(item.get('published'));age=(now-published).total_seconds()/3600 if published else None
     archived=bool(item.get('restored') or item.get('archived') or age is None or age>THRESHOLDS['maxNewsAgeHours'] or age<-.1 or not item.get('retrievedAt'))
-    item.update(categories=list(dict.fromkeys(cats)),regions=regions or ['Global'],rank=score+(10 if age is not None and 0<=age<24 else 0),rankReasons=reasons,archived=archived)
+    if age is not None and 0<=age<24:reasons.append('Published within 24 hours (+10)')
+    item.update(categories=list(dict.fromkeys(cats)),regions=regions or ['Global'],rank=score+(10 if age is not None and 0<=age<24 else 0),rankReasons=reasons,significanceEvidence=evidence,archived=archived)
     return item
 
 def deduplicate(items):
     """Conservative headline event grouping; keep differing numbers/directions separate."""
     result=[]
-    for item in sorted(items,key=lambda x:(x['archived'],-x['rank'],x.get('published','')),reverse=False):
+    for item in sorted(items,key=news_order):
         title=headline_text(item)
         normal=title.replace('federal reserve','fed').replace('bank of england','boe').replace('consumer price index','cpi').replace('lowers rates','cuts rates').replace('raises rates','hikes rates')
         tokens=set(re.findall(r'[a-z0-9]+',normal)) - {'the','a','an','in','of','to','and','for','on','as','with','after','says'}
@@ -62,13 +111,13 @@ def deduplicate(items):
             same_day=item.get('published','')[:10]==other.get('published','')[:10]
             if same_url or (same_day and numbers==other['_numbers'] and directions==other['_directions'] and overlap>=.72):match=other;break
         if match:
-            match['categories']=list(dict.fromkeys(match['categories']+item['categories']))
+            match['categories']=list(dict.fromkeys(match['categories']+[c for c in item['categories'] if c!='market_moving' or match.get('significanceEvidence')]))
             if item['url']!=match['url'] and not any(x['url']==item['url'] for x in match['coverage']):
                 match['coverage'].append({k:item.get(k) for k in ['title','url','source','published','retrievedAt','archived']})
         else:
             item.update(id=hashlib.sha256((title+item.get('published','')[:10]).encode()).hexdigest()[:16],coverage=[],_tokens=tokens,_numbers=numbers,_directions=directions);result.append(item)
     for item in result:item.pop('_tokens');item.pop('_numbers');item.pop('_directions')
-    return sorted(result,key=lambda x:(x['archived'],-x['rank'], -(timestamp(x.get('published')).timestamp() if timestamp(x.get('published')) else 0)))
+    return sorted(result,key=news_order)
 
 def enrich(payload):
     now=timestamp(payload.get('generatedAt')) or dt.datetime.now(dt.timezone.utc)

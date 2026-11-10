@@ -14,6 +14,52 @@ NOW=dt.datetime(2026,11,10,12,tzinfo=dt.timezone.utc)
 def story(title,**kw):
     return dict(title=title,url='https://example.test/'+title.replace(' ','-'),source='Synthetic test publisher',published='2026-11-10 10:00 UTC',retrievedAt='2026-11-10T11:00:00+00:00',**kw)
 class BriefingTests(unittest.TestCase):
+    def test_topic_scores_do_not_grant_market_moving(self):
+        titles=['Microsoft earnings preview: what to expect','UK CPI inflation falls to 2.5%',
+                'Fed interest rates and inflation commentary','Global stocks rally as oil slumps',
+                'Euro ministers await leaders guidance','Fed official calls for interest rate cuts',
+                'Company announces earnings results','Microsoft earnings beat expectations',
+                'Company considers $2 billion acquisition','Could stocks jump 8% next week?']
+        for title in titles:
+            with self.subTest(title=title):
+                item=classify(story(title,categories=['market_moving']),NOW,['Microsoft'])
+                self.assertNotIn('market_moving',item['categories'])
+                self.assertEqual(item['significanceEvidence'],[])
+        self.assertIn('economic',classify(story(titles[1]),NOW)['categories'])
+        self.assertIn('rates',classify(story(titles[2]),NOW)['categories'])
+        self.assertIn('corporate',classify(story(titles[0]),NOW)['categories'])
+    def test_documented_material_announcements(self):
+        for title in ['Federal Reserve cuts interest rates by 25 basis points',
+                      'ECB holds interest rates unchanged','Shell issues profit warning',
+                      'Microsoft cuts annual revenue guidance',
+                      'Company announces $2 billion acquisition']:
+            with self.subTest(title=title):
+                item=classify(story(title),NOW)
+                self.assertIn('market_moving',item['categories'])
+                self.assertTrue(item['significanceEvidence'])
+        small=classify(story('Company announces $20 million acquisition'),NOW)
+        self.assertNotIn('market_moving',small['categories'])
+    def test_reported_move_thresholds_and_no_forecast_promotion(self):
+        for title in ['Shell shares jump 5% after earnings','Stocks plunge 4% ahead of Fed decision','Treasury yields rise 15 basis points']:
+            item=classify(story(title),NOW)
+            self.assertIn('market_moving',item['categories']);self.assertTrue(item['significanceEvidence'])
+        for title in ['Shell shares jump 2% after earnings','Treasury yields rise 5 basis points','Stocks could jump 5%','Stocks jump nearly 3%']:
+            self.assertNotIn('market_moving',classify(story(title),NOW)['categories'])
+    def test_significance_priority_and_dedup_evidence(self):
+        routine=classify(story('Inflation earnings and interest rates commentary'),NOW)
+        material=classify(story('Shell shares jump 5%'),NOW)
+        self.assertGreater(routine['rank'],material['rank'])
+        ranked=deduplicate([routine,material])
+        self.assertEqual(ranked[0]['title'],material['title'])
+        for item in ranked:
+            if 'market_moving' in item['categories']:self.assertTrue(item['significanceEvidence'])
+    def test_archived_evidence_cannot_silently_promote_current_duplicate(self):
+        current=classify(story('Federal Reserve issues FOMC statement'),NOW)
+        old=classify(dict(story('Federal Reserve issues FOMC statement'),source='Federal Reserve',official=True,archived=True),NOW)
+        self.assertTrue(old['significanceEvidence'])
+        combined=deduplicate([old,current])
+        self.assertEqual(len(combined),1)
+        self.assertNotIn('market_moving',combined[0]['categories'])
     def test_uk_release_and_fed(self):
         uk=classify(story('UK CPI inflation falls to 2.5%'),NOW)
         fed=classify(story('Federal Reserve cuts interest rates by 25 basis points'),NOW)
