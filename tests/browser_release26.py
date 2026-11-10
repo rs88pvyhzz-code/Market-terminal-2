@@ -77,7 +77,7 @@ with sync_playwright() as p:
             if width>=1024 and tab in ['etfs','fx','equities']:
                 page.evaluate('scrollTo(0,0)');page.screenshot(path=f'/tmp/release26-{name}-{width}.png',full_page=True)
                 if tab=='etfs':
-                    page.locator('.etf-detail').scroll_into_view_if_needed();page.screenshot(path=f'/tmp/release26-etfs-detail-{width}.png',full_page=True)
+                    page.locator('.etf-detail').screenshot(path=f'/tmp/release26-etfs-detail-{width}.png')
                     page.locator('#etf-r26-alternatives').screenshot(path=f'/tmp/release26-etfs-comparison-{width}.png')
     assert not errors,errors
     browser.close()

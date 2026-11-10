@@ -87,7 +87,7 @@ renderEtfTracker=function(){
   for(const id of ['etf-index-comparison','etf-selected-comparisons'])$(id)?.remove();
   if(!$('etf-r26-alternatives')){const section=el('section','etf-peer-box');section.id='etf-r26-alternatives';$('etf-risk-stats').before(section);}
   const coverage=ETF_DATA.coverage||{};$('etf-coverage').textContent=ETF_FUNDS.length+' catalogue funds · '+(coverage.quoted||0)+' quoted · '+(coverage.withHistory||0)+' histories';
-  $('etf-stats').replaceChildren();
+  const metrics=ETF_DATA.metricsCoverage||{};const coverageLine=el('p','mini','Markets '+new Set(ETF_FUNDS.map(f=>f.market)).size+' · replication recorded '+ETF_FUNDS.filter(f=>f.replication).length+' / '+ETF_FUNDS.length+' (see fund-level verification) · TER refreshed '+(metrics.ter?.updated??0)+' ('+(metrics.ter?.issuerUpdated??0)+' direct issuer) · '+(metrics.trackingError?.calculatedPeriods??0)+' proxy tracking-error periods');$('etf-stats').replaceChildren(coverageLine);
   let picker=$('etf-r26-pick');if(!picker){const label=el('label','mini','SELECT FROM COMPLETE CATALOGUE ');picker=el('select','field');picker.id='etf-r26-pick';picker.setAttribute('aria-label','Select ETF from complete catalogue');label.append(picker);$('etf-result-count').parentElement.before(label);picker.onchange=()=>etfR26Choose(picker.value);}
   const filtered=etfFiltered();picker.replaceChildren(...filtered.map(f=>new Option(f.name+' · '+f.symbol,f.symbol)));picker.value=etfState.selected;
   const groups=new Map();for(const f of filtered){const key=etfR26Key(f);if(!groups.has(key))groups.set(key,[]);groups.get(key).push(f);}

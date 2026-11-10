@@ -43,3 +43,4 @@ h2[id],h3[id]{scroll-margin-top:calc(var(--r24-nav-height) + 100px)}
 #etf-tracker-panel .etf-r26-comparison .mini{font-size:9px}#etf-tracker-panel .etf-detail{margin-top:12px;padding-top:10px}.r26-conditions{table-layout:fixed}.r26-conditions th:not(:first-child),.r26-conditions td:not(:first-child){text-align:right;font-variant-numeric:tabular-nums}
 @media(max-width:600px){#etf-tracker-panel .etf-table td,#etf-tracker-panel .etf-table th{font-size:9px;padding:5px 3px!important}#etf-tracker-panel .etf-table .mini{font-size:8px}#etf-tracker-panel .etf-r26-comparison th,#etf-tracker-panel .etf-r26-comparison td{font-size:8px;padding:4px 2px!important}}
 .research-view .chart.r26-empty-chart{height:auto!important;min-height:0!important;margin:4px 0}.research-view .r26-empty-chart .empty{padding:6px 0!important;min-height:0!important}
+#etf-stats{display:block;margin:4px 0}#etf-stats p{margin:4px 0}
