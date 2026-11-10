@@ -40,6 +40,6 @@ def get(url, limit=24_000_000, fields=None):
 
 def record(url,ok,status,fields,error=None):
     path=Path('.terminal_sources/requests.jsonl');path.parent.mkdir(parents=True,exist_ok=True)
-    item={'url':url,'attemptedAt':dt.datetime.now(dt.timezone.utc).isoformat(timespec='seconds'),'success':ok,'status':status,
+    item={'runId':os.environ.get('GITHUB_RUN_ID'),'url':url,'attemptedAt':dt.datetime.now(dt.timezone.utc).isoformat(timespec='seconds'),'success':ok,'status':status,
           'affectedFields':fields or ['research evidence'],'error':(error or '')[:180]}
     with path.open('a') as out:out.write(json.dumps(item)+'\n')
