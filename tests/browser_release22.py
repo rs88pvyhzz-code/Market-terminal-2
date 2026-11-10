@@ -54,6 +54,7 @@ with sync_playwright() as p:
         assert page.evaluate('document.body.scrollWidth<=innerWidth'),width
         page.locator('#tab-equities').click();page.locator('#sub-equities-research').click();page.locator('#research-tab-0').click();page.wait_for_timeout(100)
         assert page.evaluate('document.body.scrollWidth<=innerWidth'),width
+    page.locator('#tab-bonds').click();page.evaluate("window.r22RealNow=Date.now;Date.now=()=>Date.parse('2026-11-12T16:00:00Z')");page.locator('#gilt-sort').select_option('gross');assert 'STALE' in page.locator('#gilt-freshness').inner_text();page.evaluate('Date.now=window.r22RealNow');page.locator('#gilt-sort').select_option('net')
     page.set_viewport_size({'width':768,'height':1100});page.locator('#tab-bonds').click();page.wait_for_timeout(100);page.screenshot(path='/tmp/release22-gilts-ipad.png',full_page=False)
     page.locator('#tab-equities').click();page.locator('#sub-equities-research').click();page.locator('#research-tab-0').click();page.wait_for_timeout(100);page.screenshot(path='/tmp/release22-company-ipad.png',full_page=True)
     for tab in tabs.all():tab.click();page.wait_for_timeout(60)
