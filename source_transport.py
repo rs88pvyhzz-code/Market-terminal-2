@@ -34,7 +34,7 @@ def get(url, limit=24_000_000, fields=None):
         return raw
     except Exception as exc:
         status=exc.code if isinstance(exc,HTTPError) else None
-        if status in (403,429):_BLOCKED.add(host)
+        if status in (403,429):_BLOCKED.update(('www.sec.gov','data.sec.gov') if sec else (host,))
         record(url,False,status,fields,str(exc))
         raise
 

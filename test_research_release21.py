@@ -76,6 +76,7 @@ class SourceIntegrityTests(unittest.TestCase):
             with self.assertRaises(HTTPError):source_transport.get('https://data.sec.gov/test')
             with self.assertRaisesRegex(OSError,'further requests stopped'):source_transport.get('https://data.sec.gov/another')
             self.assertEqual(request.call_count,1)
+            self.assertIn('www.sec.gov',source_transport._BLOCKED)
             source_transport._BLOCKED.clear()
         result=source_integrity.assess({'annual':[],'researchBalance':{}},'2026-11-10')
         self.assertEqual(result['status'],'review_required');self.assertTrue(any('adjustment' in x for x in result['issues']))

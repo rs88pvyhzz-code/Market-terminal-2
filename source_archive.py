@@ -19,7 +19,8 @@ def pack(root=ROOT):
     entries={}
     for prefix in PREFIXES:
         for f in (Path(root)/prefix).glob('*.json'):
-            raw=f.read_text();json.loads(raw)
+            try:raw=f.read_text();json.loads(raw)
+            except (OSError,ValueError):continue
             entries[str(f.relative_to(root))]={'sha256':hashlib.sha256(raw.encode()).hexdigest(),'content':raw}
     return gzip.compress(json.dumps({'schema':1,'entries':entries},separators=(',',':')).encode(),mtime=0)
 
@@ -51,7 +52,9 @@ def restore_bytes(blob,root=ROOT):
 def restore(root=ROOT,published=True):
     root=Path(root);count=0
     seed=root/'verified_sources'/NAME
-    if seed.exists():count+=restore_bytes(seed.read_bytes(),root)
+    if seed.exists():
+        try:count+=restore_bytes(seed.read_bytes(),root)
+        except (OSError,ValueError,KeyError) as exc:print('Recovery archive unavailable; existing cache retained: '+str(exc)[:100],flush=True)
     repo=os.environ.get('GITHUB_REPOSITORY','')
     if published and '/' in repo:
         owner,name=repo.split('/',1)
