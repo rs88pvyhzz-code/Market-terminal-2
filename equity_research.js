@@ -1,5 +1,5 @@
 // Runs inside the terminal closure and reuses its company, chart and forensic modules.
-const researchViews=['Overview','Financials','Valuation','Performance & Risk','Business & Competition','Outlook & Catalysts','Red Flags & Ownership'];
+const researchViews=['Overview','Financials','Valuation','Business & Competition','Outlook & Catalysts','Red Flags & Ownership'];
 const researchModels=new Map();
 const researchNotebook=new Map();
 let researchView=0;
@@ -78,21 +78,24 @@ function renderResearchOverview(c){
 function setupResearchViews(){
   if($('research-nav'))return;
   const root=$('companies'),nav=el('div','period-controls');nav.id='research-nav';nav.setAttribute('role','tablist');nav.setAttribute('aria-label','Company research views');root.append(nav);
-  researchViews.forEach((name,i)=>{const b=el('button','btn',name);b.id='research-tab-'+i;b.type='button';b.setAttribute('role','tab');b.setAttribute('aria-controls','research-view-'+i);b.onclick=()=>showResearchView(i);b.onkeydown=e=>{if(['ArrowRight','ArrowLeft','Home','End'].includes(e.key)){e.preventDefault();const n=e.key==='Home'?0:e.key==='End'?6:(i+(e.key==='ArrowRight'?1:6))%7;showResearchView(n);$('research-tab-'+n).focus();}};nav.append(b);const v=el('section','research-view');v.id='research-view-'+i;v.setAttribute('role','tabpanel');v.setAttribute('aria-labelledby',b.id);root.append(v);});
+  researchViews.forEach((name,i)=>{const b=el('button','btn',name);b.id='research-tab-'+i;b.type='button';b.setAttribute('role','tab');b.setAttribute('aria-controls','research-view-'+i);b.onclick=()=>showResearchView(i);b.onkeydown=e=>{if(['ArrowRight','ArrowLeft','Home','End'].includes(e.key)){e.preventDefault();const n=e.key==='Home'?0:e.key==='End'?researchViews.length-1:(i+(e.key==='ArrowRight'?1:-1)+researchViews.length)%researchViews.length;showResearchView(n);$('research-tab-'+n).focus();}};nav.append(b);const v=el('section','research-view');v.id='research-view-'+i;v.setAttribute('role','tabpanel');v.setAttribute('aria-labelledby',b.id);root.append(v);});
   const move=(id,i)=>{if($(id))$('research-view-'+i).append($(id));};
   move('company-kpis',0);move('company-news-panel',0);
-  const main=root.querySelector('.company-main'),income=main?.querySelector('.company-fin');if(income){const legacy=researchDetails($('research-view-1'),'Legacy income-statement summary');legacy.append(income);};if(main)$('research-view-3').append(main);
-  move('company-risk-panel',3);move('peer-panel',4);move('company-events-panel',5);move('forensic-panel',6);
+  const main=root.querySelector('.company-main'),income=main?.querySelector('.company-fin');if(income){const legacy=researchDetails($('research-view-1'),'Legacy income-statement summary');legacy.append(income);};if(main){main.id='company-price-block';$('research-view-0').append(main);}
+  move('company-risk-panel',0);move('peer-panel',3);move('company-events-panel',4);move('forensic-panel',5);
+  const risk=$('company-risk-panel'),benchmark=el('section','research-benchmark');benchmark.id='company-benchmark-block';
+  benchmark.append($('company-benchmark-range').closest('.row'),$('company-benchmark-note'),$('company-benchmark-chart'));$('research-view-0').append(benchmark);
+  const advanced=researchDetails($('research-view-0'),'Advanced Analytics · RSI and moving averages');advanced.id='company-advanced';const tech=el('div','watchlist-kpis');tech.id='company-technical-kpis';advanced.append(tech);const method=risk.querySelector(':scope > p:last-child');if(method)advanced.append(method);risk.querySelector('h3').textContent='VOLATILITY & MARKET RISK';
   // Keep the established accounting renderer, always tied to the selected company.
   $('forensic-panel').querySelector('.research-controls').hidden=true;
   $('forensic-panel').querySelector('h2').textContent='ACCOUNTING CHECKS';
-  for(const [i,id] of [[0,'research-overview'],[1,'research-statements'],[2,'research-valuation'],[4,'research-business'],[5,'research-outlook'],[6,'research-ownership']]){const node=el('div');node.id=id;$('research-view-'+i).prepend(node);}
-  const legacyNote=root.querySelector(':scope > p.note');if(legacyNote){const d=researchDetails($('research-view-0'),'Data coverage & methodology');d.append(legacyNote);}
+  for(const [i,id] of [[0,'research-overview'],[1,'research-statements'],[2,'research-valuation'],[3,'research-business'],[4,'research-outlook'],[5,'research-ownership']]){const node=el('div');node.id=id;$('research-view-'+i).prepend(node);}
+  const legacyNote=root.querySelector(':scope > p.note');if(legacyNote){const d=researchDetails($('research-view-0'),'Data coverage & methodology');d.id='company-coverage';d.append(legacyNote);}
   showResearchView(0);renderEquityResearch(ensureCompany(state.companySymbol));
 }
 function showResearchView(i){
   researchView=i;researchViews.forEach((_,j)=>{const b=$('research-tab-'+j);b.setAttribute('aria-selected',String(i===j));b.tabIndex=i===j?0:-1;b.classList.toggle('active',i===j);$('research-view-'+j).hidden=i!==j;});
-  if(i===1||i===3)requestAnimationFrame(()=>{renderCompany();});
+  if(i===0||i===1)requestAnimationFrame(()=>{renderCompany();});
 }
 function researchTable(host,headers,rows){
   const annual=headers.length>1&&headers.slice(1).every(s=>/^FY \d{4}$/.test(s));
@@ -205,5 +208,5 @@ function renderEquityResearch(c){
   const outlook=$('research-outlook');researchR2Outlook(c,outlook);
   researchNotes(outlook,c,['Growth drivers & dated catalysts','Bear / base / bull operating thesis','Investment risks, disconfirming evidence & monitoring triggers']);
   const ownership=$('research-ownership');ownership.replaceChildren();ownership.append(el('h3','','OWNERSHIP & POSITIONING · PROVIDER FACTS'));researchTable(ownership,['Measure','Reported'],[['Insider holdings',pc(Number.isFinite(c.heldPercentInsiders)?c.heldPercentInsiders*100:null)],['Institutional holdings',pc(Number.isFinite(c.heldPercentInstitutions)?c.heldPercentInstitutions*100:null)],['Short interest / float',pc(Number.isFinite(c.shortPercentOfFloat)?c.shortPercentOfFloat*100:null)]]);ownership.append(el('p','note',`Retrieved ${c.financialAsOf||'unknown'}; provider observation dates unavailable. Holdings can reflect different filing periods and overlap; this is not a current ownership register.`));
-  forensicState.symbol=c.symbol;renderForensic();researchR2Render(c);
+  forensicState.symbol=c.symbol;renderForensic();researchR2Render(c);researchArrangeOverview();
 }

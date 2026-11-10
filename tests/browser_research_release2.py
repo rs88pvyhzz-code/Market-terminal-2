@@ -31,25 +31,25 @@ with sync_playwright() as p:
     page.on('pageerror',lambda e:errors.append(str(e)))
     page.route('http://localhost:8765/**',lambda route:route.fulfill(body=html,content_type='text/html'))
     page.goto('http://localhost:8765/',wait_until='domcontentloaded')
-    assert page.locator('[data-workspace][role=tab]').count()==10
-    page.locator('#tab-companies').click()
+    assert page.locator('[data-workspace][role=tab]').count()==8
+    page.locator('#tab-equities').click();page.locator('#sub-equities-research').click()
     for symbol in ['SHEL.L','MSFT','HSBA.L']:
         page.locator('#company-pick').select_option(symbol);page.wait_for_timeout(70)
-        assert page.locator('#research-nav [role=tab]').count()==7
+        assert page.locator('#research-nav [role=tab]').count()==6
         page.locator('#research-tab-0').click()
         assert page.locator('#research-executive .research-executive-card').count()==6
         assert 'EXECUTIVE RESEARCH SUMMARY' in page.locator('#research-executive').inner_text()
-        page.locator('#research-tab-4').click()
+        page.locator('#research-tab-3').click()
         assert 'Five-year capital allocation' in page.locator('#research-business').inner_text()
         if symbol!='HSBA.L':assert 'Reported revenue segments' in page.locator('#research-business').inner_text()
-        page.locator('#research-tab-5').click()
+        page.locator('#research-tab-4').click()
         assert 'MANAGEMENT & EARNINGS INTELLIGENCE' in page.locator('#research-outlook').inner_text()
         if symbol=='SHEL.L':
             assert '$23-$25 billion' in page.locator('#research-outlook').inner_text()
             assert '$24-$26 billion' in page.locator('#research-outlook').inner_text()
         if symbol=='HSBA.L':assert 'RoTE' in page.locator('#research-outlook').inner_text()
         for link in page.locator('#research-outlook a.research-source[href]').all():assert link.get_attribute('href').startswith('https://')
-        page.locator('#research-tab-6').click()
+        page.locator('#research-tab-5').click()
         assert page.locator('#research-warning-priority > .small-scroll tbody tr').count()==5
         assert 'unassessed' in page.locator('#research-warning-priority').inner_text()
         page.locator('#research-tab-2').click()
@@ -72,22 +72,24 @@ with sync_playwright() as p:
             page.get_by_label('First-year revenue shock (%)',exact=True).fill('-20')
         for width in [744,768,1024,1440]:
             page.set_viewport_size({'width':width,'height':1100})
-            for i in [0,1,2,4,5,6]:
+            for i in [0,1,2,3,4,5]:
                 page.locator('#research-tab-'+str(i)).click();page.wait_for_timeout(30)
                 assert page.locator('#research-view-'+str(i)).is_visible()
                 assert page.evaluate('document.body.scrollWidth<=innerWidth'),(symbol,width,i)
-        page.locator('#research-tab-4').click()
+        page.locator('#research-tab-3').click()
         page.locator('#research-business .research-notebook').evaluate('(d)=>d.open=true')
         page.get_by_label('Competitive advantages & supporting evidence',exact=True).fill(symbol+' personal evidence note')
-    page.locator('#company-pick').select_option('SHEL.L');page.locator('#research-tab-4').click()
+    page.locator('#company-pick').select_option('SHEL.L');page.locator('#research-tab-3').click()
     assert page.get_by_label('Competitive advantages & supporting evidence',exact=True).input_value()=='SHEL.L personal evidence note'
     page.locator('#research-tab-0').click();page.evaluate('scrollTo(0,0)');page.wait_for_timeout(50)
     page.screenshot(path='/tmp/research-r2-summary.png',full_page=True)
     page.set_viewport_size({'width':768,'height':1024});page.locator('#research-tab-2').click();page.wait_for_timeout(100);page.evaluate('scrollTo(0,0)')
     page.screenshot(path='/tmp/research-r2-stress-ipad.png',full_page=True)
     for key in ['overview','fx','equities','bonds','analytics','etfs','economics','watchlist','quality','companies']:
-        page.locator('#tab-'+key).click();page.wait_for_timeout(60)
-        assert page.locator('#view-'+key).is_visible()
+        page.locator('#tab-'+({'companies':'equities','analytics':'fx'}.get(key,key))).click()
+        if key in ['companies','analytics']:page.locator('#sub-'+('equities-research' if key=='companies' else 'fx-analytics')).click()
+        page.wait_for_timeout(60)
+        assert page.locator('#view-'+({'companies':'equities','analytics':'fx'}.get(key,key))).is_visible()
     assert not errors,errors
     print('PASS Release 2: real source evidence, guidance comparison, allocation, five warning indicators, unchanged Shell base, real downturn, commodity gap/assumption, HSBC exclusion, personal notes and all workspaces/layouts')
     browser.close()

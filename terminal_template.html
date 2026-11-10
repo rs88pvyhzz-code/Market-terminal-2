@@ -434,6 +434,15 @@ h2{font:600 15px/1.35 var(--font);color:var(--amber);margin:0}h3{font:500 13px v
 @media(max-width:1050px){.research-executive-grid{grid-template-columns:repeat(2,minmax(0,1fr))}.research-pair{grid-template-columns:1fr}}
 @media(max-width:520px){.research-executive-grid{grid-template-columns:1fr}.research-executive-card{padding:9px}}
 </style>
+<style id="release22-layout">
+/* Release 2.2: compact navigation and readable fixed-income tables. */
+#gilt-yield-review[hidden]{display:none!important}
+.workspace-nav{flex-wrap:wrap;overflow:visible}.terminal-subnav{display:flex;gap:6px;flex-wrap:wrap;margin:2px 0 8px}.terminal-subnav .btn[aria-selected="true"]{border-color:var(--amber);color:var(--amber);background:#292117}.terminal-subview{display:grid;gap:12px;min-width:0}.terminal-subview[hidden]{display:none!important}
+#gilts .gilt-table{table-layout:fixed;width:100%;min-width:0!important}#gilts .gilt-table th,#gilts .gilt-table td{padding:7px 4px;min-width:0;max-width:none;white-space:normal;overflow:visible;text-overflow:clip;font-size:11px;line-height:1.4;vertical-align:top}#gilts .gilt-table .n{text-align:right;font-variant-numeric:tabular-nums;white-space:nowrap}#gilts .gilt-table th.n{white-space:normal;overflow-wrap:anywhere}#gilts .gilt-identity strong,#gilts .gilt-identity small{display:block;white-space:normal;overflow-wrap:normal}#gilts .gilt-identity small{font-size:10px;color:var(--muted);margin-top:3px}#gilts .gilt-table td:nth-child(2){white-space:nowrap;font-variant-numeric:tabular-nums}.gilt-freshness{padding:9px 10px;border:1px solid #66502a;background:#211c14;color:#f2bd67;font-size:12px;line-height:1.5}
+#us-treasuries .watch,#corporate-credit .watch{min-width:0!important;width:100%;table-layout:fixed}#us-treasuries .watch td,#us-treasuries .watch th,#corporate-credit .watch td,#corporate-credit .watch th{padding:7px 5px;white-space:normal;max-width:none;overflow:visible;text-overflow:clip;font-size:11px}#us-treasuries .watch .n,#corporate-credit .watch .n{text-align:right;font-variant-numeric:tabular-nums}
+.research-view{padding-top:4px}.research-view h3{margin:10px 0 7px}.research-detail{margin:8px 0}.research-executive-card{padding:10px}.research-executive-card p{margin:5px 0}.research-benchmark{margin:12px 0}.research-view .watchlist-risk{margin:10px 0;padding:10px}.research-view .company-main{margin:0}#research-view-0>.research-r2{margin-top:12px}
+@media(max-width:900px){#gilts .gilt-table td,#gilts .gilt-table th{font-size:10px;padding:6px 3px}#gilts .gilt-identity small{font-size:9px}.workspace-nav button{padding:8px 10px}.terminal-subnav .btn{padding:8px}}
+</style>
 </head>
 <body>
 <div class="wrap">
@@ -447,11 +456,9 @@ h2{font:600 15px/1.35 var(--font);color:var(--amber);margin:0}h3{font:500 13px v
   <nav class="workspace-nav" id="workspace-tabs" aria-label="Market terminal workspaces" role="tablist">
     <button type="button" role="tab" id="tab-overview" aria-controls="view-overview" data-workspace="overview" aria-selected="true">OVERVIEW</button>
     <button type="button" role="tab" id="tab-fx" aria-controls="view-fx" data-workspace="fx" aria-selected="false">MARKETS</button>
-    <button type="button" role="tab" id="tab-equities" aria-controls="view-equities" data-workspace="equities" aria-selected="false">EQUITIES</button>
-    <button type="button" role="tab" id="tab-companies" aria-controls="view-companies" data-workspace="companies" aria-selected="false">COMPANY RESEARCH</button>
+    <button type="button" role="tab" id="tab-equities" aria-controls="view-equities" data-workspace="equities" aria-selected="false">EQUITIES &amp; RESEARCH</button>
     <button type="button" role="tab" id="tab-bonds" aria-controls="view-bonds" data-workspace="bonds" aria-selected="false">BONDS & RATES</button>
-    <button type="button" role="tab" id="tab-analytics" aria-controls="view-analytics" data-workspace="analytics" aria-selected="false">ANALYTICS</button>
-    <button type="button" role="tab" id="tab-etfs" aria-controls="view-etfs" data-workspace="etfs" aria-selected="false">ETF TRACKERS</button>
+    <button type="button" role="tab" id="tab-etfs" aria-controls="view-etfs" data-workspace="etfs" aria-selected="false">ETFs</button>
     <button type="button" role="tab" id="tab-economics" aria-controls="view-economics" data-workspace="economics" aria-selected="false">ECONOMICS</button>
     <button type="button" role="tab" id="tab-watchlist" aria-controls="view-watchlist" data-workspace="watchlist" aria-selected="false">MY WATCHLIST</button>
     <button type="button" role="tab" id="tab-quality" aria-controls="view-quality" data-workspace="quality" aria-selected="false">DATA QUALITY</button>
@@ -462,7 +469,7 @@ h2{font:600 15px/1.35 var(--font);color:var(--amber);margin:0}h3{font:500 13px v
 <section class="panel" id="overview-board">
   <div class="row"><h2>GLOBAL MARKET PULSE</h2><span class="mini">Select any market to open its chart or rates analysis</span></div>
   <div class="pulse-board" id="market-pulse"></div>
-  <div class="workspace-shortcuts"><button type="button" data-jump="equities">VIEW ALL INDEX CONSTITUENTS</button><button type="button" data-jump="bonds">COMPARE GOVERNMENT YIELDS</button><button type="button" data-jump="economics">VIEW ECONOMIC INDICATORS</button><button type="button" data-jump="analytics">CROSS-MARKET ANALYTICS</button><button type="button" data-jump="quality">DATA QUALITY &amp; SOURCES</button></div>
+  <div class="workspace-shortcuts"><button type="button" data-jump="equities:screen">VIEW ALL INDEX CONSTITUENTS</button><button type="button" data-jump="bonds">COMPARE GOVERNMENT YIELDS</button><button type="button" data-jump="economics">VIEW ECONOMIC INDICATORS</button><button type="button" data-jump="analytics">CROSS-MARKET ANALYTICS</button><button type="button" data-jump="quality">DATA QUALITY &amp; SOURCES</button></div>
   <p class="pulse-warning">Snapshot values; not streaming quotes. Most equity movements exclude dividends. Government-yield changes are basis points, not investment returns.</p>
 </section>
 <section class="panel" id="personal-watchlist-panel">
@@ -697,11 +704,11 @@ h2{font:600 15px/1.35 var(--font);color:var(--amber);margin:0}h3{font:500 13px v
     <div class="company-fin"><h3>ANNUAL INCOME STATEMENT</h3><div id="company-annual"></div><p class="note" style="padding-top:9px">Revenue, operating profit and net profit are reported accounting figures, NOT necessarily trailing 12 months. All amounts use the company's financial reporting currency.</p></div>
   </div>
   <section class="watchlist-risk" id="company-risk-panel" aria-label="Company performance, risk and momentum">
-    <div class="row"><h3>PERFORMANCE, RISK &amp; MOMENTUM</h3><div class="inputs"><label class="mini" for="company-risk-range">RISK PERIOD</label><select class="field" id="company-risk-range" aria-label="Company risk statistics period"><option value="1Y">1 year</option><option value="3Y">3 years</option><option value="5Y">5 years</option><option value="MAX">All available</option></select></div></div>
+    <div class="row"><h3>PERFORMANCE, RISK &amp; MOMENTUM</h3><div class="inputs"><label class="mini" for="company-risk-range">RISK PERIOD</label><select class="field" id="company-risk-range" aria-label="Company risk statistics period"><option value="1Y">1 year</option><option value="3Y">3 years</option><option value="5Y">5 years</option><option value="10Y">10 years</option><option value="MAX">All available</option></select></div></div>
     <p class="mini" id="company-risk-period">Historical closing prices</p>
     <p class="note" id="company-risk-note">Risk statistics use observed closing prices only. Missing or insufficient data is not estimated.</p>
     <div class="watchlist-kpis" id="company-risk-kpis"></div>
-    <div class="row"><h3>COMPANY VS REFERENCE INDEX</h3><select class="field" id="company-benchmark-range" aria-label="Benchmark comparison period"><option value="1Y">1 year</option><option value="3Y">3 years</option><option value="5Y">5 years</option><option value="MAX">All available</option></select></div>
+    <div class="row"><h3>COMPANY VS REFERENCE INDEX</h3><select class="field" id="company-benchmark-range" aria-label="Benchmark comparison period"><option value="1Y">1 year</option><option value="3Y">3 years</option><option value="5Y">5 years</option><option value="10Y">10 years</option><option value="MAX">All available</option></select></div>
     <p class="note" id="company-benchmark-note">Both series are rebased to 100 on their first shared trading date, using a common currency.</p>
     <div class="chart" id="company-benchmark-chart" role="img" aria-label="Company performance compared with reference index"></div>
     <p class="note">The reference is a broad-market proxy, not necessarily an official sector benchmark. These are price returns excluding dividends. Beta and correlation require sufficient matched daily observations over the selected period; unavailable statistics stay blank. Technical indicators are not investment recommendations.</p>
@@ -837,18 +844,21 @@ h2{font:600 15px/1.35 var(--font);color:var(--amber);margin:0}h3{font:500 13px v
     <select class="field" id="gilt-sort" aria-label="Sort gilts"><option value="maturity">Sort: maturity</option><option value="net">Sort: highest after-tax yield</option><option value="gross">Sort: highest gross yield</option></select>
     <a class="btn" href="https://www.dmo.gov.uk/data/pdfdatareport?reportCode=D10B" target="_blank" rel="noopener noreferrer">OFFICIAL DMO REPORT</a>
   </div>
-  <div class="constituents-scroll" style="max-height:380px"><table class="watch" style="min-width:1180px"><thead><tr>
-    <th>Gilt</th><th>ISIN / symbol</th><th>Maturity</th><th class="n">Coupon</th><th class="n">DMO bid (clean)</th><th class="n">DMO offer (clean)</th><th class="n">Gross YTM*</th><th class="n" id="gilt-net-head">Net YTM†</th><th class="n">Gross-equiv.†</th><th>Quote date</th>
+  <p class="gilt-freshness" id="gilt-freshness" role="status"></p>
+  <details class="research-detail"><summary>DMO source, definitions &amp; retrieval diagnostics</summary><p class="note" id="gilt-retrieval"></p><p class="note">Purchase is the DMO buying from the investor (bid); Sale is the DMO selling to the investor (offer). These are retail-service reference prices, not executable broker quotes. Index-linked clean prices are real; dirty prices include indexation.</p></details>
+  <div class="constituents-scroll gilt-table-scroll" style="max-height:380px"><table class="watch gilt-table"><colgroup><col style="width:30%"><col style="width:12%"><col style="width:8%"><col span="5" style="width:10%"></colgroup><thead><tr>
+    <th>Gilt / ISIN</th><th>Maturity</th><th class="n">Coupon</th><th class="n">Bid clean</th><th class="n">Offer clean</th><th class="n">Gross YTM*</th><th class="n" id="gilt-net-head">Net YTM†</th><th class="n">Tax-equivalent†</th>
   </tr></thead><tbody id="gilt-rows"></tbody></table></div>
-  <p class="note" id="gilt-quality">Prices are dated DMO retail-service references, not necessarily available through a stockbroker. *Gross yield is a model calculation using DMO conventions (T+3 settlement for DMO prices, actual/actual, ex-dividend), not a DMO published yield. †Net YTM taxes coupons only at the selected rate; the gain to par is CGT-exempt. Gross-equivalent = the taxable deposit rate needed to match it. Excludes the accrued income scheme and ISA/SIPP wrappers (use 0%).</p>
+  <details class="research-detail"><summary>Yield definitions & tax assumptions</summary><p class="note" id="gilt-quality">Prices are dated DMO retail-service references, not necessarily available through a stockbroker. *Gross yield is a model calculation using DMO conventions (T+3 settlement for DMO prices, actual/actual, ex-dividend), not a DMO published yield. †Net YTM taxes coupons only at the selected rate; the gain to par is CGT-exempt. Gross-equivalent = the taxable deposit rate needed to match it. Excludes the accrued income scheme and ISA/SIPP wrappers (use 0%).</p></details>
   <div class="row"><h3 id="gilt-selected">SELECT A GILT</h3><span class="mini" id="gilt-selected-source">—</span></div>
+  <p id="gilt-yield-review" class="research-warning" role="status" hidden></p>
   <div class="inputs" style="display:flex;gap:8px;flex-wrap:wrap;align-items:center">
     <label for="gilt-clean-input" class="mini">YOUR BUY CLEAN PRICE (£ PER £100 NOMINAL)</label>
     <input type="number" id="gilt-clean-input" class="field" min="1" max="250" step="0.01" placeholder="Enter price, e.g. 95.50" style="max-width:200px" inputmode="decimal" aria-label="Gilt clean purchase price">
     <span class="mini" id="gilt-price-basis">Enter a price or select a quoted gilt</span>
   </div>
   <div class="research-stats" id="gilt-stats"></div>
-  <p class="note" id="gilt-calc-note">Yield, accrued interest, duration and DV01 are <b>approximate</b>; the DMO spreadsheet has no published yield. The DMO price is a historical retail-service quote, not an executable offer. The model applies DMO conventions (T+3 settlement for DMO prices, T+1 for your own price, actual/actual accrual, 7-business-day ex-dividend) but ignores bank holidays and irregular first coupons, and excludes dealing costs. Index-linked gilts have real clean prices and inflation-adjusted dirty prices; a nominal YTM is <b>not</b> calculated for them.</p>
+  <details class="research-detail"><summary>Detailed gilt methodology</summary><p class="note" id="gilt-calc-note">Yield, accrued interest, duration and DV01 are <b>approximate</b>; the DMO spreadsheet has no published yield. The DMO price is a historical retail-service quote, not an executable offer. The model applies DMO conventions (T+3 settlement for DMO prices, T+1 for your own price, actual/actual accrual, 7-business-day ex-dividend) but ignores bank holidays and irregular first coupons, and excludes dealing costs. Index-linked gilts have real clean prices and inflation-adjusted dirty prices; a nominal YTM is <b>not</b> calculated for them.</p></details>
   <section id="gilt-ladder" style="display:block;margin:18px 0 22px;min-width:0;max-width:100%;overflow:hidden">
   <div class="row"><div><h3>GILT LADDER BUILDER</h3>
    <p class="note">Pick the conventional gilt with the best after-tax yield maturing in each year to fund a fixed amount of spending. Coupons from later gilts reduce what earlier years need. Uses the coupon tax rate selected above.</p></div>
@@ -1146,7 +1156,7 @@ function setLatest(){const ts=D.generatedAt||'unknown';$('stamp').textContent='G
 }
 function headlines(){const symbols=['^FTSE','^GSPC','GBPUSD=X','^TNX','BZ=F','GC=F','^VIX','BTC-USD'];wipe('headline');
   for(const s of symbols){const q=qMap.get(s);if(!q)continue;const t=el('div','tile');t.append(el('div','t',q.name),el('div','v',price(q)));
-    t.append(el('div','c '+tone(val(q)),move(q,'day')));t.title='Last observation: '+q.asOf;t.onclick=()=>{if(q.kind==='yield'){activateWorkspace('bonds');return;}state.sym=s;activateWorkspace('fx',{scroll:false});$('main-pick').value=s;renderMain();renderWatch();$('monitor').scrollIntoView({behavior:'smooth'});};t.style.cursor='pointer';$('headline').append(t);}
+    t.append(el('div','c '+tone(val(q)),move(q,'day')));t.title='Last observation: '+q.asOf;t.onclick=()=>{if(q.kind==='yield'){activateWorkspace('bonds');return;}state.sym=s;activateWorkspace('fx',{scroll:false,subview:'prices'});$('main-pick').value=s;renderMain();renderWatch();$('monitor').scrollIntoView({behavior:'smooth'});};t.style.cursor='pointer';$('headline').append(t);}
 }
 function renderMarketMini(){
   const host=$('market-mini-summary');if(!host)return;host.replaceChildren();
@@ -1744,6 +1754,7 @@ function renderDataQuality(){renderHistoricalCoverage();
  ['Dividend-adjusted series',q.adjustedSeries??'—','Yahoo adjusted closes, not every index'],
  ['Stale market quotes',(q.staleQuotes||[]).length,'Older than 4 calendar days'],
  ['UK gilts priced',q.pricedGilts??'—','Dated, not real-time'],
+ ['DMO quotation date',D.giltFreshness?.quotationDate||'unavailable','Expected at source check: '+(D.giltFreshness?.expectedQuotationDate||'not assessed')+(giltSourceStale(D.giltFreshness)?' · STALE':'')],
  ['US Treasuries priced',q.pricedUSTreasuries??'—','Dated, not real-time'],
  ['Corporate credit feeds',(D.credit_spreads||[]).length+' / 6','Dated FRED / ICE BofA OAS'],
  ['Market valuation coverage',(D.market_valuations||[]).filter(v=>v.trailingPEProxy!=null).length+' / '+(D.market_valuations||[]).length,'Partial and positive earnings only'],
@@ -2048,20 +2059,18 @@ function reorderSections(){
   if(insight&&!$('company-news-panel')){const sec=el('section','panel');sec.id='company-news-panel';sec.append(insight);wrap.append(sec);}
   const config=[
     ['overview','MARKET OVERVIEW','Headlines · indices · FX · key yields',['news','headline','overview-board']],
-    ['fx','GLOBAL MARKET DATA','Major markets · prices · interactive historical charts',['monitor']],
-    ['equities','EQUITY MARKETS','Daily movers · full index constituents',['movers','equity-screener','constituents']],
-    ['companies','COMPANY RESEARCH','Prices & financials · peer comparison · news · earnings diary',['companies','peer-panel','company-news-panel','company-events-panel','forensic-panel']],
+    ['fx','MARKETS','Prices · risk · relative performance · correlations',[]],
+    ['equities','EQUITIES & RESEARCH','Screening · constituents · company research · breadth & sectors',[]],
     ['bonds','BONDS & RATES','Government bonds · corporate credit · yield curves',['gilts','us-treasuries','corporate-credit','rates','real','us-spread-panel','sovereign','cross-rates']],
-    ['analytics','VALUATIONS & MARKET ANALYTICS','Breadth · sectors · rolling risk · valuations · ETF data accuracy · comparisons',['analytics-breadth','analytics-sectors','analytics-rolling','market-valuations','compare','score-panel']],
-    ['etfs','ETF RESEARCH','TER · tracking error · country funds · equities · bonds',['etf-tracker-panel']],
-    ['economics','ECONOMIC DATA','GDP · inflation · actuals versus forecasts · calendar',['macro','macro-surprise','calendar']],
-    ['watchlist','PERSONAL WATCHLIST','Selected securities · prices · news · fundamentals',['personal-watchlist-panel']],
-    ['quality','DATA QUALITY & SOURCES','Quote coverage · stale data · missing fundamentals · source warnings',['etf-audit-panel','quality-panel','sources']]
+    ['etfs','ETFs','Trackers · comparisons · tracking quality',['etf-tracker-panel']],
+    ['economics','ECONOMIC DATA','Indicators · actuals versus forecasts · calendar',['macro','macro-surprise','calendar']],
+    ['watchlist','MY WATCHLIST','Selected securities · news · fundamentals · individual risk',['personal-watchlist-panel']],
+    ['quality','DATA QUALITY & SOURCES','Coverage · freshness · missing data · diagnostics',['etf-audit-panel','quality-panel','sources']]
   ];
   for(const [key,title,desc,ids] of config){
     const view=el('div','workspace-view');view.id='view-'+key;view.dataset.workspace=key;view.setAttribute('role','tabpanel');view.setAttribute('aria-labelledby','tab-'+key);view.hidden=key!=='overview';
     const head=el('div','workspace-title');const h=document.createElement('h1');h.textContent=title;head.append(h,el('span','',desc));view.append(head);
-    for(const id of ids){const node=$(id);if(node)view.append(node);}stage.append(view);
+    for(const id of ids){const node=$(id);if(node)view.append(node);}stage.append(view);if(terminalSubViews[key])terminalBuildSubViews(view,key);
   }
 }
 function researchTile(label,value,detail){const item=el('div','research-stat');item.append(el('div','lab',label),el('div','val',value),el('div','obs',detail));return item;}
@@ -2196,6 +2205,7 @@ const RISK_PERIODS={
  '1Y':{label:'1 year',minDays:295,minReturns:120},
  '3Y':{label:'3 years',minDays:970,minReturns:450},
  '5Y':{label:'5 years',minDays:1630,minReturns:750},
+ '10Y':{label:'10 years',minDays:3260,minReturns:1500},
  'MAX':{label:'all available history',minDays:180,minReturns:120}
 };
 function riskWindowStats(prices,paired,range='1Y'){
@@ -2293,7 +2303,9 @@ function renderCompanyRisk(c){
   ['DIVIDEND YIELD',c.dividendYieldPct==null?'—':fmtRisk(c.dividendYieldPct,2)+'%','Latest sourced yield · unaffected by period'],
   ['REFERENCE INDEX',bench?.name||benchSymbol,benchSymbol+' · broad-market proxy']
  ];
- for(const [label,value,info] of tiles)host.append(watchValTile(label,value,info));
+ const technical=$('company-technical-kpis');if(technical)technical.replaceChildren();
+ for(const [label,value,info] of tiles){const target=technical&&(/RSI|MOVING AVERAGE/.test(label))?technical:host;target.append(watchValTile(label,value,info));}
+ for(const id of ['company-risk-range','company-benchmark-range']){const pick=$(id);for(const option of pick.options){const minimum={'1Y':295,'3Y':970,'5Y':1630,'10Y':3260}[option.value];option.disabled=minimum!=null&&(!rows.length||watchSpanDays(rows[0].date,end)<minimum);}}
  $('company-risk-period').textContent=range+' · '+risk.rows+' prices, '+risk.dailyReturns+' eligible daily returns · '+(risk.from||'unavailable')+' to '+(end||'—');
  $('company-risk-note').textContent=(risk.enough?'':'Insufficient daily observations for '+risk.label+'; period measures deliberately left blank. ')+
   (risk.beta==null?'Beta/correlation unavailable: insufficient matched daily data or benchmark FX. ':'')+
@@ -2557,29 +2569,28 @@ function initWatchlist(){
  $('watchlist-basis').onchange=e=>{watchState.basis=e.target.value;const w=watchlistRecords.find(r=>r.symbol===watchState.symbol);if(w){renderWatchlistChart(w,watchQuoteMap.get(w.symbol));renderWatchlistRelative(w,watchQuoteMap.get(w.symbol));}};
 }
 
-const WORKSPACES=['overview','fx','equities','companies','bonds','analytics','etfs','economics','watchlist','quality'];
+const WORKSPACES=['overview','fx','equities','bonds','etfs','economics','watchlist','quality'];
 let activeWorkspace='overview', searchHits=[], searchCursor=0;
-const workspaceForSection={'etf-tracker-panel':'etfs','personal-watchlist-panel':'watchlist','analytics-breadth':'analytics','analytics-sectors':'analytics','analytics-rolling':'analytics','market-valuations':'analytics','corporate-credit':'bonds','company-events-panel':'companies','us-treasuries':'bonds',gilts:'bonds',news:'overview',headline:'overview',monitor:'fx',movers:'equities','equity-screener':'equities',constituents:'equities',companies:'companies','peer-panel':'companies',rates:'bonds',real:'bonds',sovereign:'bonds',macro:'economics',calendar:'economics',compare:'analytics','quality-panel':'quality',sources:'quality'};
+const workspaceForSection={'etf-tracker-panel':'etfs','personal-watchlist-panel':'watchlist','analytics-breadth':'equities:analytics','analytics-sectors':'equities:analytics','analytics-rolling':'analytics','market-valuations':'analytics','corporate-credit':'bonds','company-events-panel':'companies','us-treasuries':'bonds',gilts:'bonds',news:'overview',headline:'overview',monitor:'fx:prices',movers:'equities:screen','equity-screener':'equities:screen',constituents:'equities:screen',companies:'companies','peer-panel':'companies',rates:'bonds',real:'bonds',sovereign:'bonds',macro:'economics',calendar:'economics',compare:'analytics','quality-panel':'quality',sources:'quality'};
 function paintWorkspace(key){
   switch(key){
     case 'overview': renderNews(); renderPulse(); break;
-    case 'equities': renderMovers(); renderScreener(); renderConstituents(); break;
-    case 'companies': renderCompany(); renderPeers(); renderCompanyEvents(); break;
+    case 'equities': if(terminalSubSelection.equities==='research'){renderCompany();renderPeers();renderCompanyEvents();}else if(terminalSubSelection.equities==='analytics'){renderBreadth();renderSectors();}else{renderMovers();renderScreener();renderConstituents();}break;
     case 'bonds': renderGilts(); renderCredit(); renderRates(); usSpread(); renderReal(); renderSovereign(); break;
     case 'etfs': renderEtfTracker(); break;
     case 'economics': renderMacro(); renderEconomicPrints(); renderCalendar(); break;
-    case 'fx': renderMain(); renderWatch(); break;
-    case 'analytics': renderBreadth(); renderSectors(); renderRolling(); renderValuations(); renderCompare(); renderScore(); break;
+    case 'fx': if(terminalSubSelection.fx==='analytics'){renderRolling();renderValuations();renderCompare();renderScore();}else{renderMain();renderWatch();}break;
     case 'watchlist': renderWatchlist(); break;
     case 'quality': renderDataQuality(); sources(); break;
   }
 }
 function activateWorkspace(key,options={}){
-  if(!WORKSPACES.includes(key))key='overview';
-  activeWorkspace=key;
+  const route=terminalResolveRoute(key);key=route.key;const subview=options.subview||route.subview||terminalSubSelection[key];if(terminalSubViews[key])terminalSetSubView(key,subview);
+  activeWorkspace=key;if(Number.isInteger(route.researchView))showResearchView(route.researchView);
   for(const name of WORKSPACES){const target=$('view-'+name);if(target)target.hidden=name!==key;const tab=$('tab-'+name);
     if(tab){tab.setAttribute('aria-selected',String(name===key));tab.tabIndex=name===key?0:-1;}}
-  if(options.updateHash!==false && location.hash!=='#'+key)history.replaceState(null,'','#'+key);
+  const hash=key+(terminalSubViews[key]?':'+terminalSubSelection[key]:'');
+  if(options.updateHash!==false && location.hash!=='#'+hash)history.replaceState(null,'','#'+hash);
   if(options.scroll!==false)window.scrollTo(0,0);
   // Draw SVG after the destination panel becomes visible. Hidden panels have zero width.
   requestAnimationFrame(()=>{paintWorkspace(key);});
@@ -2587,7 +2598,7 @@ function activateWorkspace(key,options={}){
 function marketInstrument(symbol){
   if(!qMap.has(symbol))return;
   state.sym=symbol;
-  activateWorkspace('fx',{scroll:false});
+  activateWorkspace('fx',{scroll:false,subview:'prices'});
   const select=$('main-pick');if(select)select.value=symbol;
   renderMain();renderWatch();
   $('monitor').scrollIntoView({behavior:'smooth',block:'start'});
@@ -2651,7 +2662,7 @@ function chooseGlobalResult(item){if(!item)return;
   $('global-search').value='';closeGlobalResults();
   if(item.kind==='index'){
     state.constMarket=item.code;state.moversMarket=item.code;
-    activateWorkspace('equities',{scroll:false});renderConstituents();renderMovers();
+    activateWorkspace('equities',{scroll:false,subview:'screen'});renderConstituents();renderMovers();
     $('constituents').scrollIntoView({behavior:'smooth',block:'start'});
   }else if(item.kind==='watchlist'){watchState.symbol=item.code;activateWorkspace('watchlist',{scroll:false});renderWatchlist();}
    else if(item.kind==='company'){openConstituent(item.code);}
@@ -2677,9 +2688,9 @@ function initWorkspace(){
   });
   document.addEventListener('pointerdown',e=>{if(!e.target.closest('.global-search-wrap'))closeGlobalResults();});
   document.addEventListener('keydown',e=>{if(e.key==='/'&&!['INPUT','TEXTAREA','SELECT'].includes(document.activeElement.tagName)&&!e.metaKey&&!e.ctrlKey){e.preventDefault();input.focus();}});
-  window.addEventListener('hashchange',()=>{const key=location.hash.slice(1);activateWorkspace(WORKSPACES.includes(key)?key:workspaceForSection[key]||'overview',{updateHash:false,scroll:false});});
+  window.addEventListener('hashchange',()=>{const key=location.hash.slice(1);activateWorkspace(key,{updateHash:false,scroll:false});});
   let toPaint;window.addEventListener('resize',()=>{clearTimeout(toPaint);toPaint=setTimeout(()=>paintWorkspace(activeWorkspace),170);});
-  const requested=location.hash.slice(1),key=WORKSPACES.includes(requested)?requested:workspaceForSection[requested]||'overview';
+  const requested=location.hash.slice(1),key=requested||'overview';
   activateWorkspace(key,{updateHash:false,scroll:false});
   if(requested && !WORKSPACES.includes(requested) && $(requested)){requestAnimationFrame(()=>$(requested).scrollIntoView({block:'start'}));}
 }
@@ -3744,6 +3755,15 @@ function giltNetYield(b,clean,rate,valuationDate,officialDirty=null){
 }
 // GILT LADDER — backward induction: fund the last year first; coupons from later
 // rungs (net of tax) reduce what each earlier year must buy.
+// Review restrictions are instrument-specific, not changes to the yield formulas.
+const GILT_YIELD_REVIEW={
+ 'GB00BVP99566':'Ex-dividend accrued-interest handling requires independent validation.',
+ 'GB00BWGDRG14':'Irregular first-coupon accrued interest requires independent validation.'
+};
+function giltYieldReviewReason(b){return GILT_YIELD_REVIEW[b.isin||b.ticker]||null;}
+function giltAutoEligible(b){return !b.indexLinked&&b.quoted&&b.askClean>0&&b.askDirty>0&&!giltYieldReviewReason(b);}
+function giltRankingValue(b,metric,key){return giltYieldReviewReason(b)?null:key==='net'?metric.net:metric.model?.ytm;}
+
 const ladderState={amount:50000,start:null,years:10};
 function ladderMoney(x){return x==null||!Number.isFinite(x)?'—':'£'+Math.round(x).toLocaleString('en-GB');}
 function giltPayments(b){
@@ -3758,13 +3778,13 @@ function giltPayments(b){
 function renderGiltLadder(){
   const host=$('ladder-rows');if(!host)return;host.replaceChildren();const stats=$('ladder-stats');stats.replaceChildren();
   const tax=giltTaxRate()/100,amount=Number($('ladder-amount').value),startIn=$('ladder-start'),years=Math.round(Number($('ladder-years').value));
-  const pool=giltList.filter(g=>!g.indexLinked&&g.quoted&&g.askClean>0&&g.askDirty>0);
+  const pool=giltList.filter(giltAutoEligible);
   const quoteDate=pool[0]?.asOf;
   if(!startIn.value){const base=quoteDate?Number(quoteDate.slice(0,4)):new Date().getUTCFullYear();startIn.value=String(base+1);}
   const start=Math.round(Number(startIn.value));
-  $('ladder-basis').textContent=quoteDate?'DMO offer prices dated '+quoteDate+' · coupon tax '+Math.round(tax*100)+'%':'No quoted gilts';
+  $('ladder-basis').textContent=quoteDate?'DMO offer prices dated '+quoteDate+' · coupon tax '+Math.round(tax*100)+'% · review-marked gilts excluded':'No eligible gilts; review restrictions apply';
   const fail=msg=>{const tr=el('tr');const c=td(tr,msg);c.colSpan=8;host.append(tr);};
-  if(!pool.length)return fail('No dated DMO gilt prices available.');
+  if(!pool.length)return fail('No eligible gilts for optimisation. Review-marked and index-linked gilts are excluded; official prices remain in the table.');
   if(!(amount>0)||!(years>=1&&years<=40)||!(start>=2000))return fail('Enter an amount, a first year and a number of years.');
   // Choose one gilt per year: best after-tax yield maturing that calendar year;
   // if none, the latest gilt maturing earlier within the ladder (money then waits in cash).
@@ -3803,7 +3823,7 @@ function renderGiltLadder(){
   let lo=-0.5,hi=1,irr=null;if(settle&&npv(lo)>0&&npv(hi)<0){for(let i=0;i<100;i++){const m=(lo+hi)/2;if(npv(m)>0)lo=m;else hi=m;}irr=(lo+hi)/2*100;}
   const received=flows.reduce((s,f)=>s+f.amt,0);
   for(const p of plan){
-    const tr=el('tr');const b=bought.find(x=>x.years.includes(p.year));const m=p.pick?metrics.get(p.pick.isin):null;
+    const tr=el('tr');tr.dataset.isin=p.pick?.isin||'';const b=bought.find(x=>x.years.includes(p.year));const m=p.pick?metrics.get(p.pick.isin):null;
     td(tr,String(p.year));
     td(tr,p.pick?(p.pick.shortTicker?p.pick.shortTicker+' · ':'')+p.pick.name+(p.early?' (matures earlier; hold cash)':''):'No suitable gilt');
     td(tr,p.pick?.maturity||'—');
@@ -3935,24 +3955,28 @@ function renderGilts(){
   const count=giltList.filter(g=>g.quoted).length,linked=giltList.filter(g=>g.indexLinked).length;
   const date=giltList.find(x=>x.asOf)?.asOf||'',age=date?Math.round((new Date((D.generatedAt||'').slice(0,10)+'T12:00:00Z')-new Date(date+'T12:00:00Z'))/86400000):null;
   $('gilt-coverage').textContent=`${count} / ${giltList.length} dated DMO prices · ${linked} index-linked`;
-  $('gilt-quality').textContent=count?`Official DMO prices from ${date}${age>4?' — STALE: '+age+' calendar days old':''}. DMO purchase = investor sell / bid; DMO sale = investor buy / offer. These are retail-service reference prices, not live AJ Bell prices. Gross yields marked * are modelled, not published.`:
-    'No verified DMO quotes were returned. Enter your own price for conventional-gilt calculations.';
+  const fresh=D.giltFreshness||{},stale=giltSourceStale(fresh)||(age>4&&!fresh.freshnessDeadline);
+  $('gilt-freshness').textContent=`DMO quotation: ${date||'unavailable'} · Website refreshed: ${D.generatedAt||'unknown'}${stale?' · STALE — '+(fresh.stale?'expected '+(fresh.expectedQuotationDate||'a newer business-day quote'):'next update overdue after '+(fresh.freshnessDeadline||'the UK publication cutoff')):''}`;
+  $('gilt-freshness').classList.toggle('research-warning',!!stale);
+  $('gilt-retrieval').textContent=`${fresh.origin||'Dated verified source'} · source retrieved ${fresh.retrievedAt||'not recorded'}. ${fresh.publicationRule||'DMO business-day report.'} ${fresh.downloadedFresh?'Fresh official download verified during collection.':'Recovered/uploaded prices; no fresh download confirmed for this build.'} ${(fresh.attempts||[]).filter(x=>!x.success).map(x=>x.requestedDate+': '+x.error).join(' · ')}`;
+  $('gilt-quality').textContent=count?'*Gross yield is modelled from the official offer, not a DMO published yield. †Net yield taxes coupons at the selected rate; tax-equivalent preserves the existing deposit-rate comparison.':'No verified DMO quotes; enter an explicit user price for conventional-gilt calculations.';
   const taxRate=giltTaxRate(),netHead=$('gilt-net-head');if(netHead)netHead.textContent='Net YTM @'+taxRate+'%†';
-  const metrics=new Map(rows.map(g=>{const model=!g.indexLinked&&g.askClean!=null?giltValuation(g,g.askClean,g.asOf,g.askDirty):null;
+  const metrics=new Map(rows.map(g=>{const model=!g.indexLinked&&!giltYieldReviewReason(g)&&g.askClean!=null?giltValuation(g,g.askClean,g.asOf,g.askDirty):null;
     const net=model?giltNetYield(g,g.askClean,taxRate,g.asOf,g.askDirty):null;return [g.ticker,{model,net}];}));
-  const sortKey=giltState.sort||'maturity',val=g=>{const m=metrics.get(g.ticker);return sortKey==='net'?m.net:m.model?.ytm;};
+  const sortKey=giltState.sort||'maturity',val=g=>{const m=metrics.get(g.ticker);return giltRankingValue(g,m,sortKey);};
   if(sortKey!=='maturity')rows.sort((a,b)=>(val(b)??-1e9)-(val(a)??-1e9));
-  if(!rows.length){const tr=el('tr');const cell=td(tr,'No gilts match this filter');cell.colSpan=10;table.append(tr);}
-  for(const g of rows){const tr=el('tr');tr.style.cursor='pointer';if(g.ticker===giltState.symbol)tr.classList.add('selected');
+  if(!rows.length){const tr=el('tr');const cell=td(tr,'No gilts match this filter');cell.colSpan=8;table.append(tr);}
+  for(const g of rows){const tr=el('tr');tr.dataset.isin=g.isin;tr.style.cursor='pointer';if(g.ticker===giltState.symbol)tr.classList.add('selected');
     const {model,net}=metrics.get(g.ticker);
-    td(tr,g.name);td(tr,g.shortTicker?g.shortTicker+' · '+g.isin:g.isin);td(tr,g.maturity);td(tr,fmt(g.coupon,3)+'%','n');
+    const name=td(tr,'');name.className='gilt-identity';name.append(el('strong','',g.name),el('small','',g.isin+(g.shortTicker?' · '+g.shortTicker:'')));name.title='Official quotation '+g.asOf;if(giltYieldReviewReason(g)||(model&&g.askDirty!=null&&Math.abs(model.accrued-(g.askDirty-g.askClean))>=.0005)){name.append(el('small','dn','Yield model accrual: review'));name.title+=' · model accrued interest differs from DMO dirty minus clean; check ex-dividend/irregular coupon conventions';}td(tr,g.maturity);td(tr,fmt(g.coupon,3)+'%','n');
     td(tr,g.bidClean!=null?fmt(g.bidClean,2):'—','n');td(tr,g.askClean!=null?fmt(g.askClean,2):'—','n');
-    td(tr,g.indexLinked?'—':model?fmt(model.ytm,3)+'%*':'—','n');
-    td(tr,net!=null?fmt(net,3)+'%':'—','n');td(tr,net!=null&&taxRate<100?fmt(net/(1-taxRate/100),3)+'%':'—','n');td(tr,g.asOf||'—');
+    td(tr,giltYieldReviewReason(g)?'Review':g.indexLinked?'—':model?fmt(model.ytm,3)+'%*':'—','n');
+    td(tr,giltYieldReviewReason(g)?'Review':net!=null?fmt(net,3)+'%':'—','n');td(tr,giltYieldReviewReason(g)?'Review':net!=null&&taxRate<100?fmt(net/(1-taxRate/100),3)+'%':'—','n');
     tr.onclick=()=>{giltState.symbol=g.ticker;renderGilts();};table.append(tr);
   }
   const b=giltList.find(g=>g.ticker===giltState.symbol);
   if(!b){$('gilt-selected').textContent='NO GILT DATA AVAILABLE';$('gilt-stats').replaceChildren();empty('gilt-chart','No bonds returned.');return;}
+  const review=giltYieldReviewReason(b),reviewHost=$('gilt-yield-review');reviewHost.hidden=!review;reviewHost.textContent=review?'DERIVED YIELDS REQUIRE REVIEW · '+review+' Excluded from automatic yield ranking and gilt-ladder optimisation. Official DMO prices and security data are retained.':'';
   $('gilt-selected').textContent=b.name+'  ·  '+(b.shortTicker||b.isin);
   $('gilt-selected-source').textContent=b.asOf?'DMO source date: '+b.asOf:'No verified DMO quotation';
   const input=$('gilt-clean-input'),user=giltState.manual.get(b.ticker);
@@ -3968,12 +3992,12 @@ function renderGilts(){
     ['DMO sale dirty / offer',b.askDirty!=null?fmt(b.askDirty,5):'—','Official, including accrued interest / indexation'],
     ['Quoted bid / offer spread',b.bidClean!=null&&b.askClean!=null?fmt(b.askClean-b.bidClean,3):'—','£ / £100'],
     ['Your clean purchase price',price!=null?fmt(price,3):'—',exact?'DMO sale clean price':'Manual input'],
-    ['Model accrued interest',v?fmt(v.accrued,4):'—',b.indexLinked?'Not modelled for index-linked':v?.exDividend?'EX-DIVIDEND: next coupon goes to the seller; accrued is negative':'Actual/actual; DMO dirty quote used for yield when available'],
-    ['Dirty price used for model',v?fmt(v.dirty,4):'—',user==null&&b.askDirty!=null?'Official DMO offer dirty price':'Estimated from conventional gilt accrued interest'],
-    ['Model gross yield to maturity',v?fmt(v.ytm,3)+'%':'—',b.indexLinked?'Real yield requires a correctly indexed coupon/redemption schedule':'Indicative only: dated quote and approximate payment dates'],
+    ['Model accrued interest',review?'Review required':v?fmt(v.accrued,4):'—',b.indexLinked?'Not modelled for index-linked':v?.exDividend?'EX-DIVIDEND: next coupon goes to the seller; accrued is negative':'Actual/actual; DMO dirty quote used for yield when available'],
+    ['Dirty price used for model',review&&user!=null?'Review required':v?fmt(v.dirty,4):'—',user==null&&b.askDirty!=null?'Official DMO offer dirty price':'Estimated from conventional gilt accrued interest'],
+    ['Model gross yield to maturity',review?'Review required':v?fmt(v.ytm,3)+'%':'—',b.indexLinked?'Real yield requires a correctly indexed coupon/redemption schedule':'Indicative only: dated quote and approximate payment dates'],
     ['Running yield',v?fmt(v.running,3)+'%':'—','Coupon / clean purchase price'],
-    ['Modified duration',v?fmt(v.duration,2)+' years':'—','Approximate'],
-    ['DV01 per £100 nominal',v?'£'+fmt(v.dv01,4):'—','Per +1 basis point'],
+    ['Modified duration',review?'Review required':v?fmt(v.duration,2)+' years':'—','Approximate'],
+    ['DV01 per £100 nominal',review?'Review required':v?'£'+fmt(v.dv01,4):'—','Per +1 basis point'],
     ['Capital gain at par',v?'£'+fmt(v.capitalGain,2):'—',b.indexLinked?'RPI-adjusted redemption, not £100':'Before taxes / fees']];
   if(b.indexLinked)st.splice(4,0,['Index ratio',b.indexRatio!=null?fmt(b.indexRatio,5):'—',b.indexationLag?'Indexation lag '+b.indexationLag:'Index-linked']);
   for(const [k,x,note] of st)host.append(researchTile(k,x,note));
@@ -4105,7 +4129,7 @@ function init(){setLatest();reorderSections();
   $('credit-main').onchange=e=>{creditState.primary=e.target.value;renderCredit();};
   $('credit-compare').onchange=e=>{creditState.compare=e.target.value;renderCredit();};
   document.querySelectorAll('[data-credit-range]').forEach(b=>b.onclick=()=>{creditState.range=b.dataset.creditRange;renderCredit();});
-  $('valuation-to-constituents').onclick=()=>{state.constMarket=valuationSelection;activateWorkspace('equities',{scroll:false});$('const-market').value=valuationSelection;renderConstituents();$('constituents').scrollIntoView({behavior:'smooth',block:'start'});};
+  $('valuation-to-constituents').onclick=()=>{state.constMarket=valuationSelection;activateWorkspace('equities',{scroll:false,subview:'screen'});$('const-market').value=valuationSelection;renderConstituents();$('constituents').scrollIntoView({behavior:'smooth',block:'start'});};
   $('events-search').oninput=e=>{eventState.query=e.target.value.trim().toLowerCase();renderCompanyEvents();};
   $('events-filter').onchange=e=>{eventState.filter=e.target.value;renderCompanyEvents();};
   $('events-group').onchange=e=>{eventState.group=e.target.value;renderCompanyEvents();};
