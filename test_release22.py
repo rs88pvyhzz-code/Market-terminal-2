@@ -71,19 +71,21 @@ class ReliabilityTests(unittest.TestCase):
         a=html.index('function giltDay(');b=html.index('const ladderState',a)
         model=html[a:b].replace("document.getElementById('mt-gilt-tax-rate')?.value",'undefined')
         rows=g.parse_dmo_xlsx((ROOT/'dmo_prices/DMO_D10B_2026-11-09.xls').read_bytes())[0]
-        expected=json.loads((ROOT/'tests/fixtures/gilt_unaffected_2026_11_09.json').read_text())['rows']
+        baseline=json.loads((ROOT/'tests/fixtures/gilt_unaffected_2026_11_09.json').read_text());expected=baseline['rows']
+        import hashlib
+        self.assertEqual(hashlib.sha256(model.split('// Review restrictions are instrument-specific')[0].encode()).hexdigest(),baseline['modelSHA256'],'Raw yield formulas must remain byte-for-byte unchanged')
         js="const D={generatedAt:'2026-11-10'};"+model+';const rows='+json.dumps(rows)+';const expected='+json.dumps(expected)+r""";
 const fail=msg=>{throw Error(msg);};
 for(const e of expected){const g=rows.find(g=>g.isin===e.isin);if(giltYieldReviewReason(g)||!giltAutoEligible(g))fail('Unexpected exclusion '+g.isin);
- if(giltValuation(g,g.askClean,g.asOf,g.askDirty).ytm!==e.gross)fail('Changed gross '+g.isin);
- for(const t of [0,20,40,45])if(giltNetYield(g,g.askClean,t,g.asOf,g.askDirty)!==e['net'+t])fail('Changed net '+g.isin+' '+t);
+ if(Math.abs(giltValuation(g,g.askClean,g.asOf,g.askDirty).ytm-e.gross)>1e-10)fail('Changed gross '+g.isin);
+ for(const t of [0,20,40,45])if(Math.abs(giltNetYield(g,g.askClean,t,g.asOf,g.askDirty)-e['net'+t])>1e-10)fail('Changed net '+g.isin+' '+t);
 }
 const ids=['GB00BVP99566','GB00BWGDRG14'];
 for(const id of ids){const g=rows.find(g=>g.isin===id);if(!g||!giltYieldReviewReason(g)||giltAutoEligible(g))fail('Missing restriction '+id);
  for(const key of ['net','gross'])if(giltRankingValue(g,{net:1e6,model:{ytm:1e6}},key)!==null)fail('Ranked restricted '+id);
 }
 if(rows.filter(giltAutoEligible).length!==67)fail('Wrong eligible pool');
-console.log('All 67 other gilt yields identical at 0/20/40/45% tax; both review ISINs excluded from ranking and optimisation');
+console.log('All 67 other gilt yields match the baseline within 1e-10 percentage points at 0/20/40/45% tax; both review ISINs excluded from ranking and optimisation');
 """
         subprocess.run(['node','-e',js],check=True)
         # Exercise the actual ladder function with only the two original official quotes.
