@@ -68,6 +68,11 @@ class BriefingTests(unittest.TestCase):
             with patch.object(news,'__file__',str(Path(root)/'market_intelligence.py')),patch.object(news,'_collect_legacy_news',return_value=([],[],0)),patch.object(news,'_published_news_archive',return_value=[]),patch.object(news,'PRIMARY_NEWS_FEEDS',[]):
                 news.collect_news(None,SimpleNamespace(offline=False))
                 self.assertTrue((Path(root)/'public'/'news_cache.json').exists())
+                duplicate=story('Synthetic duplicate')
+                with patch.object(news,'_collect_legacy_news',return_value=([duplicate,dict(duplicate,archived=True)],[],0)):
+                    records,_,_=news.collect_news(None,SimpleNamespace(offline=False))
+                    self.assertEqual(len(records),1)
+                    self.assertFalse(records[0].get('archived',False))
                 with patch.object(Path,'write_text',side_effect=OSError('synthetic unavailable disk')):
                     _,warnings,_=news.collect_news(None,SimpleNamespace(offline=False))
                     self.assertIn('could not be saved',warnings[-1])

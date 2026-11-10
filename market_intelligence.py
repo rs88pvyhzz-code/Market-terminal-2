@@ -100,8 +100,8 @@ def _published_news_archive():
     url=f'https://{owner}.github.io/{project}/news_cache.json'
     try:
         req=urllib.request.Request(url,headers={'User-Agent':'MarketTerminal/1.0'})
-        with urllib.request.urlopen(req,timeout=8) as response:raw=response.read(400_001)
-        if len(raw)>400_000:raise ValueError('News archive too large')
+        with urllib.request.urlopen(req,timeout=8) as response:raw=response.read(2_000_001)
+        if len(raw)>2_000_000:raise ValueError('News archive too large')
         obj=json.loads(raw.decode('utf-8'))
         if not isinstance(obj,dict):return []
         now=dt.datetime.now(dt.timezone.utc)
@@ -211,6 +211,13 @@ def collect_news(core,opts):
         except Exception as exc:
             NEWS_DIAGNOSTICS.append(dict(source=name,url=url,status='failed',error=str(exc)[:180],articles=0))
     NEWS_DIAGNOSTICS.append(dict(source='Search and editorial feeds',warnings=warnings))
+    # Persist one verified/recovered record per URL. Repeated scheduled restores
+    # must not amplify the same cached articles on each successive build.
+    unique={}
+    for item in articles:
+        old=unique.get(item['url'])
+        if old is None or ((old.get('archived') or old.get('restored')) and not (item.get('archived') or item.get('restored'))):unique[item['url']]=item
+    articles=sorted(unique.values(),key=lambda x:(not bool(x.get('archived') or x.get('restored')),str(x.get('published',''))),reverse=True)[:240]
     # The public snapshot is the recovery layer already published by the workflow.
     if not opts.offline:
         target=pathlib.Path(__file__).resolve().parent/'public'/'news_cache.json'
