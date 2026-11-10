@@ -19,6 +19,12 @@ class BriefingTests(unittest.TestCase):
         fed=classify(story('Federal Reserve cuts interest rates by 25 basis points'),NOW)
         self.assertIn('economic',uk['categories']);self.assertIn('UK',uk['regions'])
         self.assertIn('rates',fed['categories']);self.assertIn('US',fed['regions'])
+    def test_publisher_location_is_not_story_geography(self):
+        item=classify(story('Canadian bond yields decline - Yahoo Finance UK'),NOW)
+        self.assertNotIn('UK',item['regions'])
+    def test_unverified_search_match_not_featured_as_watchlist_evidence(self):
+        p=enrich({'generatedAt':NOW.isoformat(),'personalWatchlist':[{'name':'Shell plc','symbol':'SHEL.L'}],'watchlist_news':[{'symbol':'SHEL.L','articles':[story('UK earnings calendar for next week')]}]})
+        self.assertNotIn('watchlist',p['news'][0]['categories'])
     def test_company_watchlist(self):
         for name in ['Shell','Microsoft']:
             item=classify(story(name+' earnings and buyback announced'),NOW,[name])

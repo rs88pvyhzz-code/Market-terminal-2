@@ -15,8 +15,16 @@ def timestamp(value):
     try:parsed=dt.datetime.fromisoformat(str(value).replace(' UTC','+00:00').replace('Z','+00:00'));return (parsed if parsed.tzinfo else parsed.replace(tzinfo=dt.timezone.utc)).astimezone(dt.timezone.utc)
     except (ValueError,TypeError):return None
 
+def headline_text(item):
+    """Remove RSS publisher/edition metadata before geography or event matching."""
+    title=item.get('title','').lower()
+    if not item.get('official') and ' - ' in title:
+        headline,suffix=title.rsplit(' - ',1)
+        if suffix==str(item.get('source','')).lower() or not re.search(r'\d|\b(cuts?|hikes?|rates?|inflation|earnings|guidance|gdp|cpi)\b',suffix):title=headline
+    return re.sub(r'\s*--?\s*\d+(?:st|nd|rd|th)\s+update\b.*$','',title)
+
 def classify(item, now, watch_names=()):
-    item=dict(item); text=item.get('title','').lower(); cats=list(item.get('categories',[])); reasons=[];score=0
+    item=dict(item); text=headline_text(item); cats=list(item.get('categories',[])); reasons=[];score=0
     for key,pattern,weight in RULES:
         if re.search(pattern,text):cats.append(key);score+=weight;reasons.append(CATEGORIES[key])
     if any(n and re.search(r'\b'+re.escape(n.lower())+r'\b',text) for n in watch_names):cats.append('watchlist');score+=25;reasons.append('Watchlist match')
@@ -37,13 +45,7 @@ def deduplicate(items):
     """Conservative headline event grouping; keep differing numbers/directions separate."""
     result=[]
     for item in sorted(items,key=lambda x:(x['archived'],-x['rank'],x.get('published','')),reverse=False):
-        title=item['title'].lower()
-        # RSS search appends publisher names (which may themselves contain hyphens).
-        # Edition numbers are metadata, not conflicting economic numerical claims.
-        if not item.get('official') and ' - ' in title:
-            headline,suffix=title.rsplit(' - ',1)
-            if suffix==str(item.get('source','')).lower() or not re.search(r'\d|\b(cuts?|hikes?|rates?|inflation|earnings|guidance|gdp|cpi)\b',suffix):title=headline
-        title=re.sub(r'\s*--?\s*\d+(?:st|nd|rd|th)\s+update\b.*$','',title)
+        title=headline_text(item)
         normal=title.replace('federal reserve','fed').replace('bank of england','boe').replace('consumer price index','cpi').replace('lowers rates','cuts rates').replace('raises rates','hikes rates')
         tokens=set(re.findall(r'[a-z0-9]+',normal)) - {'the','a','an','in','of','to','and','for','on','as','with','after','says'}
         numbers=set(re.findall(r'\d+(?:\.\d+)?',title));match=None
@@ -66,7 +68,7 @@ def enrich(payload):
     items=list(payload.get('news',[]))
     for group in payload.get('watchlist_news',[]) or []:
         if isinstance(group,dict):
-            for item in group.get('articles',[]):items.append({**item,'categories':['watchlist']})
+            for item in group.get('articles',[]):items.append(dict(item))
     payload['news']=deduplicate([classify(x,now,names) for x in items if x.get('title') and str(x.get('url','')).startswith('https://')])
     alerts=[]; moves=[]
     metrics={x['symbol']:x for x in payload.get('marketHistoryMetrics',[]) if x.get('symbol')}
