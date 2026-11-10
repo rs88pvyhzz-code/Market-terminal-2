@@ -224,8 +224,9 @@ def collect(core,opts):
             if old:candidates.append(old)
         except Exception:pass
         today=dt.datetime.now(dt.timezone.utc).date()
-        expected=dt.date.fromisoformat(assess(None,calendar=calendar)['expectedQuotationDate'])
-        for day in _recent_business_days(expected,count=3,holidays=calendar['holidays']):
+        # Try the current business day even during publication grace: an early
+        # valid release should not be missed. Empty/unpublished reports fall back.
+        for day in _recent_business_days(today,count=3,holidays=calendar['holidays']):
             new=_download_dmo_for(day,attempts)
             if new:
                 candidates.append(new);downloaded=True;break
