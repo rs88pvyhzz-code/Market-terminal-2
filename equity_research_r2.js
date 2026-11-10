@@ -72,7 +72,8 @@ function researchR2Business(c,host){
   host.append(el('p','note',summary.split(/(?<=[.!?])\s/)[0]));
   const full=researchDetails(host,'Business description & provider provenance');full.append(el('p','note',summary),el('p','note',`Provider facts retrieved ${c.financialAsOf||'unknown'} · ${c.fundamentalSource||'unavailable'}. Qualitative issuer claims below are not independently verified moats.`));
   const mix=el('div','research-pair');host.append(mix);
-  for(const [key,title] of [['segments','Reported revenue segments'],['geography','Geographic revenue exposure']]){const panel=el('section');mix.append(panel);panel.append(el('h4','',title));const b=d.revenueBreakdown?.[key];if(!b){panel.append(el('p','research-gap','No compatible reported breakdown extracted. Open issuer reports; no mix is estimated.'));continue;}
+  if(!d.revenueBreakdown?.segments&&!d.revenueBreakdown?.geography)mix.append(el('p','note','Reported segment and geographic breakdowns are unavailable; open issuer reports in source coverage.'));
+  for(const [key,title] of [['segments','Reported revenue segments'],['geography','Geographic revenue exposure']]){const panel=el('section');mix.append(panel);panel.append(el('h4','',title));const b=d.revenueBreakdown?.[key];if(!b){panel.remove();continue;}
     panel.append(researchSourceLink(c,b.sourceId),el('p','note',`${b.period} · ${b.currency}. ${b.basis}`));researchTable(panel,['Reported category','Revenue'],b.rows.map(r=>[r.label,companyAmount(r.value,b.currency)]));}
   const competitors=researchDetails(host,'Principal competitors and peer relevance',true);
   if(d.reportedCompetitors?.length){for(const p of d.reportedCompetitors){const line=el('p','note',`${p.name} (${p.symbol}) · named in a collected competition passage; not a market-share ranking. `);line.append(researchSourceLink(c,p.sourceId));competitors.append(line);}}

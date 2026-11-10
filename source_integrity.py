@@ -20,6 +20,8 @@ def assess(c,asof=None):
             p=row.get('provenance',{}).get(key,{})
             details.append({'field':key,'period':row.get('fiscalEnd'),'source':p.get('source'),'retrievedAt':p.get('retrievedAt'),'url':p.get('url')})
             if row.get(key) is None or not p.get('retrievedAt') or 'SEC' not in p.get('source',''):unverified.append(key)
+    retrieved_dates={str(p.get('retrievedAt') or '')[:10] for p in details if p.get('retrievedAt')}
+    if any(date<today for date in retrieved_dates):issues.append('Some annual components use retained earlier retrievals; their original source dates are shown in the bridge.')
     if unverified:issues.append('FCFF includes secondary-source or missing components: '+', '.join(sorted(set(unverified)))+'. Review the component bridge.')
     for key in ['retrievedAt','sharesRetrievedAt']:
         try:age=(dt.date.fromisoformat(today)-dt.date.fromisoformat(str(balance.get(key,''))[:10])).days

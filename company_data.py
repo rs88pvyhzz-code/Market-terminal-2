@@ -191,7 +191,7 @@ def financials_for(symbol, offline=False):
         client_warning='Yahoo unavailable: '+str(exc)[:100]
     currency=info.get('financialCurrency') or (company_filings.ISSUERS.get(symbol) or ('','',''))[2]
     info['financialCurrency']=currency
-    rows=company_filings.merge_rows(rows,primary,currency)
+    rows=company_filings.retain_financial_history(symbol,company_filings.merge_rows(rows,primary,currency))
     if symbol=='SHEL.L':
         try:
             import shell_issuer_inputs

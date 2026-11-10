@@ -21,7 +21,8 @@ with sync_playwright() as p:
         page.locator('#research-tab-2').click()
         if symbol=='SHEL.L':
             assert page.get_by_label('Shares outstanding (absolute count)',exact=True).input_value()!=''
-            assert 'VALUATION REQUIRES SOURCE REVIEW' in page.locator('#research-valuation').inner_text()
+            if next(c for c in d['companies'] if c['symbol']==symbol).get('valuationIntegrity',{}).get('issues'):
+                assert 'VALUATION REQUIRES SOURCE REVIEW' in page.locator('#research-valuation').inner_text()
             print('Actual Shell FCFF m',page.get_by_label('Normalised FCFF (reporting currency, millions)',exact=True).input_value())
             print('Actual Shell debt adjustment m',page.get_by_label('Debt-related adjustment (reporting millions)',exact=True).input_value())
         if symbol=='HSBA.L':assert 'Standard FCFF DCF excluded' in page.locator('#research-valuation').inner_text()

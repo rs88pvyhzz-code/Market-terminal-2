@@ -38,7 +38,7 @@ class SourceIntegrityTests(unittest.TestCase):
             self.assertTrue(composed['reportedResults']);self.assertTrue(composed['guidance']);self.assertTrue(composed['topics']['catalysts']);self.assertTrue(composed['topics']['risks'])
             cache=root/'.terminal_research'/research_intelligence.CACHE_NAME
             cache.write_text(json.dumps({'records':{'SHEL.L':{'schema':1,'documents':[],'checkedAt':'2026-11-10T00:00:00+00:00','attemptedAt':'2026-11-10T00:00:00+00:00'}}}))
-            with patch('company_profiles._restore_published',return_value={}):
+            with patch('company_profiles._restore_published',return_value={}),patch.object(research_intelligence,'issuer_alternatives',return_value=[]):
                 research_intelligence.collect([c],[],cache.parent,asof='2026-11-10T01:00:00+00:00',batch=0)
             self.assertTrue(c['intelligence']['sources'],'Retry backoff must not hide recoverable real documents')
 
@@ -52,6 +52,17 @@ class SourceIntegrityTests(unittest.TestCase):
             with self.assertRaises(ValueError):source_archive.restore_bytes(gzip.compress(json.dumps(bad).encode()),root)
             bad['entries']={'.terminal_filings/bad.json':{**entry,'sha256':'invalid'}}
             with self.assertRaises(ValueError):source_archive.restore_bytes(gzip.compress(json.dumps(bad).encode()),root)
+
+    def test_missing_financial_fields_reuse_exact_period_and_original_dates(self):
+        with tempfile.TemporaryDirectory() as directory:
+            old=[{'fiscalEnd':'2025-12-31','workingCapitalCashChange':-12,'provenance':{'workingCapitalCashChange':{'source':'provider','retrievedAt':'2026-11-09'}}}]
+            company_filings.retain_financial_history('TEST',old,directory)
+            fresh=[{'fiscalEnd':'2025-12-31','depreciation':33,'provenance':{'depreciation':{'source':'SEC','retrievedAt':'2026-11-10'}}},{'fiscalEnd':'2026-12-31','depreciation':44,'provenance':{}}]
+            rows=company_filings.retain_financial_history('TEST',fresh,directory)
+            self.assertNotIn('workingCapitalCashChange',rows[0])
+            self.assertEqual(rows[1]['workingCapitalCashChange'],-12)
+            self.assertEqual(rows[1]['provenance']['workingCapitalCashChange']['retrievedAt'],'2026-11-09')
+            self.assertEqual(rows[1]['depreciation'],33)
 
     def test_missing_sec_identity_never_sends_fake_contact(self):
         with patch.dict('os.environ',{'SEC_USER_AGENT':''}),patch.object(source_transport,'record'),patch('urllib.request.urlopen') as request:
