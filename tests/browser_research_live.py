@@ -28,7 +28,7 @@ with sync_playwright() as p:
         if symbol=='HSBA.L':assert 'Standard FCFF DCF excluded' in page.locator('#research-valuation').inner_text()
         if len(next(c for c in d['companies'] if c['symbol']==symbol).get('valuationHistory',[]))<12:
             assert page.locator('#research-multiples-chart').count()==0
-            assert page.locator('.research-periods button:not([disabled])').count()==0
+            assert page.locator('#research-valuation .research-periods button:not([disabled])').count()==0
         page.locator('#research-tab-5').click()
         assert 'MANAGEMENT & EARNINGS INTELLIGENCE' in page.locator('#research-outlook').inner_text()
         if symbol=='SHEL.L':assert page.locator('#research-outlook .research-evidence').count()>=3
