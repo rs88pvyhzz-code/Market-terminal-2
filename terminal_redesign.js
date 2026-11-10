@@ -85,7 +85,7 @@ function r24Overview(){
     if(alert.kind==='Calculated'&&!seen.has(alert.id)&&(['Bonds','Credit','FX','Commodities','Volatility'].includes(alert.assetClass)||q?.kind==='index')){choices.push({...alert,published:alert.date,classification:'observed_market_movement'});seen.add(alert.id);}}
   for(const story of D.news||[]){if(!r24Fresh(story)||seen.has(story.id)||!story.significanceEvidence?.length)continue;
     if(story.official||story.significanceEvidence.some(s=>s.includes('>=1 billion'))){choices.push(story);seen.add(story.id);}}
-  choices.slice(0,3).forEach(x=>r24Item(host,x,x.classification==='observed_market_movement'?'Observed major-market movement':x.official?'Official announcement':'Reported material development'));
+  choices.slice(0,3).forEach(x=>r24Item(host,x,x.classification==='observed_market_movement'?'Observed major-market movement':(x.official||x.classification==='confirmed_event')?'Official announcement':'Reported material development'));
   if(!choices.length)host.append(el('p','note','No material macro or major-market development is verified by this snapshot. Individual share moves remain in Markets.'));
   host=r24Section('r24-conditions','MARKET CONDITIONS',parent);r24Conditions(host);
   host=r24Section('r24-watch','MY WATCHLIST',parent);
