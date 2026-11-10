@@ -273,6 +273,14 @@ def collect(core,opts):
              for g in rows for d,v in prior.get(g['ticker'],[])][-15000:]
     return rows,history,warnings,int(selected_fresh)
 
+def publish(directory):
+    """Persist gilt recovery independently of the equity-history publisher."""
+    import shutil
+    public=pathlib.Path(directory);public.mkdir(parents=True,exist_ok=True)
+    for source,name in [(LATEST,'dmo_latest.json'),(HISTORY,'gilt_history_cache.json'),(ROOT/'.terminal_sources/dmo_verification.json','dmo_verification.json')]:
+        if source.exists():shutil.copyfile(source,public/name)
+
+
 if __name__=='__main__':
     import sys
     rows,date=parse_dmo_xlsx(pathlib.Path(sys.argv[1] if len(sys.argv)>1 else SEED).read_bytes())

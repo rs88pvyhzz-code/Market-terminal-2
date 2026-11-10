@@ -61,6 +61,9 @@ class ReliabilityTests(unittest.TestCase):
                 self.assertFalse(fresh);self.assertEqual(len(rows),103);self.assertEqual(rows[0]['asOf'],'2026-11-09')
                 self.assertTrue(any('retained verified quotation' in w for w in warnings))
                 saved=json.loads((root/'latest.json').read_text());self.assertEqual(saved['asOf'],'2026-11-09')
+                g.publish(root/'public')
+                self.assertEqual(json.loads((root/'public/dmo_latest.json').read_text())['asOf'],'2026-11-09')
+                self.assertTrue((root/'public/gilt_history_cache.json').exists())
 
     def test_navigation_and_calculators_have_one_copy(self):
         html=(ROOT/'terminal_template.html').read_text();js=(ROOT/'equity_research.js').read_text()

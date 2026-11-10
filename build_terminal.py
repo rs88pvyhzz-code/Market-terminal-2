@@ -586,6 +586,7 @@ def build(opts):
     # Never invent missing quotes; source and date are retained for every bond.
     gilts,gilt_history,gilt_warnings,gilt_cached=gilt_market.collect(sys.modules[__name__],opts)
     warnings.extend(gilt_warnings)
+    gilt_market.publish(ROOT/'public')
     cached_count+=gilt_cached
     print(f'Gilts: {len(gilts)} DMO bonds ({sum(x.get("indexLinked",False) for x in gilts)} index-linked), {sum(x["quoted"] for x in gilts)} dated price quotes; {len(gilt_history)} saved observations',flush=True)
     # Corporate spreads are sourced ICE/FRED OAS index levels, not single-bond yields.
