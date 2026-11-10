@@ -39,3 +39,14 @@ Free RSS does not reliably support analyst-consensus earnings surprises, complet
 `test_market_briefing.py` uses explicitly synthetic examples for UK CPI, Federal Reserve policy, Shell/Microsoft earnings, event duplicates, conflicting numerical claims, missing/stale/future items and market-alert thresholds. They never populate live caches. Existing financial regression scripts remain in CI.
 
 `tests/browser_market_briefing.py` checks desktop, 1024px and 768px iPad layouts, six news filters, regions, event uniqueness, Overview ordering, company evidence and Data Quality navigation against the supplied unmodified payload. The production workflow runs it on actual collected data separately from the demo regression. No production tests use synthetic replacements for news.
+
+
+## Event-driven daily selection
+
+The five-item briefing reuses qualifying **Calculated** alert records by ID, prioritising actual observed threshold breaches with asset-class coverage before additional movements. Thresholds are unchanged. Missing index/FX/commodity risk metrics use the same existing `market_price_history.metrics_for_records` calculation on the already-collected main history; there are no new downloads or alternative volatility formulas. The alert ledger remains capped at eight; leading items are removed from the additional-alert display rather than duplicated.
+
+Dated confirmed primary releases/results come next, then explicitly reported developments, general news, and finally previews, opinion and speculative commentary. Fresh issuer results documents come only from the existing research cache, with original publication/retrieval dates; an observation period is never substituted for a release date. Reports without primary corroboration remain labelled General news, with “reported development” in their selection reason. A confirmed release is not automatically a material surprise or Market Moving.
+
+Within the same evidence tier, identified official sources and a declared list of established publishers are preferred over other attributed sources; source preference never supplies significance evidence. Recency precedes legacy topic points within that tier. Corporate guidance requires financial context, so ECB appointments and political “guidance” are not corporate earnings guidance. Current Market Moving headline criteria remain unchanged. If neither an observed threshold breach nor a verified significant primary event is available, the briefing explicitly says no significant event was verified.
+
+`public/news_verification.json` records the actual five leading items, classifications, original dates, selection reasons and references to the same alert IDs rendered by the terminal. The production browser test checks display order, five-item limit and absence of duplicated alert IDs.

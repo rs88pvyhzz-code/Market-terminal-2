@@ -14,6 +14,44 @@ NOW=dt.datetime(2026,11,10,12,tzinfo=dt.timezone.utc)
 def story(title,**kw):
     return dict(title=title,url='https://example.test/'+title.replace(' ','-'),source='Synthetic test publisher',published='2026-11-10 10:00 UTC',retrievedAt='2026-11-10T11:00:00+00:00',**kw)
 class BriefingTests(unittest.TestCase):
+    def test_ecb_appointments_are_not_corporate_guidance(self):
+        item=classify(story("Euro zone ministers to discuss ECB appointments, but await leaders guidance",categories=['corporate']),NOW)
+        self.assertNotIn('corporate',item['categories'])
+        self.assertEqual(item['developmentStatus'],'commentary_preview')
+    def test_confirmed_event_precedes_commentary_and_source_is_not_significance(self):
+        official=dict(story('Federal Reserve issues FOMC statement'),source='Federal Reserve',official=True)
+        opinion=dict(story('ECB inflation interest rates earnings opinion'),source='Reuters')
+        ranked=deduplicate([classify(opinion,NOW),classify(official,NOW)])
+        self.assertEqual(ranked[0]['developmentStatus'],'confirmed_event')
+        self.assertNotIn('market_moving',ranked[1]['categories'])
+        plain=classify(dict(story('General investor article'),source='Reuters'),NOW)
+        self.assertEqual(plain['significanceEvidence'],[])
+    def test_briefing_reuses_alert_ids_across_asset_classes(self):
+        quotes=[{'symbol':symbol,'name':symbol,'kind':kind,'price':106,'changePct':6,'asOf':NOW.isoformat()} for symbol,kind in [('EQUITY','index'),('FX','fx'),('OIL','future')]]
+        p=enrich({'generatedAt':NOW.isoformat(),'quotes':quotes,'marketHistoryMetrics':[{'symbol':q['symbol'],'volatility1YPct':20,'dailyCloses':252,'last':'2026-11-10'} for q in quotes]})
+        leading=p['marketBriefing']['leadingItems'];alerts=p['marketBriefing']['alerts']
+        self.assertEqual({x['assetClass'] for x in leading},{'Equities','FX','Commodities'})
+        self.assertTrue(all(x['classification']=='observed_market_movement' for x in leading))
+        self.assertTrue(all(any(a['id']==x['alertId'] for a in alerts) for x in leading))
+        self.assertEqual(len({a['id'] for a in alerts}),len(alerts))
+    def test_main_history_reuses_same_risk_metrics_and_stale_exclusion(self):
+        from market_price_history import metrics_for_records
+        import math
+        points=[[(NOW.date()-dt.timedelta(days=300-i)).isoformat(),100+math.sin(i)*.1+i*.01] for i in range(301)]
+        metric=metrics_for_records({'FX':{'points':points,'asOf':NOW.isoformat()}})[0]
+        base={'generatedAt':NOW.isoformat(),'quotes':[{'symbol':'FX','name':'FX','kind':'fx','price':106,'changePct':6,'asOf':NOW.isoformat()}],'history':[{'symbol':'FX','date':d,'close':v} for d,v in points]}
+        direct=enrich(copy.deepcopy(base))
+        with_metric=copy.deepcopy(base);with_metric['marketHistoryMetrics']=[metric]
+        self.assertEqual(direct['marketBriefing']['leadingItems'],enrich(with_metric)['marketBriefing']['leadingItems'])
+        base['quotes'][0]['asOf']='2026-11-01'
+        self.assertEqual(enrich(base)['marketBriefing']['leadingItems'],[])
+    def test_issuer_document_confirmation_uses_original_dates(self):
+        source={'id':'issuer-source','title':'Quarterly results','kind':'results','published':'2026-11-10','retrievedAt':NOW.isoformat(),'url':'https://example.test/issuer-results'}
+        p=enrich({'generatedAt':NOW.isoformat(),'companies':[{'name':'Test issuer','intelligence':{'sources':[source]}}]})
+        lead=p['marketBriefing']['leadingItems'][0]
+        self.assertEqual(lead['classification'],'confirmed_event');self.assertFalse(lead['marketMoving'])
+        source['published']='2026-10-01'
+        self.assertEqual(enrich({'generatedAt':NOW.isoformat(),'companies':[{'name':'Test issuer','intelligence':{'sources':[source]}}]})['marketBriefing']['leadingItems'],[])
     def test_topic_scores_do_not_grant_market_moving(self):
         titles=['Microsoft earnings preview: what to expect','UK CPI inflation falls to 2.5%',
                 'Fed interest rates and inflation commentary','Global stocks rally as oil slumps',
