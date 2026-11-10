@@ -115,7 +115,13 @@ def enrich(payload):
             alerts.append({'title':event['title'],'url':event.get('url'),'date':event['date'],'detail':'Scheduled economic release; no outcome or surprise inferred. See Economics for official calendar.','kind':'Scheduled'})
     fresh=[x for x in payload['news'] if not x['archived']]
     for item in fresh:
-        if any(c in item['categories'] for c in ['rates','economic','corporate']):alerts.append({'title':item['title'],'url':item['url'],'date':item['published'],'detail':'Sourced headline: research prompt, not a verified earnings surprise.','kind':'Reported'})
+        text=item['title'].lower()
+        preview=bool(re.search(r'\b(ahead of|expected to|forecast to|outlook|preview|odds)\b',text))
+        announcement=bool(re.search(r'\b(earnings|guidance|profit warning|acquisition|acquires|buybacks?|merger)\b',text))
+        official_decision=bool(item.get('official') and re.search(r'\b(decision|statement|announces?|announced)\b',text))
+        reported_release=bool(re.search(r'\b(inflation|cpi|payrolls|gdp|employment)\b.{0,70}\b(rises?|falls?|released|reported|accelerates?|slows?)\b',text))
+        if not preview and (announcement or official_decision or reported_release):
+            alerts.append({'title':item['title'],'url':item['url'],'date':item['published'],'detail':'Sourced announcement headline: research prompt, not a verified earnings surprise.','kind':'Reported'})
         if len(alerts)>=THRESHOLDS['maxAlerts']:break
     if payload.get('giltFreshness',{}).get('stale'):alerts.insert(0,{'title':'DMO quotations require a freshness review','detail':'See Bonds & Rates for verified quotation date and recovery diagnostics.','date':payload['giltFreshness'].get('quotationDate'),'kind':'Coverage'})
     payload['marketBriefing']={'thresholds':THRESHOLDS,'alerts':alerts[:THRESHOLDS['maxAlerts']],'movements':sorted(moves,key=lambda q:abs(q['changePct']),reverse=True)[:8],'currentCount':len(fresh),'archivedCount':len(payload['news'])-len(fresh),'generatedAt':payload.get('generatedAt'),'watchMovements':[q for q in moves if q['watchlist'] and abs(q['changePct'])>=THRESHOLDS['priceMovePct']],'limitations':['Headline relevance uses transparent keyword rules, not investment ratings.','Volatility alerts use existing 1Y historical metrics; missing or discontinuous histories are excluded. Credit alerts require dated FRED / ICE BofA observations.','RSS does not reliably provide earnings consensus or changes in guidance. Issuer evidence remains in Company Research.']}

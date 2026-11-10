@@ -48,6 +48,9 @@ class BriefingTests(unittest.TestCase):
         for key,value in original.items():self.assertEqual(out[key],value)
         p=copy.deepcopy(original);p['marketHistoryMetrics'][0]['priceDiscontinuityFlag']=True
         self.assertFalse(any('volatility' in x['detail'] for x in enrich(p)['marketBriefing']['alerts']))
+    def test_routine_rate_commentary_does_not_dominate_alerts(self):
+        p=enrich({'generatedAt':NOW.isoformat(),'news':[story('Bond yields rise ahead of inflation rates outlook')]})
+        self.assertFalse(any(x['kind']=='Reported' for x in p['marketBriefing']['alerts']))
     def test_no_recovered_news_alert(self):
         p=enrich({'generatedAt':NOW.isoformat(),'news':[story('Shell profit warning',archived=True)]})
         self.assertFalse(any(x['kind']=='Reported' for x in p['marketBriefing']['alerts']))
