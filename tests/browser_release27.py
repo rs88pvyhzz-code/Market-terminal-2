@@ -16,8 +16,8 @@ with sync_playwright() as p:
     assert len(data['etfTracker']['funds'])==132
     assert page.locator('.etf-table thead th').all_text_contents()==['Fund / ticker','TER','P/S','Fund AUM','1Y','3Y','5Y','Cmp']
     assert page.locator('#etf-r26-pick,#etf-selected-comparisons,.etf-compare-card').count()==0
-    assert page.locator('#etf-tracker-panel details').count()==1
-    assert page.locator('#etf-tracker-panel details').get_attribute('open') is None
+    reference_disclosure=page.locator('#etf-tracker-panel [aria-label="US domiciled bond ETF references"] details')
+    assert reference_disclosure.count()==1 and reference_disclosure.get_attribute('open') is None
     assert page.locator('.etf-table-scroll').evaluate('(e)=>e.clientHeight<=600&&e.scrollHeight>e.clientHeight&&getComputedStyle(e).overflowY==="auto"')
     assert page.locator('#etf-rows [data-etf-symbol]').evaluate_all('''rows=>{const counts={};for(const r of rows){const f=__etf.funds.find(f=>f.symbol===r.dataset.etfSymbol),key=__etf.key(f);counts[key]=(counts[key]||0)+1;}return Object.values(counts).every(n=>n<=2)&&new Set(rows.map(r=>r.dataset.etfSymbol)).size===rows.length;}''')
     # All original region headers remain, in the existing geographic order.
@@ -62,6 +62,7 @@ with sync_playwright() as p:
         if not original_path.exists():original_path.write_bytes(urllib.request.urlopen('https://rs88pvyhzz-code.github.io/market-terminal/',timeout=60).read())
         original=original_path.read_text();om=re.search(r'window\.MT_DATA\s*=\s*',original);od=json.JSONDecoder().raw_decode(original[om.end():])[0];assert not od.get('demo')
         reference=browser.new_page(viewport={'width':1024,'height':768});reference.route('http://localhost:8766/**',lambda r:r.fulfill(body=original,content_type='text/html'));reference.goto('http://localhost:8766/',wait_until='domcontentloaded',timeout=120000);reference.locator('#tab-etfs').click();reference.wait_for_timeout(100)
+        assert set(page.locator('#etf-tracker-panel details > summary').all_text_contents()).issubset(set(reference.locator('#etf-tracker-panel details > summary').all_text_contents()))
         page.set_viewport_size({'width':1024,'height':768});choose(reference,'VUAG.L');choose(page,'VUAG.L');reference.locator('#etf-clear-comparisons').click();page.locator('#etf-clear-comparisons').click();reference.locator('#etf-search').blur();page.locator('#etf-search').blur()
         properties={'#view-etfs>.workspace-title h1':['fontFamily','fontSize','color'],'#etf-tracker-panel':['fontFamily','fontSize','padding','borderRadius'],'#etf-tracker-panel h2':['fontFamily','fontSize','color'],'#etf-tracker-panel .etf-detail .etf-stat-grid':['gridTemplateColumns','gap'],'#etf-tracker-panel .etf-detail .etf-stat .v':['fontFamily','fontSize'],'#etf-stats':['gap'],'#etf-tracker-panel .etf-table':['width','tableLayout'],'#etf-tracker-panel .etf-table th:first-child':['width'],'#etf-tracker-panel .etf-controls':['gridTemplateColumns'],'#etf-tracker-panel .etf-table td':['fontFamily','fontSize','padding','lineHeight']}
         comparisons={}
