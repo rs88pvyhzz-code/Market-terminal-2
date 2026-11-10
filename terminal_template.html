@@ -1752,7 +1752,7 @@ function renderDataQuality(){renderHistoricalCoverage();
  ['Dividend-adjusted series',q.adjustedSeries??'—','Yahoo adjusted closes, not every index'],
  ['Stale market quotes',(q.staleQuotes||[]).length,'Older than 4 calendar days'],
  ['UK gilts priced',q.pricedGilts??'—','Dated, not real-time'],
- ['DMO quotation date',D.giltFreshness?.quotationDate||'unavailable','Expected '+(D.giltFreshness?.expectedQuotationDate||'not assessed')+(D.giltFreshness?.stale?' · STALE':'')],
+ ['DMO quotation date',D.giltFreshness?.quotationDate||'unavailable','Expected '+(D.giltFreshness?.expectedQuotationDate||'not assessed')+(giltSourceStale(D.giltFreshness)?' · STALE':'')],
  ['US Treasuries priced',q.pricedUSTreasuries??'—','Dated, not real-time'],
  ['Corporate credit feeds',(D.credit_spreads||[]).length+' / 6','Dated FRED / ICE BofA OAS'],
  ['Market valuation coverage',(D.market_valuations||[]).filter(v=>v.trailingPEProxy!=null).length+' / '+(D.market_valuations||[]).length,'Partial and positive earnings only'],
@@ -3944,7 +3944,7 @@ function renderGilts(){
   const count=giltList.filter(g=>g.quoted).length,linked=giltList.filter(g=>g.indexLinked).length;
   const date=giltList.find(x=>x.asOf)?.asOf||'',age=date?Math.round((new Date((D.generatedAt||'').slice(0,10)+'T12:00:00Z')-new Date(date+'T12:00:00Z'))/86400000):null;
   $('gilt-coverage').textContent=`${count} / ${giltList.length} dated DMO prices · ${linked} index-linked`;
-  const fresh=D.giltFreshness||{},stale=fresh.stale??(age>4);
+  const fresh=D.giltFreshness||{},stale=giltSourceStale(fresh)||(age>4&&!fresh.freshnessDeadline);
   $('gilt-freshness').textContent=`DMO quotation: ${date||'unavailable'} · Website refreshed: ${D.generatedAt||'unknown'}${stale?' · STALE — expected '+(fresh.expectedQuotationDate||'a newer business-day quote'):''}`;
   $('gilt-freshness').classList.toggle('research-warning',!!stale);
   $('gilt-retrieval').textContent=`${fresh.origin||'Dated verified source'} · source retrieved ${fresh.retrievedAt||'not recorded'}. ${fresh.publicationRule||'DMO business-day report.'} ${fresh.downloadedFresh?'Fresh official download verified during collection.':'Recovered/uploaded prices; no fresh download confirmed for this build.'} ${(fresh.attempts||[]).filter(x=>!x.success).map(x=>x.requestedDate+': '+x.error).join(' · ')}`;

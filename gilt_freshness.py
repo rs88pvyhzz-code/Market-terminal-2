@@ -35,8 +35,13 @@ def assess(quotation,now=None,calendar=None):
     # DMO says approximately 14:00. Allow a transparent 30-minute publication grace.
     if local.time()<dt.time(14,30):day-=dt.timedelta(days=1)
     while day.weekday()>=5 or day.isoformat() in calendar['holidays']:day-=dt.timedelta(days=1)
+    deadline=None
+    if quotation:
+        next_day=dt.date.fromisoformat(quotation)+dt.timedelta(days=1)
+        while next_day.weekday()>=5 or next_day.isoformat() in calendar['holidays']:next_day+=dt.timedelta(days=1)
+        deadline=dt.datetime.combine(next_day,dt.time(14,30),ZoneInfo('Europe/London')).isoformat()
     years={int(d[:4]) for d in calendar['holidays']}
     covered=day.year in years
     return {'quotationDate':quotation,'checkedAt':now.isoformat(timespec='seconds'),'expectedQuotationDate':day.isoformat(),
-            'stale':not covered or not quotation or quotation<day.isoformat(),'calendarCovered':covered,'calendarSource':calendar['source'],
+            'stale':not covered or not quotation or quotation<day.isoformat(),'calendarCovered':covered,'calendarSource':calendar['source'],'freshnessDeadline':deadline,
             'publicationRule':'UK business days, approximately 14:00 London time; warning cutoff 14:30'}

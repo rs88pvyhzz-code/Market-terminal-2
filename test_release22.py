@@ -31,6 +31,7 @@ class ReliabilityTests(unittest.TestCase):
         self.assertTrue(expect('2026-11-09T14:31:00+00:00','2026-11-06')['stale'])
         self.assertEqual(expect('2026-12-28T20:00:00+00:00','2026-12-24')['expectedQuotationDate'],'2026-12-24')
         self.assertFalse(expect('2026-12-28T20:00:00+00:00','2026-12-24')['stale'])
+        self.assertEqual(expect('2026-12-28T20:00:00+00:00','2026-12-24')['freshnessDeadline'],'2026-12-29T14:30:00+00:00')
         self.assertEqual(expect('2026-04-06T20:00:00+00:00','2026-04-02')['expectedQuotationDate'],'2026-04-02')
         self.assertEqual([d.isoformat() for d in g._recent_business_days(dt.date(2026,12,29),3,calendar['holidays'])],['2026-12-29','2026-12-24','2026-12-23'])
         self.assertEqual(expect('2026-07-07T13:00:00+00:00','2026-07-06')['expectedQuotationDate'],'2026-07-06')

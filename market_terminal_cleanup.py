@@ -244,7 +244,7 @@ function mtBuildQuality(){
  const panel=$('quality-panel');if(!panel||$('mt-quality-focus'))return;
  const mtTabName=tab=>({'Equities':'Equities & Research','Company Research':'Equities & Research','Analytics':'Markets','ETF Trackers':'ETFs'}[tab]||tab);
  const quality=D.quality||{},issues=[],add=(tab,severity,msg)=>issues.push({tab:mtTabName(tab),severity,msg});
- if(D.giltFreshness?.stale)add('Bonds & Rates','Attention','DMO quotation '+(D.giltFreshness.quotationDate||'missing')+'; expected '+D.giltFreshness.expectedQuotationDate);
+ if(giltSourceStale(D.giltFreshness))add('Bonds & Rates','Attention','DMO quotation '+(D.giltFreshness.quotationDate||'missing')+'; expected '+D.giltFreshness.expectedQuotationDate);
  const quoteMissing=Math.max(0,(quality.requested||0)-(quality.quoted||0));
  if(quoteMissing)add('Markets','Attention',quoteMissing+' market instruments without a validated quote');
  const stale=quality.staleQuotes||[];if(stale.length)add('Markets','Attention',stale.length+' stale market quotes: '+stale.slice(0,7).join(', '));

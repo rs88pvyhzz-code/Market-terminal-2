@@ -28,3 +28,5 @@ function researchArrangeOverview(){
  const host=$('research-view-0');if(!host)return;
  for(const id of ['company-price-block','company-benchmark-block','research-overview','company-risk-panel','research-executive','company-advanced','company-news-panel','company-coverage'])if($(id))host.append($(id));
 }
+
+function giltSourceStale(source){return !!source?.stale||!!(source?.freshnessDeadline&&Date.now()>Date.parse(source.freshnessDeadline));}
