@@ -19,15 +19,18 @@ import subprocess,tempfile
 html=Path('terminal_template.html').read_text();a=html.index('function giltDay(');b=html.index('const ladderState',a)
 model=html[a:b].replace("document.getElementById('mt-gilt-tax-rate')?.value",'undefined')
 js="const D={generatedAt:"+json.dumps(d['quotationDate'])+"};\n"+model+'\nconst rows='+json.dumps(rows)+''';
-let reconciled=0,total=0;const exceptions=[];
+let reconciled=0,total=0,eligible=0;const exceptions=[],reviewRestricted=[];
 for(const g of rows){if(g.indexLinked)continue;total++;
  const v=giltValuation(g,g.askClean,g.asOf,g.askDirty),n0=giltNetYield(g,g.askClean,0,g.asOf,g.askDirty),n40=giltNetYield(g,g.askClean,40,g.asOf,g.askDirty);
- if(!v||Math.abs(n0-v.ytm)>1e-6||!(n40<=n0+1e-6)||!Number.isFinite(n40/.6))throw Error('Yield regression '+g.isin);
- const cf=giltCashflows(g,g.asOf,true);if(cf&&Math.abs(cf.accrued-(g.askDirty-g.askClean))<.0005)reconciled++;else exceptions.push({isin:g.isin,name:g.name});
+ const review=giltYieldReviewReason(g);
+ if(review){reviewRestricted.push({isin:g.isin,reason:review});if(giltAutoEligible(g)||giltRankingValue(g,{net:1000,model:{ytm:1000}},'net')!==null)throw Error('Review exclusion failed '+g.isin);}
+ else eligible++;
+ if(!review&&(!v||Math.abs(n0-v.ytm)>1e-6||!(n40<=n0+1e-6)||!Number.isFinite(n40/.6)))throw Error('Yield regression '+g.isin);
+ const cf=giltCashflows(g,g.asOf,true);if(cf&&Math.abs(cf.accrued-(g.askDirty-g.askClean))<.0005)reconciled++;else {exceptions.push({isin:g.isin,name:g.name});if(!review)throw Error('Unrestricted accrued interest does not reconcile '+g.isin);}
 }
 if(reconciled/total<.95)throw Error('Accrued reconciliation failed');
-console.log('Current official DMO quotes: gross/net/zero-tax/gross-equivalent verified; accrued reconciles '+reconciled+'/'+total);
-console.log(JSON.stringify({conventional:total,accruedReconciled:reconciled,modelConventionExceptions:exceptions}));
+console.log('Current official DMO quotes: '+eligible+' unrestricted gilt gross/net/zero-tax/gross-equivalent checks pass; '+reviewRestricted.length+' review-restricted gilts excluded from automation; accrued reconciles '+reconciled+'/'+total);
+console.log(JSON.stringify({conventional:total,eligibleForAutomaticSelection:eligible,reviewRestricted,accruedReconciled:reconciled,modelConventionExceptions:exceptions}));
 '''
 with tempfile.NamedTemporaryFile('w',suffix='.js') as f:
  f.write(js);f.flush();result=subprocess.run(['node',f.name],check=True,text=True,capture_output=True)

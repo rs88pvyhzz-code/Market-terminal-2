@@ -41,6 +41,32 @@ with sync_playwright() as p:
     assert page.locator('#subview-equities-research').is_visible()
     page.locator('#research-tab-3').click();assert page.get_by_label('Competitive advantages & supporting evidence',exact=True).input_value()=='R22 retained note'
     page.locator('#global-search').fill('Shell');page.wait_for_timeout(60);page.locator('#global-results button').filter(has_text='Company · SHEL.L').click();assert page.locator('#subview-equities-research').is_visible()
+    # Known review instruments keep source quotes but cannot supply derived yields or picks.
+    page.locator('#tab-bonds').click();page.wait_for_timeout(80)
+    restricted=['GB00BVP99566','GB00BWGDRG14']
+    before=page.evaluate('JSON.stringify(window.MT_DATA.gilts)')
+    for isin in restricted:
+        row=page.locator('#gilt-rows tr[data-isin="'+isin+'"]')
+        assert row.count()==1
+        assert row.locator('td').all_text_contents()[5:8]==['Review','Review','Review']
+        original=next(g for g in d['gilts'] if g['isin']==isin)
+        assert float(row.locator('td').nth(3).inner_text())==round(original['bidClean'],2)
+        assert float(row.locator('td').nth(4).inner_text())==round(original['askClean'],2)
+        row.click();assert page.locator('#gilt-yield-review').is_visible()
+        assert 'DERIVED YIELDS REQUIRE REVIEW' in page.locator('#gilt-yield-review').inner_text()
+        assert 'Review required' in page.locator('#gilt-stats').inner_text()
+        peer=page.locator('#mt-gilt-tax-rows tr[data-isin="'+isin+'"]')
+        assert peer.count()==1;assert peer.locator('td').all_text_contents()[3:6]==['Review','Review','Review']
+        page.locator('#gilt-clean-input').fill('99');assert page.locator('#gilt-yield-review').is_visible()
+        assert peer.locator('td').all_text_contents()[3:6]==['Review','Review','Review']
+    page.locator('#ladder-start').fill('2029');page.locator('#ladder-years').fill('4')
+    for isin in restricted:assert page.locator('#ladder-rows tr[data-isin="'+isin+'"] ').count()==0
+    page.locator('#gilt-sort').select_option('net')
+    assert page.locator('#gilt-rows tr').first.get_attribute('data-isin') not in restricted
+    assert page.evaluate('JSON.stringify(window.MT_DATA.gilts)')==before
+    page.locator('#gilt-search').fill('TN28');page.locator('#gilt-rows tr').first.click();page.locator('#gilt-search').fill('')
+    assert page.locator('#gilt-yield-review').is_hidden()
+    for isin in restricted:assert page.locator('#mt-gilt-tax-rows tr[data-isin="'+isin+'"] ').count()==0
     for width in [744,768,1024,1440]:
         page.set_viewport_size({'width':width,'height':1100})
         page.locator('#tab-bonds').click();page.wait_for_timeout(150)

@@ -65,6 +65,33 @@ class ReliabilityTests(unittest.TestCase):
                 self.assertEqual(json.loads((root/'public/dmo_latest.json').read_text())['asOf'],'2026-11-09')
                 self.assertTrue((root/'public/gilt_history_cache.json').exists())
 
+    def test_review_restrictions_and_all_other_yields_unchanged(self):
+        import subprocess
+        html=(ROOT/'terminal_template.html').read_text()
+        a=html.index('function giltDay(');b=html.index('const ladderState',a)
+        model=html[a:b].replace("document.getElementById('mt-gilt-tax-rate')?.value",'undefined')
+        rows=g.parse_dmo_xlsx((ROOT/'dmo_prices/DMO_D10B_2026-11-09.xls').read_bytes())[0]
+        expected=json.loads((ROOT/'tests/fixtures/gilt_unaffected_2026_11_09.json').read_text())['rows']
+        js="const D={generatedAt:'2026-11-10'};"+model+';const rows='+json.dumps(rows)+';const expected='+json.dumps(expected)+r""";
+const fail=msg=>{throw Error(msg);};
+for(const e of expected){const g=rows.find(g=>g.isin===e.isin);if(giltYieldReviewReason(g)||!giltAutoEligible(g))fail('Unexpected exclusion '+g.isin);
+ if(giltValuation(g,g.askClean,g.asOf,g.askDirty).ytm!==e.gross)fail('Changed gross '+g.isin);
+ for(const t of [0,20,40,45])if(giltNetYield(g,g.askClean,t,g.asOf,g.askDirty)!==e['net'+t])fail('Changed net '+g.isin+' '+t);
+}
+const ids=['GB00BVP99566','GB00BWGDRG14'];
+for(const id of ids){const g=rows.find(g=>g.isin===id);if(!g||!giltYieldReviewReason(g)||giltAutoEligible(g))fail('Missing restriction '+id);
+ for(const key of ['net','gross'])if(giltRankingValue(g,{net:1e6,model:{ytm:1e6}},key)!==null)fail('Ranked restricted '+id);
+}
+if(rows.filter(giltAutoEligible).length!==67)fail('Wrong eligible pool');
+console.log('All 67 other gilt yields identical at 0/20/40/45% tax; both review ISINs excluded from ranking and optimisation');
+"""
+        subprocess.run(['node','-e',js],check=True)
+        # Exercise the actual ladder function with only the two original official quotes.
+        a=html.index('function renderGiltLadder()');b=html.index('// ---------- FORENSIC',a)
+        ladder=html[a:b]
+        js+="\nconst giltList=rows.filter(g=>ids.includes(g.isin));const nodes={};function $(id){return nodes[id]||(nodes[id]={value:({'ladder-start':'2029','ladder-years':'4','ladder-amount':'50000'}[id]||''),textContent:'',children:[],replaceChildren(){this.children=[];},append(x){this.children.push(x);}});}function el(){return {append(){}};}function td(row,text){globalThis.ladderText=(globalThis.ladderText||'')+text;return {};}function researchTile(){return {};}function ladderMoney(){return '';}"+ladder+";renderGiltLadder();if(!globalThis.ladderText.includes('No eligible gilts'))throw Error('Ladder selected a restricted gilt');"
+        subprocess.run(['node','-e',js],check=True)
+
     def test_navigation_and_calculators_have_one_copy(self):
         html=(ROOT/'terminal_template.html').read_text();js=(ROOT/'equity_research.js').read_text()
         self.assertEqual(html.count('data-workspace="'),8)

@@ -45,16 +45,16 @@ function mtRenderGiltTax(selected,selectedPrice,manual){
  if(selected.indexLinked){panel.hidden=true;return;}panel.hidden=false;
  const sourceDate=selected.asOf||(D.generatedAt||'').slice(0,10);
  const selectedMaturity=Date.parse(selected.maturity+'T12:00:00Z');
- const choices=giltList.filter(g=>!g.indexLinked&&g.quoted&&g.askClean>0&&g.asOf===selected.asOf)
+ const choices=giltList.filter(g=>!g.indexLinked&&!giltYieldReviewReason(g)&&g.quoted&&g.askClean>0&&g.asOf===selected.asOf)
   .sort((a,b)=>Math.abs(Date.parse(a.maturity+'T12:00:00Z')-selectedMaturity)-Math.abs(Date.parse(b.maturity+'T12:00:00Z')-selectedMaturity)).slice(0,6);
  if(!choices.some(g=>g.isin===selected.isin))choices.unshift(selected);
  const peers=choices.slice(0,6);
  for(const g of peers){const chosen=g.isin===selected.isin;const clean=chosen&&manual?selectedPrice:g.askClean;
   const date=chosen&&manual?(D.generatedAt||'').slice(0,10):g.asOf;
   const dirty=chosen&&manual?null:g.askDirty;
-  const gross=giltValuation(g,clean,date,dirty),net=mtNetGiltYield(g,clean,rate,date,dirty);
-  const row=document.createElement('tr');if(chosen)row.classList.add('selected');
-  const columns=[g.shortTicker||g.name,g.maturity,fmt(clean,3),gross?fmt(gross.ytm,3)+'%':'—',net!=null?fmt(net,3)+'%':'—',gross?fmt(gross.duration,2):'—',g.asOf||'—'];
+  const review=giltYieldReviewReason(g),gross=review?null:giltValuation(g,clean,date,dirty),net=review?null:mtNetGiltYield(g,clean,rate,date,dirty);
+  const row=document.createElement('tr');row.dataset.isin=g.isin;if(chosen)row.classList.add('selected');
+  const columns=[g.shortTicker||g.name,g.maturity,fmt(clean,3),review?'Review':gross?fmt(gross.ytm,3)+'%':'—',review?'Review':net!=null?fmt(net,3)+'%':'—',review?'Review':gross?fmt(gross.duration,2):'—',g.asOf||'—'];
   for(let i=0;i<columns.length;i++){const cell=document.createElement('td');cell.className=i>=2&&i<=5?'n':'';cell.textContent=columns[i];if(i===0)cell.title=g.name;row.append(cell);}body.append(row);
  }
  document.getElementById('mt-gilt-tax-heading').textContent='AFTER-TAX GILT COMPARISON · '+rate+'% COUPON TAX';
