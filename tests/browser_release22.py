@@ -21,6 +21,8 @@ with sync_playwright() as p:
     assert tabs.all_text_contents()==['OVERVIEW','MARKETS','EQUITIES & RESEARCH','BONDS & RATES','ETFs','ECONOMICS','MY WATCHLIST','DATA QUALITY']
     for route,subview in [('companies','equities-research'),('analytics','fx-analytics'),('constituents','equities-screen'),('analytics-sectors','equities-analytics')]:
         page.evaluate('(r)=>location.hash=r',route);page.wait_for_timeout(80);assert page.locator('#subview-'+subview).is_visible(),route
+    for route,index in [('peer-panel',3),('company-events-panel',4),('forensic-panel',5)]:
+        page.evaluate('(r)=>location.hash=r',route);page.wait_for_timeout(80);assert page.locator('#research-view-'+str(index)).is_visible(),route
     page.locator('#tab-equities').click();page.locator('#sub-equities-research').click();assert page.locator('#research-nav [role=tab]').count()==6
     page.locator('#research-tab-0').click();page.wait_for_timeout(80)
     order=page.locator('#research-view-0 > [id]').evaluate_all('(els)=>els.map(e=>e.id)')

@@ -2584,7 +2584,7 @@ function paintWorkspace(key){
 }
 function activateWorkspace(key,options={}){
   const route=terminalResolveRoute(key);key=route.key;const subview=options.subview||route.subview||terminalSubSelection[key];if(terminalSubViews[key])terminalSetSubView(key,subview);
-  activeWorkspace=key;
+  activeWorkspace=key;if(Number.isInteger(route.researchView))showResearchView(route.researchView);
   for(const name of WORKSPACES){const target=$('view-'+name);if(target)target.hidden=name!==key;const tab=$('tab-'+name);
     if(tab){tab.setAttribute('aria-selected',String(name===key));tab.tabIndex=name===key?0:-1;}}
   const hash=key+(terminalSubViews[key]?':'+terminalSubSelection[key]:'');

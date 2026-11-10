@@ -16,6 +16,8 @@ function terminalSetSubView(key,name){
 }
 function terminalResolveRoute(route){
  const [key,subview]=route.split(':');
+ const researchSection={'peer-panel':3,'company-events-panel':4,'forensic-panel':5};
+ if(Object.hasOwn(researchSection,key))return {key:'equities',subview:'research',researchView:researchSection[key]};
  if(key==='companies')return {key:'equities',subview:'research'};
  if(key==='analytics')return {key:'fx',subview:'analytics'};
  if(key==='markets')return {key:'fx',subview:subview||'prices'};
