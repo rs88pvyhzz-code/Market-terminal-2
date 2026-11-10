@@ -36,7 +36,7 @@ def now_iso():return dt.datetime.now(dt.timezone.utc).isoformat(timespec='second
 
 def valid_source(url):
     p=urlparse(url)
-    return p.scheme=='https' and p.hostname in ('www.sec.gov','data.sec.gov','shell.gcs-web.com','www.microsoft.com','www.hsbc.com')
+    return p.scheme=='https' and p.hostname in ('www.sec.gov','data.sec.gov','shell.gcs-web.com','www.microsoft.com','www.hsbc.com','www.shell.com')
 
 
 class PublicSources:
@@ -54,10 +54,13 @@ class PublicSources:
             age=(dt.datetime.fromisoformat(stamp)-dt.datetime.fromisoformat(cached['retrievedAt'])).total_seconds()
             if self.offline or immutable or age<REFRESH_HOURS*3600:return cached['body'],cached['retrievedAt']
         if self.offline:raise OSError('Document not in offline cache')
-        req=urllib.request.Request(url,headers={'User-Agent':os.environ.get('SEC_USER_AGENT','MarketTerminal/2.0 (github.com/rs88pvyhzz-code/Market-terminal-2)'),'Accept':'text/html,application/json'})
-        with urllib.request.urlopen(req,timeout=18) as r:
-            raw=r.read(24_000_001)
-        if len(raw)>24_000_000:raise ValueError('Document exceeds bounded 24 MB collector; open source manually')
+        import source_transport
+        try:raw=source_transport.get(url,fields=['earnings','guidance','catalysts','competition','risks'])
+        except Exception:
+            if cached:
+                self.warnings=getattr(self,'warnings',[])+['Refresh failed; retained source from '+cached['retrievedAt']+' · '+url]
+                return cached['body'],cached['retrievedAt']
+            raise
         body=raw.decode('utf-8')
         path.write_text(json.dumps({'body':body,'retrievedAt':stamp},separators=(',',':')))
         return body,stamp
@@ -105,12 +108,50 @@ def source_ref(doc):
     return {k:doc.get(k) for k in ('id','url','title','kind','form','period','published','retrievedAt','hash')}
 
 
+
+def issuer_alternatives(c,source,docs,asof,warnings):
+    """Use readable official IR pages; never turn an app shell into research."""
+    symbol=c['symbol'];url=None
+    if symbol=='MSFT':
+        periods=[d.get('period') for d in docs if d.get('kind')=='results' and d.get('period')]
+        if periods:
+            period=max(periods);year=int(period[:4]);month=int(period[5:7]);fy=year+(month>6);q=((month-7)%12)//3+1
+            url=f'https://www.microsoft.com/en-us/Investor/earnings/FY-{fy}-Q{q}/press-release-webcast'
+    elif symbol=='HSBA.L':url='https://www.hsbc.com/investors/results-and-announcements'
+    elif symbol=='SHEL.L':url='https://www.shell.com/investors/results-and-reporting/quarterly-results.html'
+    if not url:return []
+    try:
+        body,retrieved=source.get(url)
+        if symbol=='HSBA.L':
+            links=FilingHTML(body).links
+            paths=[href for href,text in links if re.search(r'\dQ 20\d\d quick read',text,re.I)]
+            if not paths:raise ValueError('No dated readable issuer results link')
+            url=urljoin(url,paths[0]);body,retrieved=source.get(url)
+        # A real publication date in visible results prose or publisher metadata is required.
+        matches=re.findall(r'(?:article:published_time|datePublished)["\']?\s*(?:content=|:)\s*["\'](20\d\d-\d\d-\d\d)',body,re.I)
+        if not matches:
+            text=' '.join(FilingHTML(body).blocks[:30]);m=re.search(r'([A-Z][a-z]+ \d{1,2}, 20\d\d)',text)
+            if m:
+                try:matches=[dt.datetime.strptime(m[1],'%B %d, %Y').date().isoformat()]
+                except ValueError:pass
+        if not matches:raise ValueError('No verifiable publication date/readable results text')
+        published=matches[0]
+        if published>asof:raise ValueError('Future issuer document')
+        d=parse_document(body,{'url':url,'published':published,'period':None,'title':symbol+' official issuer results','kind':'results','form':'issuer IR','retrievedAt':retrieved},c.get('financialCurrency') or 'USD')
+        if not d['guidance'] and not d['reportedResults'] and not d['topics']['catalysts']:raise ValueError('Readable page contains no substantive extracted research')
+        return [d]
+    except Exception as exc:
+        warnings.append('Issuer alternative '+url+': '+str(exc)[:100]);return []
+
+
 def parse_sources(c,source,previous=None,asof=None):
     """Extract current/prior results + annual sources, retaining successful cached docs."""
     asof=asof or dt.date.today().isoformat();previous=previous or {};warnings=[];docs=[];unparsed=[]
     cik=issuer_id(c['symbol'],source)
     if not cik:return {'documents':[],'warnings':['No verified primary-source issuer adapter for this listing. Provider description, news and financial calculations remain available.'],'checkedAt':now_iso(),'schema':SCHEMA}
-    discovered=discover_documents(c['symbol'],cik,source,asof)
+    try:discovered=discover_documents(c['symbol'],cik,source,asof)
+    except Exception as exc:
+        discovered=[];warnings.append('SEC discovery failed: '+str(exc)[:140])
     saved={d['url']:d for d in previous.get('documents',[]) if d.get('schema')==SCHEMA}
     for meta in discovered[:4]:
         if not valid_source(meta['url']):continue
@@ -121,6 +162,8 @@ def parse_sources(c,source,previous=None,asof=None):
             docs.append(d)
         except Exception as exc:
             warnings.append(meta['title']+': '+str(exc)[:140]);unparsed.append({**meta,'reason':str(exc)[:140]})
+    docs.extend(issuer_alternatives(c,source,docs,asof,warnings))
+    warnings.extend(getattr(source,'warnings',[])[-4:])
     if not docs and previous.get('documents'):docs=previous['documents'];warnings.append('Refresh failed; previous documents retained with original dates')
     current_urls={d['url'] for d in docs}
     docs += [d for d in previous.get('documents',[]) if d.get('url') not in current_urls and d.get('schema')==SCHEMA]

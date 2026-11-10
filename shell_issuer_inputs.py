@@ -110,8 +110,13 @@ def collect(directory=None):
             try:
                 if (now-dt.datetime.fromisoformat(item['retrievedAt'])).total_seconds()<86400:return item['html'],item['retrievedAt']
             except (ValueError,KeyError):pass
-        req=urllib.request.Request(url,headers={'User-Agent':os.environ.get('SEC_USER_AGENT','MarketTerminal/1.0 (github.com/rs88pvyhzz-code/Market-terminal-2)')})
-        with urllib.request.urlopen(req,timeout=18) as response:html=response.read(12_000_000).decode('utf-8')
+        import source_transport
+        try:html=source_transport.get(url,limit=12_000_000,fields=['ordinary shares','debt adjustment','cash','debt']).decode('utf-8')
+        except Exception:
+            if item:
+                warnings.append('Retained Shell document from '+item['retrievedAt']+' after failed refresh')
+                return item['html'],item['retrievedAt']
+            raise
         cache.setdefault('documents',{})[url]={'html':html,'retrievedAt':stamp}
         return html,stamp
     balance=cache.get('balance');capital=cache.get('capital');warnings=[]

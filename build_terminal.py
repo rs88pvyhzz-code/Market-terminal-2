@@ -394,6 +394,9 @@ def build_quality(quotes,hist,movers,fundamentals,coverage,calendar,gilts,us_bon
       'retrievalWarnings':len(warnings),'generatedAt':today_utc().isoformat()}
 
 def build(opts):
+    if not opts.demo:
+        import source_archive
+        source_archive.restore(published=not opts.offline)
     watchlist,watch_errors=personal_watchlist.read_watchlist(ROOT/'personal_watchlist.csv')
     if opts.demo:
         demo=demo_data()
@@ -557,6 +560,9 @@ def build(opts):
         warnings.append('Research evidence unavailable; core terminal preserved: '+str(exc)[:150])
         for c in [*companies,*profiles]:
             c['intelligence']=research_intelligence.compose(c,{},[*companies,*profiles])
+    import source_integrity
+    source_integrity.annotate([*companies,*profiles])
+    source_archive.publish()
     company_profiles.publish(ROOT/'.terminal_profiles',ROOT/'public')
     print(f'Company profiles: {profile_coverage["profiles"]}/{profile_coverage["universe"]} cached; {profile_coverage["fetchedThisRun"]} refreshed this run',flush=True)
     print(f'Fundamentals: {fcoverage["summaries"]} of {fcoverage["eligible"]} unique constituents have summaries; {fcoverage["available"]} have P/E',flush=True)
@@ -677,6 +683,10 @@ def main():
     marker='/*__DATA__*/null'
     if template.count(marker)!=1: raise SystemExit('Missing template data placeholder')
     js=json.dumps(payload,ensure_ascii=False,separators=(',',':')).replace('</','<\\/')
+    if not a.demo:
+        import source_integrity
+        (ROOT/'public').mkdir(exist_ok=True)
+        source_integrity.report(payload,ROOT/'public'/'source_verification.json')
     dest=ROOT/(a.output or ('terminal_demo.html' if a.demo else 'terminal.html'))
     dest.write_text(template.replace(marker,js),'utf-8')
     print(f'Wrote {dest.name}: {len(payload["quotes"])} instruments, {len(payload["history"])} closes, '

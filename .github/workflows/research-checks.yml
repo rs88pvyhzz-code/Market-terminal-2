@@ -21,6 +21,7 @@ jobs:
       - run: python test_research_release1.py
       - run: python test_shell_live_validation.py
       - run: python test_research_release2.py
+      - run: python test_research_release21.py
       - run: python build_terminal.py --demo --output /tmp/research-demo.html
       - run: python terminal_research_upgrade.py /tmp/research-demo.html
       - run: python market_terminal_cleanup.py --post --html /tmp/research-demo.html

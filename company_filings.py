@@ -115,9 +115,8 @@ def collect(symbol, offline=False, directory=None):
     if not offline and age > 86400:
         try:
             cik = ISSUERS[symbol][0]
-            req = urllib.request.Request(f'https://data.sec.gov/api/xbrl/companyfacts/CIK{cik}.json',
-                headers={'User-Agent': os.environ.get('SEC_USER_AGENT', 'MarketTerminal/1.0 (github.com/rs88pvyhzz-code/Market-terminal-2)'), 'Accept': 'application/json'})
-            with urllib.request.urlopen(req, timeout=18) as response: fresh = json.load(response)
+            import source_transport
+            fresh=json.loads(source_transport.get(f'https://data.sec.gov/api/xbrl/companyfacts/CIK{cik}.json',fields=['annual financial statements','FCFF components','ROIC']))
             retrieved = dt.datetime.now(dt.timezone.utc).isoformat(timespec='seconds')
             data = fresh
             root.mkdir(parents=True, exist_ok=True)
