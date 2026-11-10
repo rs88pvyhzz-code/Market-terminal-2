@@ -1,0 +1,11 @@
+{
+  "priceMovePct": 3.0,
+  "volatilitySigma": 3.0,
+  "yieldMoveBp": 10.0,
+  "vixRisePct": 15.0,
+  "vixRisePoints": 3.0,
+  "creditMoveBp": 10.0,
+  "criticalMaxAgeDays": 5,
+  "maxNewsAgeHours": 48,
+  "maxAlerts": 8
+}

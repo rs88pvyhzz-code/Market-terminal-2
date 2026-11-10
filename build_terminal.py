@@ -536,7 +536,7 @@ def build(opts):
     watch_coverage=personal_watchlist.coverage(watchlist,watch_quotes,watch_news,watch_history,companies)
     print(f'Personal watchlist: {watch_coverage["quoted"]}/{len(watchlist)} quotes, {watch_coverage["historical"]} charts, {watch_coverage["newsWithResults"]} news matches',flush=True)
     company_news,nwarn,nnews_cached=market_intelligence.collect_company_news(
-        sys.modules[__name__],opts,movers,limit=opts.company_news_limit)
+        sys.modules[__name__],opts,movers,limit=opts.company_news_limit,companies=companies)
     warnings.extend(nwarn);cached_count+=nnews_cached
     fundamentals, fcoverage, fwarnings=market_fundamentals.collect(
         movers,companies, ROOT/'.terminal_fundamentals', batch_size=opts.fundamentals_batch,
@@ -674,10 +674,13 @@ def main():
         if unknown: p.error('unknown movers market(s): '+', '.join(sorted(unknown)))
     a.companies=[x.strip() for x in a.companies.split(',') if x.strip()]
     payload=build(a)
+    import market_briefing
+    market_briefing.enrich(payload)
+    payload["newsDiagnostics"]=market_intelligence.NEWS_DIAGNOSTICS if not a.demo else []
     if not payload['quotes'] and not payload['uk_rates'] and not payload['macro'] and not payload['us_rates']:
         raise SystemExit('No data was retrieved. Check internet access; use --demo to preview the interface.')
     template=(ROOT/'terminal_template.html').read_text('utf-8')
-    template=template.replace('/*__EQUITY_RESEARCH__*/', (ROOT/'equity_research.js').read_text('utf-8')+'\n'+(ROOT/'equity_research_r2.js').read_text('utf-8')+'\n'+(ROOT/'terminal_navigation.js').read_text('utf-8'))
+    template=template.replace('/*__EQUITY_RESEARCH__*/', (ROOT/'equity_research.js').read_text('utf-8')+'\n'+(ROOT/'equity_research_r2.js').read_text('utf-8')+'\n'+(ROOT/'terminal_navigation.js').read_text('utf-8')+'\n'+(ROOT/'market_briefing.js').read_text('utf-8'))
     # Links to the repository (e.g. 'edit watchlist') follow whichever repo builds the site.
     repo=__import__('os').environ.get('GITHUB_REPOSITORY')
     if repo and '/' in repo: template=template.replace('rs88pvyhzz-code/market-terminal',repo)

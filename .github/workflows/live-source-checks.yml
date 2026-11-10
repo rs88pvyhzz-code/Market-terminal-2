@@ -48,6 +48,7 @@ jobs:
       - run: python verify_snapshot.py terminal.html
       - run: python terminal_research_upgrade.py terminal.html
       - run: python market_terminal_cleanup.py --post --html terminal.html
+      - run: python verify_market_briefing.py terminal.html
       - name: Audit actual Shell, Microsoft and HSBC research
         run: python verify_live_research.py terminal.html
       - name: Install browser runner
@@ -55,7 +56,9 @@ jobs:
           python -m pip install playwright
           python -m playwright install --with-deps chromium
       - name: Browser verification of actual live payload
-        run: python tests/browser_research_live.py terminal.html
+        run: |
+          python tests/browser_research_live.py terminal.html
+          python tests/browser_market_briefing.py terminal.html
       - name: Upload actual terminal and source diagnostics for review
         if: always()
         uses: actions/upload-artifact@v4
@@ -65,6 +68,8 @@ jobs:
             terminal.html
             terminal.sources.json
             public/source_verification.json
+            public/news_verification.json
+            /tmp/release23-*.png
             .terminal_sources/requests.jsonl
             .terminal_sources/fresh_sec_verification.json
             /tmp/research-live-*.png

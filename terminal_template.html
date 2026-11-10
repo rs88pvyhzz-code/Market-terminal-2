@@ -306,6 +306,8 @@ h2{font:600 15px/1.35 var(--font);color:var(--amber);margin:0}h3{font:500 13px v
 .etf-geo-group td {background:#15202b;color:#a0c4de;font-weight:750;
   letter-spacing:.035em;font-size:.75rem;padding:10px 14px;border-top:1px solid #365069;}
 .etf-aum-head {white-space:nowrap;}
+/* Release 2.3 compact briefing */
+#news .news-grid{display:block}#news .news-item{padding:9px 12px;margin:5px 0;border-color:#30353e}#news .news-item>a{font-size:13px;color:#dce5ee}#news .news-item .meta{font-size:11px;margin-top:4px}.r23-regions{display:flex;gap:5px;flex-wrap:wrap;width:100%;margin-top:5px}.r23-panel{padding:12px}.r23-body{display:grid;gap:7px}.r23-observation{padding:5px 0;border-bottom:1px solid #292f39;font-size:12px}.r23-panel h2{font-size:13px;margin-bottom:8px}.r23-panel pre{white-space:pre-wrap;overflow-wrap:anywhere;font-size:11px}#overview-board .pulse-warning{display:none}#overview-board .pulse-row{padding:5px}#overview-board .pulse-group{padding:9px}#news-pills{flex-wrap:wrap}#news details{font-size:11px;margin-top:5px}#news details a{display:block;color:#bdcddd}#r23-alerts .r23-body{grid-template-columns:repeat(2,minmax(0,1fr))}#r23-alerts details{grid-column:1/-1}@media(max-width:850px){#overview-board .pulse-board{grid-template-columns:repeat(2,minmax(0,1fr))}.r23-panel,#news{min-width:0}#r23-alerts .r23-body{grid-template-columns:1fr}.news-item a{overflow-wrap:anywhere}}
 </style>
 <style>
 /* ETF v5: fixed table grid, no sideways scroll, consistent group rows. */
@@ -615,7 +617,7 @@ h2{font:600 15px/1.35 var(--font);color:var(--amber);margin:0}h3{font:500 13px v
   <p class="note" id="dq-alerts">Retrieval warnings and dates are checked per source. A successful download does not prove that a price is accurate.</p>
 </section>
 <section class="panel" id="news">
-  <div class="row"><div><h2>MARKET HEADLINES</h2><p class="note">Latest retrieved market and economic headlines, selected automatically from news search feeds. Click through to publisher coverage.</p></div><span id="news-stamp" class="mini"></span></div>
+  <div class="row"><div><h2>MARKET HEADLINES</h2><p class="note">Dated headlines ranked by policy, economic and company relevance.</p></div><span id="news-stamp" class="mini"></span></div>
   <div class="pills" id="news-pills" aria-label="Market news categories"></div>
   <div class="company-news-links" style="margin:8px 0 10px"><a href="https://www.bbc.co.uk/news/business" target="_blank" rel="noopener noreferrer">BBC BUSINESS NEWS</a><a href="https://news.google.com/?hl=en-GB&amp;gl=GB&amp;ceid=GB%3Aen" target="_blank" rel="noopener noreferrer">GOOGLE BUSINESS NEWS</a></div>
   <div id="news-list" class="news-grid"></div>
@@ -714,7 +716,7 @@ h2{font:600 15px/1.35 var(--font);color:var(--amber);margin:0}h3{font:500 13px v
     <p class="note">The reference is a broad-market proxy, not necessarily an official sector benchmark. These are price returns excluding dividends. Beta and correlation require sufficient matched daily observations over the selected period; unavailable statistics stay blank. Technical indicators are not investment recommendations.</p>
   </section>
   <section class="company-news-panel" id="company-insight" aria-label="Share price movement and related company news">
-    <div class="row"><h3>WHY HAS IT MOVED? · COMPANY NEWS</h3><span class="mini" id="company-news-stamp"></span></div>
+    <div class="row"><h3>WHAT CHANGED? · COMPANY NEWS</h3><span class="mini" id="company-news-stamp"></span></div>
     <p id="company-move-summary" class="company-move-summary">Select a company to inspect its latest price move and related headlines.</p>
     <p class="note">Related headlines are <b>not proof of causation</b>. Check company announcements, dividends, splits and the quote date before attributing a move to a story.</p>
     <div id="company-news-list" class="company-news-list"></div>
@@ -1467,8 +1469,9 @@ function renderCompanyInsight(c){
     if(!String(row.url||'').startsWith('https://'))continue;
     const card=el('article','company-story');const link=el('a','',row.title);
     link.href=row.url;link.target='_blank';link.rel='noopener noreferrer';
-    card.append(link,el('span','',(row.source||'Publisher')+' · '+(row.published||'date unavailable')));panel.append(card);
+    card.append(link,el('span','',(row.source||'Publisher')+' · '+(row.published||'date unavailable')+' · retrieved '+(row.retrievedAt||'date not recorded')+((row.archived||row.restored||Date.now()-Date.parse((row.published||'').replace(' UTC','Z').replace(' ','T'))>48*3600000)?' · ARCHIVED':'')));panel.append(card);
   }
+  renderCompanyChanges(c);
   $('company-google-news').href=companyNewsSearch(c.name);
   $('company-yahoo-news').href='https://finance.yahoo.com/quote/'+encodeURIComponent(c.symbol)+'/news/';
 }
@@ -2074,19 +2077,7 @@ function reorderSections(){
   }
 }
 function researchTile(label,value,detail){const item=el('div','research-stat');item.append(el('div','lab',label),el('div','val',value),el('div','obs',detail));return item;}
-function renderNews(){
-  const cats=['ALL','GLOBAL','UK','EUROPE','RATES','COMPANIES'],pills=$('news-pills'),host=$('news-list');
-  pills.replaceChildren();host.replaceChildren();
-  cats.forEach(cat=>{const b=el('button','btn'+(state.newsCategory===cat?' active':''),cat);
-    b.onclick=()=>{state.newsCategory=cat;renderNews();};pills.append(b);});
-  const all=(D.news||[]).filter(v=>v?.title&&v?.url?.startsWith('https://'));
-  const chosen=all.filter(v=>state.newsCategory==='ALL'||v.category===state.newsCategory).slice(0,9);
-  $('news-stamp').textContent='As at '+(D.generatedAt||'unknown')+' · static news snapshot';
-  if(!chosen.length){host.append(el('div','empty', 'No recent news was retrieved for this category. Re-run the Python collector, or check a source directly.'));return;}
-  chosen.forEach(item=>{const card=el('article','news-item');const label=el('div','label',item.category||'MARKET');
-    const link=el('a','',item.title);link.href=item.url;link.target='_blank';link.rel='noopener noreferrer';
-    card.append(label,link,el('div','meta',(item.source||'News aggregator')+' · '+(item.published||'date unavailable')+(item.restored?' · ARCHIVED: CURRENT RSS UNAVAILABLE':'')));host.append(card);});
-}
+function renderNews(){renderIntelligenceNews();}
 function renderCalendar(){
   const host=$('calendar-items'),filters=$('calendar-filters');filters.replaceChildren();host.replaceChildren();
   ['ALL','UK','EU','US'].forEach(key=>{const b=el('button','btn'+(key===state.calendarRegion?' active':''),
@@ -2574,14 +2565,14 @@ let activeWorkspace='overview', searchHits=[], searchCursor=0;
 const workspaceForSection={'etf-tracker-panel':'etfs','personal-watchlist-panel':'watchlist','analytics-breadth':'equities:analytics','analytics-sectors':'equities:analytics','analytics-rolling':'analytics','market-valuations':'analytics','corporate-credit':'bonds','company-events-panel':'companies','us-treasuries':'bonds',gilts:'bonds',news:'overview',headline:'overview',monitor:'fx:prices',movers:'equities:screen','equity-screener':'equities:screen',constituents:'equities:screen',companies:'companies','peer-panel':'companies',rates:'bonds',real:'bonds',sovereign:'bonds',macro:'economics',calendar:'economics',compare:'analytics','quality-panel':'quality',sources:'quality'};
 function paintWorkspace(key){
   switch(key){
-    case 'overview': renderNews(); renderPulse(); break;
+    case 'overview': renderNews(); renderPulse(); renderMarketBriefing(); break;
     case 'equities': if(terminalSubSelection.equities==='research'){renderCompany();renderPeers();renderCompanyEvents();}else if(terminalSubSelection.equities==='analytics'){renderBreadth();renderSectors();}else{renderMovers();renderScreener();renderConstituents();}break;
     case 'bonds': renderGilts(); renderCredit(); renderRates(); usSpread(); renderReal(); renderSovereign(); break;
     case 'etfs': renderEtfTracker(); break;
     case 'economics': renderMacro(); renderEconomicPrints(); renderCalendar(); break;
-    case 'fx': if(terminalSubSelection.fx==='analytics'){renderRolling();renderValuations();renderCompare();renderScore();}else{renderMain();renderWatch();}break;
+    case 'fx': renderMarketBriefing(); if(terminalSubSelection.fx==='analytics'){renderRolling();renderValuations();renderCompare();renderScore();}else{renderMain();renderWatch();}break;
     case 'watchlist': renderWatchlist(); break;
-    case 'quality': renderDataQuality(); sources(); break;
+    case 'quality': renderDataQuality(); sources(); renderMarketBriefing(); break;
   }
 }
 function activateWorkspace(key,options={}){
@@ -2609,7 +2600,7 @@ function renderPulse(){
   const sections=[
    {title:'EQUITY INDICES',items:[['^GSPC','S&P 500'],['^FTSE','FTSE 100'],['^STOXX','STOXX 600'],['^N225','Nikkei 225']]},
    {title:'FOREIGN EXCHANGE',items:[['GBPUSD=X','GBP / USD'],['EURUSD=X','EUR / USD'],['USDJPY=X','USD / JPY'],['GBPEUR=X','GBP / EUR']]},
-   {title:'COMMODITIES',items:[['BZ=F','Brent crude'],['GC=F','Gold'],['HG=F','Copper'],['NG=F','US natural gas']]},
+   {title:'COMMODITIES',items:[['BZ=F','Brent crude'],['GC=F','Gold'],['^VIX','VIX'],['NG=F','US natural gas']]},
    {title:'GOVERNMENT YIELDS',items:[['uk_gilt','UK 10Y gilt'],['us_tsy','US 10Y Treasury'],['eu_gov','Euro-area 10Y'],['bank_rate','BoE Bank Rate']]}
   ];
   for(const group of sections){const card=el('div','pulse-group');card.append(el('h3','',group.title));
