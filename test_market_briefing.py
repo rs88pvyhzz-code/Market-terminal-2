@@ -54,6 +54,9 @@ class BriefingTests(unittest.TestCase):
         for key,value in original.items():self.assertEqual(out[key],value)
         p=copy.deepcopy(original);p['marketHistoryMetrics'][0]['priceDiscontinuityFlag']=True
         self.assertFalse(any('volatility' in x['detail'] for x in enrich(p)['marketBriefing']['alerts']))
+    def test_scheduled_cpi_uses_full_official_release_title(self):
+        p=enrich({'generatedAt':NOW.isoformat(),'calendar':[{'title':'Consumer Price Index','date':'2026-11-10','url':'https://example.test/synthetic-calendar'}]})
+        self.assertTrue(any(x['kind']=='Scheduled' for x in p['marketBriefing']['alerts']))
     def test_routine_rate_commentary_does_not_dominate_alerts(self):
         p=enrich({'generatedAt':NOW.isoformat(),'news':[story('Bond yields rise ahead of inflation rates outlook')]})
         self.assertFalse(any(x['kind']=='Reported' for x in p['marketBriefing']['alerts']))

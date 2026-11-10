@@ -56,7 +56,8 @@ def deduplicate(items):
             if same_url or (same_day and numbers==other['_numbers'] and overlap>=.72):match=other;break
         if match:
             match['categories']=list(dict.fromkeys(match['categories']+item['categories']))
-            match['coverage'].append({k:item.get(k) for k in ['title','url','source','published','retrievedAt','archived']})
+            if item['url']!=match['url'] and not any(x['url']==item['url'] for x in match['coverage']):
+                match['coverage'].append({k:item.get(k) for k in ['title','url','source','published','retrievedAt','archived']})
         else:
             item.update(id=hashlib.sha256((title+item.get('published','')[:10]).encode()).hexdigest()[:16],coverage=[],_tokens=tokens,_numbers=numbers);result.append(item)
     for item in result:item.pop('_tokens');item.pop('_numbers')
@@ -113,7 +114,7 @@ def enrich(payload):
                 if abs(delta)>=THRESHOLDS['yieldMoveBp']:alerts.append({'title':f'{label}: {delta:+.1f} bp','detail':f"{a['date']} → {b['date']}; threshold {THRESHOLDS['yieldMoveBp']:g} bp",'date':b['date'],'kind':'Calculated'})
     today=now.date().isoformat()
     for event in payload.get('calendar',[]):
-        if event.get('date')==today and any(word in event.get('title','').lower() for word in ['inflation','gdp','employment','monetary','interest','cpi','payroll']):
+        if event.get('date')==today and any(word in event.get('title','').lower() for word in ['inflation','gdp','gross domestic','employment','monetary','interest','cpi','consumer price','producer price','payroll']):
             alerts.append({'title':event['title'],'url':event.get('url'),'date':event['date'],'detail':'Scheduled economic release; no outcome or surprise inferred. See Economics for official calendar.','kind':'Scheduled'})
     fresh=[x for x in payload['news'] if not x['archived']]
     for item in fresh:
