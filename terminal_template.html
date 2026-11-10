@@ -306,6 +306,12 @@ h2{font:600 15px/1.35 var(--font);color:var(--amber);margin:0}h3{font:500 13px v
 .etf-geo-group td {background:#15202b;color:#a0c4de;font-weight:750;
   letter-spacing:.035em;font-size:.75rem;padding:10px 14px;border-top:1px solid #365069;}
 .etf-aum-head {white-space:nowrap;}
+/* Release 2.3 compact briefing */
+.r23-panel a{color:#dce5ee}.r23-panel a:hover{color:var(--amber)}
+#overview-board .pulse-board{grid-template-columns:repeat(4,minmax(0,1fr));gap:6px}#overview-board .pulse-group{padding:0!important}#overview-board .pulse-group h3{font-size:10px;padding:6px}#overview-board .pulse-row{min-height:38px;padding:5px 6px;font-size:10px}#overview-board .pulse-row strong{font-size:10px}#overview-board .pulse-row .meta{font-size:8px}#overview-board .pulse-row .v{font-size:11px}#overview-board .pulse-row .change{font-size:9px}#news .news-item{gap:3px;padding:6px 9px!important}#news .empty{padding:12px;min-height:0}#news .news-item .meta{font-size:10px!important}#news .news-item details{margin-top:0}#news>.row .note{display:none}.r23-shortcuts{font-size:10px;margin-top:8px}@media(max-width:700px){#overview-board .pulse-board{grid-template-columns:repeat(2,minmax(0,1fr))}}
+
+#news .news-grid{display:block}#news .news-item{padding:9px 12px;margin:5px 0;border-color:#30353e}#news .news-item>a{font-size:13px;color:#dce5ee}#news .news-item .meta{font-size:11px;margin-top:4px}.r23-regions{display:flex;gap:5px;flex-wrap:wrap;width:100%;margin-top:5px}.r23-panel{padding:12px}.r23-body{display:grid;gap:7px}.r23-observation{padding:5px 0;border-bottom:1px solid #292f39;font-size:12px}.r23-panel h2{font-size:13px;margin-bottom:8px}.r23-panel pre{white-space:pre-wrap;overflow-wrap:anywhere;font-size:11px}#overview-board .pulse-warning{display:none}#overview-board .pulse-row{padding:5px}#overview-board .pulse-group{padding:9px}#news-pills{flex-wrap:wrap}#news details{font-size:11px;margin-top:5px}#news details a{display:block;color:#bdcddd}#r23-alerts .r23-body{grid-template-columns:repeat(2,minmax(0,1fr))}#r23-alerts details{grid-column:1/-1}@media(max-width:850px){#overview-board .pulse-board{grid-template-columns:repeat(4,minmax(0,1fr))}.r23-panel,#news{min-width:0}#r23-alerts .r23-body{grid-template-columns:1fr}.news-item a{overflow-wrap:anywhere}}
+@media(max-width:700px){#overview-board .pulse-board{grid-template-columns:repeat(2,minmax(0,1fr))}}
 </style>
 <style>
 /* ETF v5: fixed table grid, no sideways scroll, consistent group rows. */
@@ -469,7 +475,7 @@ h2{font:600 15px/1.35 var(--font);color:var(--amber);margin:0}h3{font:500 13px v
 <section class="panel" id="overview-board">
   <div class="row"><h2>GLOBAL MARKET PULSE</h2><span class="mini">Select any market to open its chart or rates analysis</span></div>
   <div class="pulse-board" id="market-pulse"></div>
-  <div class="workspace-shortcuts"><button type="button" data-jump="equities:screen">VIEW ALL INDEX CONSTITUENTS</button><button type="button" data-jump="bonds">COMPARE GOVERNMENT YIELDS</button><button type="button" data-jump="economics">VIEW ECONOMIC INDICATORS</button><button type="button" data-jump="analytics">CROSS-MARKET ANALYTICS</button><button type="button" data-jump="quality">DATA QUALITY &amp; SOURCES</button></div>
+  <details class="r23-shortcuts"><summary>Research shortcuts</summary><div class="workspace-shortcuts"><button type="button" data-jump="equities:screen">VIEW ALL INDEX CONSTITUENTS</button><button type="button" data-jump="bonds">COMPARE GOVERNMENT YIELDS</button><button type="button" data-jump="economics">VIEW ECONOMIC INDICATORS</button><button type="button" data-jump="analytics">CROSS-MARKET ANALYTICS</button><button type="button" data-jump="quality">DATA QUALITY &amp; SOURCES</button></div></details>
   <p class="pulse-warning">Snapshot values; not streaming quotes. Most equity movements exclude dividends. Government-yield changes are basis points, not investment returns.</p>
 </section>
 <section class="panel" id="personal-watchlist-panel">
@@ -615,9 +621,9 @@ h2{font:600 15px/1.35 var(--font);color:var(--amber);margin:0}h3{font:500 13px v
   <p class="note" id="dq-alerts">Retrieval warnings and dates are checked per source. A successful download does not prove that a price is accurate.</p>
 </section>
 <section class="panel" id="news">
-  <div class="row"><div><h2>MARKET HEADLINES</h2><p class="note">Latest retrieved market and economic headlines, selected automatically from news search feeds. Click through to publisher coverage.</p></div><span id="news-stamp" class="mini"></span></div>
+  <div class="row"><div><h2>MARKET HEADLINES</h2><p class="note">Dated headlines ranked by policy, economic and company relevance.</p></div><span id="news-stamp" class="mini"></span></div>
   <div class="pills" id="news-pills" aria-label="Market news categories"></div>
-  <div class="company-news-links" style="margin:8px 0 10px"><a href="https://www.bbc.co.uk/news/business" target="_blank" rel="noopener noreferrer">BBC BUSINESS NEWS</a><a href="https://news.google.com/?hl=en-GB&amp;gl=GB&amp;ceid=GB%3Aen" target="_blank" rel="noopener noreferrer">GOOGLE BUSINESS NEWS</a></div>
+  <details><summary>Publisher feeds</summary><div class="company-news-links" style="margin:8px 0 10px"><a href="https://www.bbc.co.uk/news/business" target="_blank" rel="noopener noreferrer">BBC BUSINESS NEWS</a><a href="https://news.google.com/?hl=en-GB&amp;gl=GB&amp;ceid=GB%3Aen" target="_blank" rel="noopener noreferrer">GOOGLE BUSINESS NEWS</a></div></details>
   <div id="news-list" class="news-grid"></div>
 </section>
 <div class="tiles" id="headline"></div>
@@ -714,7 +720,7 @@ h2{font:600 15px/1.35 var(--font);color:var(--amber);margin:0}h3{font:500 13px v
     <p class="note">The reference is a broad-market proxy, not necessarily an official sector benchmark. These are price returns excluding dividends. Beta and correlation require sufficient matched daily observations over the selected period; unavailable statistics stay blank. Technical indicators are not investment recommendations.</p>
   </section>
   <section class="company-news-panel" id="company-insight" aria-label="Share price movement and related company news">
-    <div class="row"><h3>WHY HAS IT MOVED? · COMPANY NEWS</h3><span class="mini" id="company-news-stamp"></span></div>
+    <div class="row"><h3>WHAT CHANGED? · COMPANY NEWS</h3><span class="mini" id="company-news-stamp"></span></div>
     <p id="company-move-summary" class="company-move-summary">Select a company to inspect its latest price move and related headlines.</p>
     <p class="note">Related headlines are <b>not proof of causation</b>. Check company announcements, dividends, splits and the quote date before attributing a move to a story.</p>
     <div id="company-news-list" class="company-news-list"></div>
@@ -1461,14 +1467,15 @@ function renderCompanyInsight(c){
     c.name+' '+pc(c.changePct)+' on '+when+' (price change, not dividend-adjusted).';
   if(c.changePct!=null&&Math.abs(c.changePct)>=8)message+=' Large moves may reflect announcements, corporate actions, or a pricing error; verify the source.';
   $('company-move-summary').textContent=message;
-  $('company-news-stamp').textContent=snapshot?'News retrieved '+snapshot.retrievedAt:'No stored company headlines';
+  $('company-news-stamp').textContent=snapshot?'Collection attempted '+snapshot.retrievedAt+' · article retrieval dates below':'No stored company headlines';
   if(!rows.length)panel.append(el('p','note','No company-specific headlines are saved in this snapshot. Use the latest-news link below. This is not evidence that there was no news.'));
   else for(const row of rows.slice(0,5)){
     if(!String(row.url||'').startsWith('https://'))continue;
     const card=el('article','company-story');const link=el('a','',row.title);
     link.href=row.url;link.target='_blank';link.rel='noopener noreferrer';
-    card.append(link,el('span','',(row.source||'Publisher')+' · '+(row.published||'date unavailable')));panel.append(card);
+    card.append(link,el('span','',(row.source||'Publisher')+' · '+(row.published||'date unavailable')+' · retrieved '+(row.retrievedAt||'date not recorded')+((row.archived||row.restored||Date.now()-Date.parse((row.published||'').replace(' UTC','Z').replace(' ','T'))>48*3600000)?' · ARCHIVED':'')));panel.append(card);
   }
+  renderCompanyChanges(c);
   $('company-google-news').href=companyNewsSearch(c.name);
   $('company-yahoo-news').href='https://finance.yahoo.com/quote/'+encodeURIComponent(c.symbol)+'/news/';
 }
@@ -2074,19 +2081,7 @@ function reorderSections(){
   }
 }
 function researchTile(label,value,detail){const item=el('div','research-stat');item.append(el('div','lab',label),el('div','val',value),el('div','obs',detail));return item;}
-function renderNews(){
-  const cats=['ALL','GLOBAL','UK','EUROPE','RATES','COMPANIES'],pills=$('news-pills'),host=$('news-list');
-  pills.replaceChildren();host.replaceChildren();
-  cats.forEach(cat=>{const b=el('button','btn'+(state.newsCategory===cat?' active':''),cat);
-    b.onclick=()=>{state.newsCategory=cat;renderNews();};pills.append(b);});
-  const all=(D.news||[]).filter(v=>v?.title&&v?.url?.startsWith('https://'));
-  const chosen=all.filter(v=>state.newsCategory==='ALL'||v.category===state.newsCategory).slice(0,9);
-  $('news-stamp').textContent='As at '+(D.generatedAt||'unknown')+' · static news snapshot';
-  if(!chosen.length){host.append(el('div','empty', 'No recent news was retrieved for this category. Re-run the Python collector, or check a source directly.'));return;}
-  chosen.forEach(item=>{const card=el('article','news-item');const label=el('div','label',item.category||'MARKET');
-    const link=el('a','',item.title);link.href=item.url;link.target='_blank';link.rel='noopener noreferrer';
-    card.append(label,link,el('div','meta',(item.source||'News aggregator')+' · '+(item.published||'date unavailable')+(item.restored?' · ARCHIVED: CURRENT RSS UNAVAILABLE':'')));host.append(card);});
-}
+function renderNews(){renderIntelligenceNews();}
 function renderCalendar(){
   const host=$('calendar-items'),filters=$('calendar-filters');filters.replaceChildren();host.replaceChildren();
   ['ALL','UK','EU','US'].forEach(key=>{const b=el('button','btn'+(key===state.calendarRegion?' active':''),
@@ -2574,14 +2569,14 @@ let activeWorkspace='overview', searchHits=[], searchCursor=0;
 const workspaceForSection={'etf-tracker-panel':'etfs','personal-watchlist-panel':'watchlist','analytics-breadth':'equities:analytics','analytics-sectors':'equities:analytics','analytics-rolling':'analytics','market-valuations':'analytics','corporate-credit':'bonds','company-events-panel':'companies','us-treasuries':'bonds',gilts:'bonds',news:'overview',headline:'overview',monitor:'fx:prices',movers:'equities:screen','equity-screener':'equities:screen',constituents:'equities:screen',companies:'companies','peer-panel':'companies',rates:'bonds',real:'bonds',sovereign:'bonds',macro:'economics',calendar:'economics',compare:'analytics','quality-panel':'quality',sources:'quality'};
 function paintWorkspace(key){
   switch(key){
-    case 'overview': renderNews(); renderPulse(); break;
+    case 'overview': renderNews(); renderPulse(); renderMarketBriefing(); break;
     case 'equities': if(terminalSubSelection.equities==='research'){renderCompany();renderPeers();renderCompanyEvents();}else if(terminalSubSelection.equities==='analytics'){renderBreadth();renderSectors();}else{renderMovers();renderScreener();renderConstituents();}break;
     case 'bonds': renderGilts(); renderCredit(); renderRates(); usSpread(); renderReal(); renderSovereign(); break;
     case 'etfs': renderEtfTracker(); break;
     case 'economics': renderMacro(); renderEconomicPrints(); renderCalendar(); break;
-    case 'fx': if(terminalSubSelection.fx==='analytics'){renderRolling();renderValuations();renderCompare();renderScore();}else{renderMain();renderWatch();}break;
+    case 'fx': renderMarketBriefing(); if(terminalSubSelection.fx==='analytics'){renderRolling();renderValuations();renderCompare();renderScore();}else{renderMain();renderWatch();}break;
     case 'watchlist': renderWatchlist(); break;
-    case 'quality': renderDataQuality(); sources(); break;
+    case 'quality': renderDataQuality(); sources(); renderMarketBriefing(); break;
   }
 }
 function activateWorkspace(key,options={}){
@@ -2609,7 +2604,7 @@ function renderPulse(){
   const sections=[
    {title:'EQUITY INDICES',items:[['^GSPC','S&P 500'],['^FTSE','FTSE 100'],['^STOXX','STOXX 600'],['^N225','Nikkei 225']]},
    {title:'FOREIGN EXCHANGE',items:[['GBPUSD=X','GBP / USD'],['EURUSD=X','EUR / USD'],['USDJPY=X','USD / JPY'],['GBPEUR=X','GBP / EUR']]},
-   {title:'COMMODITIES',items:[['BZ=F','Brent crude'],['GC=F','Gold'],['HG=F','Copper'],['NG=F','US natural gas']]},
+   {title:'COMMODITIES / VIX',items:[['BZ=F','Brent crude'],['GC=F','Gold'],['^VIX','VIX'],['NG=F','US natural gas']]},
    {title:'GOVERNMENT YIELDS',items:[['uk_gilt','UK 10Y gilt'],['us_tsy','US 10Y Treasury'],['eu_gov','Euro-area 10Y'],['bank_rate','BoE Bank Rate']]}
   ];
   for(const group of sections){const card=el('div','pulse-group');card.append(el('h3','',group.title));
@@ -2620,8 +2615,8 @@ function renderPulse(){
       if(!src)continue;present++;
       const v=isYield?(symbol==='uk_gilt'?src.gilt10y:symbol==='bank_rate'?src.bankRate:symbol==='us_tsy'?src.DGS10:src.eur10y):src.price;
       const button=el('button','pulse-row');button.type='button';button.setAttribute('aria-label','Open '+label);
-      const left=el('div');left.append(el('strong','',label),el('span','meta',isYield?((src.date||'')+' · yield %'):(src.currency||'')+' · '+(src.asOf||'').slice(0,10)));
-      const right=el('div','v');right.append(document.createTextNode(fmt(v,isYield?2:Math.abs(v)>100?1:4)+(isYield?'%':'')));
+      const left=el('div');left.append(el('strong','',label),el('span','meta',isYield?((src.date||'')+' · yield %'):(symbol==='^VIX'?'Index points':src.currency||'')+' · '+(src.asOf||'').slice(0,10)));
+      const right=el('div','v');right.append(document.createTextNode(fmt(v,isYield||symbol==='^VIX'?2:Math.abs(v)>100?1:4)+(isYield?'%':'')));
       if(!isYield)right.append(el('span','change '+tone(src.changePct),pc(src.changePct)));
       button.append(left,right);button.onclick=()=>isYield?activateWorkspace('bonds'):marketInstrument(symbol);card.append(button);
     }

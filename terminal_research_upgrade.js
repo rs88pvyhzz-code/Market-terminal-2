@@ -102,7 +102,7 @@ function setupCompany(){
 }
 function setupOverview(){
  const list=document.getElementById('news-list');if(!list)return;
- const p=make('p','mt-inline-notice','News and price changes are separate evidence; headlines do not establish why a share price moved.');list.insertAdjacentElement('afterend',p);
+ const d=document.createElement('details');const summary=make('summary','','News methodology');d.append(summary,make('p','mini','Headlines and dated market observations are separate evidence; no price causation is inferred.'));list.insertAdjacentElement('afterend',d);
 }
 window.addEventListener('DOMContentLoaded',()=>{
   try{setupBondNav();collapseTechnicalPanel('us-treasuries','US Treasury security details and model calculations');

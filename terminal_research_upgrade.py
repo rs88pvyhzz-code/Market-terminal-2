@@ -139,10 +139,6 @@ def patch_html(source: str, css: str, js: str) -> str:
 </section>
 <p class="note" id="gilt-calc-note">''',
         'Gilt after-tax comparator panel')
-    source = replace_exact(source,
-        "const chosen=all.filter(v=>state.newsCategory==='ALL'||v.category===state.newsCategory).slice(0,9);",
-        "const chosen=all.filter(v=>state.newsCategory==='ALL'||v.category===state.newsCategory).slice(0,6);",
-        'Overview headline limit')
     source = replace_exact(source, '</head>', f'<style id="{STYLE_ID}">\n{css}\n</style>\n</head>', 'Global style insertion')
     source = replace_exact(source, '</body>', f'<script id="{JS_ID}">\n{js}\n</script>\n</body>', 'Research application insertion')
     if market_data_hash(source) != before:

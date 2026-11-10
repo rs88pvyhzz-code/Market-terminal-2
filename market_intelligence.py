@@ -94,14 +94,14 @@ def _published_news_archive():
     Never report these as fresh. Ignore out-of-window, future, invalid URL or
     synthetic entries. No account credentials or private data are involved.
     """
-    repo=os.environ.get('GITHUB_REPOSITORY', 'rs88pvyhzz-code/market-terminal')
+    repo=os.environ.get('GITHUB_REPOSITORY', 'rs88pvyhzz-code/Market-terminal-2')
     if '/' not in repo:return []
     owner,project=repo.split('/',1)
     url=f'https://{owner}.github.io/{project}/news_cache.json'
     try:
         req=urllib.request.Request(url,headers={'User-Agent':'MarketTerminal/1.0'})
-        with urllib.request.urlopen(req,timeout=8) as response:raw=response.read(400_001)
-        if len(raw)>400_000:raise ValueError('News archive too large')
+        with urllib.request.urlopen(req,timeout=8) as response:raw=response.read(2_000_001)
+        if len(raw)>2_000_000:raise ValueError('News archive too large')
         obj=json.loads(raw.decode('utf-8'))
         if not isinstance(obj,dict):return []
         now=dt.datetime.now(dt.timezone.utc)
@@ -112,7 +112,7 @@ def _published_news_archive():
             try:when=dt.datetime.strptime(item['published'],'%Y-%m-%d %H:%M UTC').replace(tzinfo=dt.timezone.utc)
             except (KeyError,ValueError,TypeError):continue
             if -300 <= (now-when).total_seconds() <= 7*86400:
-                keep.append({k:item[k] for k in ('title','url','source','category','published') if k in item})
+                keep.append({k:item[k] for k in ('title','url','source','category','published','retrievedAt','feedUrl','archived','official') if k in item})
         return keep[:100]
     except Exception:
         return []
@@ -131,7 +131,7 @@ def _editorial_topic_matches(category, article):
     return bool(re.search(words.get(category,r'$^'),text))
 
 
-def collect_news(core,opts):
+def _collect_legacy_news(core,opts):
     reports=[];warnings=[];seen=set();cached=0
     def add(items, archived=False):
         for item in items:
@@ -146,24 +146,28 @@ def collect_news(core,opts):
         try:
             raw,used,msg=core.get_bytes(url,'news_'+category.lower(),opts.offline,opts.cache_hours)
             cached+=int(used)
+            NEWS_DIAGNOSTICS.append(dict(source='Google News '+category,url=url,status=msg,archived=bool(opts.offline or 'stale cache' in msg)))
             if 'stale cache' in msg:warnings.append('News '+category+': stale cached articles')
-            add(rss_articles(raw,category))
+            add([{**x,'retrievedAt':dt.datetime.fromtimestamp((core.CACHE/('news_'+category.lower()+'.bin')).stat().st_mtime,dt.timezone.utc).isoformat(),'feedUrl':url,'archived':bool(opts.offline or 'stale cache' in msg)} for x in rss_articles(raw,category)])
         except Exception as exc:
             warnings.append('News '+category+': '+str(exc)[:120])
+            NEWS_DIAGNOSTICS.append(dict(source='Google News '+category,url=url,status='failed',error=str(exc)[:160]))
         # The Google News RSS feed has returned HTTP 503 in GitHub Actions.
         # Bing's RSS search is independently hosted, followed by editorial feeds.
         if any(r['category']==category for r in reports):continue
         if getattr(opts,'offline',False):continue
         try:
             raw=fetch_rss_once(bing_news_url(query))
-            add(rss_articles(raw,category,default_source='Bing News'))
+            NEWS_DIAGNOSTICS.append(dict(source='Bing News '+category,url=bing_news_url(query),status='downloaded',retrievedAt=dt.datetime.now(dt.timezone.utc).isoformat()))
+            add([{**x,'retrievedAt':dt.datetime.now(dt.timezone.utc).isoformat(),'feedUrl':bing_news_url(query)} for x in rss_articles(raw,category,default_source='Bing News')])
         except Exception as exc:
             warnings.append('News '+category+' Bing fallback: '+str(exc)[:90])
         if any(r['category']==category for r in reports):continue
         for name,feed in NEWS_FALLBACK_FEEDS[category]:
             try:
                 raw=fetch_rss_once(feed)
-                add([x for x in rss_articles(raw,category,default_source=name) if _editorial_topic_matches(category,x)])
+                NEWS_DIAGNOSTICS.append(dict(source=name,url=feed,status='downloaded',retrievedAt=dt.datetime.now(dt.timezone.utc).isoformat()))
+                add([{**x,'retrievedAt':dt.datetime.now(dt.timezone.utc).isoformat(),'feedUrl':feed} for x in rss_articles(raw,category,default_source=name) if _editorial_topic_matches(category,x)])
             except Exception as exc:
                 warnings.append('News '+category+' '+name+' fallback: '+str(exc)[:90])
             if any(r['category']==category for r in reports):break
@@ -178,17 +182,54 @@ def collect_news(core,opts):
             warnings.append('News: some feeds unavailable; recovered dated articles from the previous published snapshot (up to seven days old)')
     reports.sort(key=lambda a:a['published'],reverse=True)
     articles=reports[:80]
-    # Created during the build; the existing GitHub Pages publish step already
-    # uploads every file in public/, without requiring a workflow change.
-    if not getattr(opts,'offline',False):
-        try:
-            file=pathlib.Path(__file__).resolve().parent/'public'/'news_cache.json'
-            file.parent.mkdir(parents=True,exist_ok=True)
-            file.write_text(json.dumps({'retrievedAt':dt.datetime.now(dt.timezone.utc).isoformat(),
-                                        'articles':articles},ensure_ascii=False),encoding='utf-8')
-        except OSError as exc:
-            warnings.append('News cache could not be saved: '+str(exc)[:100])
     return articles,warnings,cached
+
+NEWS_DIAGNOSTICS=[]
+PRIMARY_NEWS_FEEDS=[('Federal Reserve','https://www.federalreserve.gov/feeds/press_monetary.xml','RATES'),('Bank of England','https://www.bankofengland.co.uk/rss/news','RATES'),('ECB','https://www.ecb.europa.eu/rss/press.html','EUROPE')]
+
+def collect_news(core,opts):
+    NEWS_DIAGNOSTICS.clear()
+    target=pathlib.Path(__file__).resolve().parent/'public'/'news_cache.json'
+    try:prior=json.loads(target.read_text()).get('articles',[])
+    except (OSError,ValueError,AttributeError):prior=[]
+    if not opts.offline:prior=_published_news_archive()+prior
+    articles,warnings,cached=_collect_legacy_news(core,opts)
+    for item in prior:
+        try:age=(dt.datetime.now(dt.timezone.utc)-dt.datetime.strptime(item['published'],'%Y-%m-%d %H:%M UTC').replace(tzinfo=dt.timezone.utc)).total_seconds()
+        except (KeyError,ValueError,TypeError):continue
+        if 0<=age<=7*86400 and str(item.get('url','')).startswith('https://'):
+            articles.append({**item,'archived':True,'restored':True})
+    for name,url,category in PRIMARY_NEWS_FEEDS:
+        try:
+            key='news_primary_'+name.lower().replace(' ','_')
+            raw,used,message=core.get_bytes(url,key,opts.offline,opts.cache_hours)
+            retrieved=dt.datetime.fromtimestamp((core.CACHE/(key+'.bin')).stat().st_mtime,dt.timezone.utc).isoformat()
+            recovered=bool(opts.offline or 'stale cache' in message)
+            found=rss_articles(raw,category,default_source=name,max_age_days=7)
+            articles.extend({**x,'retrievedAt':retrieved,'feedUrl':url,'official':True,'archived':recovered} for x in found)
+            NEWS_DIAGNOSTICS.append(dict(source=name,url=url,status=message,retrievedAt=retrieved,articles=len(found),archived=recovered))
+        except Exception as exc:
+            NEWS_DIAGNOSTICS.append(dict(source=name,url=url,status='failed',error=str(exc)[:180],articles=0))
+    NEWS_DIAGNOSTICS.append(dict(source='Search and editorial feeds',warnings=warnings))
+    # Persist one verified/recovered record per URL. Repeated scheduled restores
+    # must not amplify the same cached articles on each successive build.
+    unique={}
+    for item in articles:
+        old=unique.get(item['url'])
+        if old is None or ((old.get('archived') or old.get('restored')) and not (item.get('archived') or item.get('restored'))):unique[item['url']]=item
+    articles=sorted(unique.values(),key=lambda x:(not bool(x.get('archived') or x.get('restored')),str(x.get('published',''))),reverse=True)[:240]
+    # The public snapshot is the recovery layer already published by the workflow.
+    if not opts.offline:
+        target=pathlib.Path(__file__).resolve().parent/'public'/'news_cache.json'
+        try:
+            target.parent.mkdir(parents=True,exist_ok=True)
+            temporary=target.with_suffix('.tmp')
+            temporary.write_text(json.dumps({'schemaVersion':2,'attemptedAt':dt.datetime.now(dt.timezone.utc).isoformat(),'articles':articles,'diagnostics':NEWS_DIAGNOSTICS},ensure_ascii=False),encoding='utf-8')
+            temporary.replace(target)
+        except OSError as exc:
+            warnings.append('News recovery cache could not be saved: '+str(exc)[:120])
+    return articles,warnings,cached
+
 
 def _extract_release_date(item):
     # The ONS RSS feeds vary in structure. Only return dates explicitly supplied
@@ -455,10 +496,12 @@ def focus_movers(movers, limit=12):
     return sorted(seen.values(),key=lambda r:(-r['score'],r['symbol']))[:max(0,limit)]
 
 
-def collect_company_news(core, opts, movers, limit=12):
+def collect_company_news(core, opts, movers, limit=12, companies=None):
     out=[];warnings=[];cached=0
     now=dt.datetime.now(dt.timezone.utc)
-    for company in focus_movers(movers,limit):
+    selected={c['symbol']:c for c in focus_movers(movers,limit)}
+    for company in (companies or [])[:3]:selected.setdefault(company['symbol'],company)
+    for company in selected.values():
         symbol,name=company['symbol'],company['name']
         # Prefer specific company names to loose tickers like V or IT.
         name=re.sub(r'\s+',' ',name).strip()[:100]
@@ -470,6 +513,7 @@ def collect_company_news(core, opts, movers, limit=12):
             try:
                 raw,used,msg=core.get_bytes(url,'company_news_'+re.sub(r'[^a-zA-Z0-9]','_',symbol),opts.offline,opts.cache_hours)
                 articles=rss_articles(raw,'COMPANY',generated=now)[:5]
+                articles=[{**x,'retrievedAt':dt.datetime.fromtimestamp((core.CACHE/('company_news_'+re.sub(r'[^A-Za-z0-9]','_',symbol)+'.bin')).stat().st_mtime,dt.timezone.utc).isoformat(),'feedUrl':url,'archived':bool(opts.offline or 'stale cache' in msg)} for x in articles]
                 cached+=int(used)
                 if 'stale cache' in msg:warnings.append('Company news '+symbol+': stale cache')
             except Exception as exc:
@@ -478,6 +522,7 @@ def collect_company_news(core, opts, movers, limit=12):
             try:
                 raw=fetch_rss_once(bing_news_url(query))
                 articles=rss_articles(raw,'COMPANY',generated=now,default_source='Bing News')[:5]
+                articles=[{**x,'retrievedAt':now.isoformat(),'archived':False} for x in articles]
             except Exception as exc:
                 if len(warnings)<15:warnings.append('Company news '+symbol+' alternate RSS: '+str(exc)[:100])
         out.append({'symbol':symbol,'name':name,'articles':articles,

@@ -260,6 +260,11 @@ def screener_metrics(cache_dir=DEFAULT_DIR, asof=None):
     path=pathlib.Path(cache_dir)/CACHE_NAME
     try:data=_unpack(path.read_bytes()).get('records',{})
     except (OSError,ValueError,KeyError,TypeError):return []
+    return metrics_for_records(data)
+
+
+def metrics_for_records(data):
+    """Same screener risk calculations for already-collected in-memory histories."""
     result=[]
     for sym,rec in sorted(data.items()):
         pts=_security_points(sym, _points(rec.get('points') or []))
