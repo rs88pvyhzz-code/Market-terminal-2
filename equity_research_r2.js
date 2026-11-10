@@ -37,7 +37,7 @@ function researchEvidence(host,c,items,empty,max=4){
 }
 function researchR2Setup(){
   if($('research-executive'))return;
-  for(const [view,id] of [[0,'research-executive'],[6,'research-warning-priority']]){const host=el('section','research-r2');host.id=id;$('research-view-'+view)?.prepend(host);}
+  for(const [view,id] of [[0,'research-executive'],[5,'research-warning-priority']]){const host=el('section','research-r2');host.id=id;$('research-view-'+view)?.prepend(host);}
 }
 function researchModelSnapshot(c){
   const m=researchModels.get(c.symbol);if(!m||researchIsFinancial(c))return null;

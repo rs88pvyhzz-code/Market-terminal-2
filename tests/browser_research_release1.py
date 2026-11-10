@@ -36,8 +36,8 @@ with sync_playwright() as p:
     errors=[];page.on('pageerror',lambda e:errors.append(str(e)))
     page.route('http://localhost:8765/**',lambda route:route.fulfill(body=html,content_type='text/html'))
     page.goto('http://localhost:8765/',wait_until='domcontentloaded')
-    page.locator('#tab-companies').click()
-    assert page.locator('#research-nav button').count()==7
+    page.locator('#tab-equities').click();page.locator('#sub-equities-research').click()
+    assert page.locator('#research-nav button').count()==6
     for symbol in ['SHEL.L','MSFT','HSBA.L']:
         page.locator('#company-pick').select_option(symbol)
         page.wait_for_timeout(80)
@@ -65,11 +65,11 @@ with sync_playwright() as p:
             assert 'User assumption / override' in page.locator('#research-valuation').inner_text()
         for width in [390,768,1024,1440]:
             page.set_viewport_size({'width':width,'height':1000})
-            for i in range(7):
+            for i in range(6):
                 page.locator('#research-tab-'+str(i)).click();page.wait_for_timeout(30)
                 assert page.locator('#research-view-'+str(i)).is_visible()
                 assert page.evaluate('document.body.scrollWidth<=innerWidth'),(symbol,width,i)
-        page.locator('#research-tab-6').click()
+        page.locator('#research-tab-5').click()
         assert page.locator('#forensic-symbol').inner_text()==symbol
     # Explicit old-balance review; dates cannot be silently treated as current.
     page.evaluate("window.MT_DATA.companies.find(c=>c.symbol==='SHEL.L').researchBalance.period='2024-12-31'")
@@ -82,7 +82,7 @@ with sync_playwright() as p:
     page.locator('#research-valuation button',has_text='RESET TO SOURCED INPUTS').click()
     assert 'Valuation paused' in page.locator('#research-valuation').inner_text()
     # Notes and legacy workspaces remain usable.
-    page.locator('#research-tab-4').click()
+    page.locator('#research-tab-3').click()
     page.locator('#research-business .research-notebook').evaluate('(d)=>d.open=true')
     page.get_by_label('Competitive advantages & supporting evidence',exact=True).fill('Dated evidence test')
     page.locator('#company-pick').select_option('MSFT')
@@ -90,8 +90,10 @@ with sync_playwright() as p:
     page.locator('#company-pick').select_option('SHEL.L')
     assert page.get_by_label('Competitive advantages & supporting evidence',exact=True).input_value()=='Dated evidence test'
     for key in ['overview','fx','equities','bonds','analytics','etfs','economics','watchlist','quality','companies']:
-        page.locator('#tab-'+key).click();page.wait_for_timeout(60)
-        assert page.locator('#view-'+key).is_visible()
+        page.locator('#tab-'+({'companies':'equities','analytics':'fx'}.get(key,key))).click()
+        if key in ['companies','analytics']:page.locator('#sub-'+('equities-research' if key=='companies' else 'fx-analytics')).click()
+        page.wait_for_timeout(60)
+        assert page.locator('#view-'+({'companies':'equities','analytics':'fx'}.get(key,key))).is_visible()
     assert not errors,errors
     page.locator('#company-pick').select_option('MSFT');page.locator('#research-tab-0').click()
     page.evaluate('scrollTo(0,0)');page.wait_for_timeout(60)

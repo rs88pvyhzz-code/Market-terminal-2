@@ -630,7 +630,7 @@ def build(opts):
             'watchlist_news':watch_news,'watchlistCoverage':watch_coverage,
             'credit_spreads':credit_spreads,'market_valuations':market_valuations,'company_events':company_events,'companyEventCoverage':event_coverage,'companyProfiles':profiles,'companyProfilesCoverage':profile_coverage,
             'quality':quality,'economicPrints':economic_prints,'forecastCoverage':{'sourced':forecast_count,'series':len(economic_prints)},
-            'us_treasuries':us_bonds,'us_treasury_history':us_treasury_history,'gilts':gilts,'gilt_history':gilt_history,
+            'us_treasuries':us_bonds,'us_treasury_history':us_treasury_history,'gilts':gilts,'gilt_history':gilt_history,'giltFreshness':json.loads((ROOT/'.terminal_sources/dmo_verification.json').read_text()) if (ROOT/'.terminal_sources/dmo_verification.json').exists() else {},
 'fundamentals':fundamentals,'fundamentalsCoverage':fcoverage,
             'priceHistorySymbols':history_symbols,'priceHistoryCoverage':history_coverage,
             'marketHistoryMetrics':market_history_metrics,
@@ -676,7 +676,7 @@ def main():
     if not payload['quotes'] and not payload['uk_rates'] and not payload['macro'] and not payload['us_rates']:
         raise SystemExit('No data was retrieved. Check internet access; use --demo to preview the interface.')
     template=(ROOT/'terminal_template.html').read_text('utf-8')
-    template=template.replace('/*__EQUITY_RESEARCH__*/', (ROOT/'equity_research.js').read_text('utf-8')+'\n'+(ROOT/'equity_research_r2.js').read_text('utf-8'))
+    template=template.replace('/*__EQUITY_RESEARCH__*/', (ROOT/'equity_research.js').read_text('utf-8')+'\n'+(ROOT/'equity_research_r2.js').read_text('utf-8')+'\n'+(ROOT/'terminal_navigation.js').read_text('utf-8'))
     # Links to the repository (e.g. 'edit watchlist') follow whichever repo builds the site.
     repo=__import__('os').environ.get('GITHUB_REPOSITORY')
     if repo and '/' in repo: template=template.replace('rs88pvyhzz-code/market-terminal',repo)

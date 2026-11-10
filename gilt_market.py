@@ -1,9 +1,8 @@
 """DMO D10B purchase/sale gilt prices for the static market terminal.
 
-Uses the user's official 6 Nov 2026 DMO spreadsheet as an initial dated snapshot.
-Attempts the DMO's Excel export endpoint at scheduled builds; this automated
-endpoint is *not* guaranteed accessible. Also retains the latest published
-valid DMO data across ephemeral GitHub Actions builds. Never invents prices.
+Uses the official D10B export parameter and XLS/XLSX response readers.
+Verifies the quotation date separately from report generation, and retains
+the latest verified prices when the provider cannot be reached.
 
 The Purchase (DMO buys / investor sells) and Sale (DMO sells / investor buys)
 columns are DMO retail-service reference prices, NOT executable broker quotes.
@@ -26,7 +25,7 @@ DMO_PAGE = 'https://www.dmo.gov.uk/data/pdfdatareport?reportCode=D10B'
 EXPORT = 'https://www.dmo.gov.uk/umbraco/surface/DataExport/GetDataExport'
 import os as _os
 # Published-site cache location follows whichever repository runs the build.
-_REPO=_os.environ.get('GITHUB_REPOSITORY','rs88pvyhzz-code/market-terminal').split('/',1)
+_REPO=_os.environ.get('GITHUB_REPOSITORY','rs88pvyhzz-code/Market-terminal-2').split('/',1)
 _PAGES=f'https://{_REPO[0]}.github.io/{_REPO[1]}/'
 PUBLIC_LATEST = _PAGES+'dmo_latest.json'
 PUBLIC_HISTORY = _PAGES+'gilt_history_cache.json'
@@ -99,18 +98,23 @@ def _read_xlsx(raw):
 
 
 def parse_dmo_xlsx(raw):
-    """Parse only an authenticated D10B-shaped Excel export; return [rows],date."""
-    table=_read_xlsx(raw)
+    """Parse only a validated D10B-shaped XLS/XLSX export; return [rows],date."""
+    if raw.startswith(bytes.fromhex('d0cf11e0a1b11ae1')):
+        import xlrd
+        if len(raw)>4_000_000:raise ValueError('Oversize DMO XLS')
+        sheet=xlrd.open_workbook(file_contents=raw,on_demand=True).sheet_by_index(0)
+        if sheet.nrows>500 or sheet.ncols>20:raise ValueError('Unexpected DMO sheet dimensions')
+        table=[(sheet.row_values(i)+[None]*10)[:10] for i in range(sheet.nrows)]
+    else:table=_read_xlsx(raw)
     if not table or len(table)<15:raise ValueError('DMO report has too few rows')
     top=table[0]
     if 'PURCHASE AND SALE SERVICE PRICES' not in ' '.join(str(x or '') for x in top).upper():
         raise ValueError('Not the DMO purchase and sale prices report')
-    date_s=next((re.search(r'(\d{2}-[A-Za-z]{3}-\d{4})',str(x)).group(1)
-                 for x in top if x is not None and re.search(r'(\d{2}-[A-Za-z]{3}-\d{4})',str(x))),None)
-    if date_s:
-        date=dt.datetime.strptime(date_s,'%d-%b-%Y').date()
-    else:
-        raise ValueError('Source report has no verified data date')
+    # Data Date is the report generation date, not the price quotation date.
+    # D10B puts its requested trade/quotation date in the separate fourth cell.
+    try:date=dt.datetime.strptime(str(top[3]).strip(),'%d %B %Y').date()
+    except ValueError:raise ValueError('Source report has no verified quotation date')
+    if date>dt.datetime.now(dt.timezone.utc).date():raise ValueError('Future DMO quotation date')
     header=next((i for i,r in enumerate(table[:10]) if r[0]=='ISIN Code' and 'Gilt Name'==r[1]),None)
     if header is None:raise ValueError('Expected DMO ISIN and price headers missing')
     expected=('Purchase','Sale','Clean Price','Dirty Price')
@@ -142,7 +146,7 @@ def parse_dmo_xlsx(raw):
            'indexLinked':index_linked,'indexRatio':ratio,'indexationLag':lag,
            'source':DMO_PAGE,'quoteType':'DMO retail purchase/sale service; dated historical indicative prices, not executable'} )
         seen.add(isin)
-    if len(out)<30:raise ValueError('Only '+str(len(out))+' gilt rows; expected a full report')
+    if len(out)<30 or sum(r['indexLinked'] for r in out)<10 or sum(not r['indexLinked'] for r in out)<30:raise ValueError('Incomplete DMO report: both conventional and index-linked coverage required')
     return sorted(out,key=lambda x:(x['maturity'],x['name'])), date
 
 
@@ -158,29 +162,33 @@ def _accept_snapshot(obj):
     date=obj.get('asOf'); rows=obj.get('bonds')
     if not isinstance(date,str) or not re.fullmatch(r'\d{4}-\d{2}-\d{2}',date):return None
     if not isinstance(rows,list) or not 30<=len(rows)<=150:return None
-    if sum(bool(x.get('quoted') and x.get('asOf')==date and x.get('bidClean') and x.get('askClean')) for x in rows if isinstance(x,dict))<30:return None
+    try:
+        if dt.date.fromisoformat(date)>dt.datetime.now(dt.timezone.utc).date():return None
+        if len({r.get('isin') for r in rows})!=len(rows):return None
+        if any(not r.get('quoted') or r.get('asOf')!=date or any(fnum(r.get(k)) is None or not 0<float(r[k])<=2000 for k in ('bidClean','askClean','bidDirty','askDirty')) or r['bidClean']>r['askClean']+.011 for r in rows):return None
+        if sum(bool(r.get('indexLinked')) for r in rows)<10 or sum(not r.get('indexLinked') for r in rows)<30:return None
+    except (TypeError,ValueError,AttributeError):return None
     return obj
 
 
-def _download_dmo_for(trade_date):
-    # Direct Excel-export URL pattern documented by users of the DMO reporting tool.
-    # D10B parameter names have not been confirmed; each response is parsed and
-    # its embedded report date verified, so an error page can NEVER become prices.
-    date=trade_date.strftime('%d/%m/%Y')
-    for param in ('TradeDate','COBDate'):
-        qs=urllib.parse.urlencode({'reportCode':'D10B','exportFormatValue':'xls',
-                                   'parameters':'&'+param+'='+date})
-        url=EXPORT+'?'+qs
-        try:
-            req=urllib.request.Request(url,headers={'User-Agent':'Mozilla/5.0 (compatible; PersonalMarketResearch/1.0)',
-                                                    'Accept':'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet,application/vnd.ms-excel,*/*'})
-            with urllib.request.urlopen(req,timeout=12) as response:
-                blob=response.read(3_000_000)
-            rows,report_date=parse_dmo_xlsx(blob)
-            if report_date==trade_date:return {'asOf':report_date.isoformat(),'bonds':rows}
-        except (OSError,urllib.error.URLError,ValueError,zipfile.BadZipFile,ET.ParseError,KeyError) as exc:
-            pass
-    return None
+def _download_dmo_for(trade_date,diagnostics=None):
+    import hashlib
+    params={'reportCode':'D10B','exportFormatValue':'xls','parameters':'&Trade Date='+trade_date.strftime('%d/%m/%Y')}
+    url=EXPORT+'?'+urllib.parse.urlencode(params,quote_via=urllib.parse.quote)
+    event={'url':url,'requestedDate':trade_date.isoformat(),'attemptedAt':dt.datetime.now(dt.timezone.utc).isoformat(timespec='seconds'),'success':False}
+    try:
+        req=urllib.request.Request(url,headers={'User-Agent':'MarketTerminal/2.2 public financial research','Accept':'application/vnd.ms-excel,application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'})
+        with urllib.request.urlopen(req,timeout=20) as response:
+            event['httpStatus']=response.status;blob=response.read(4_000_001)
+        rows,report_date=parse_dmo_xlsx(blob)
+        if report_date!=trade_date:raise ValueError('Quotation date does not match requested trade date')
+        event.update(success=True,quotationDate=report_date.isoformat(),rows=len(rows),sha256=hashlib.sha256(blob).hexdigest())
+        return {'asOf':report_date.isoformat(),'bonds':rows,'retrievedAt':event['attemptedAt'],'sourceUrl':url,'sha256':event['sha256'],'origin':'official DMO download'}
+    except Exception as exc:
+        event.update(error=str(exc)[:200],httpStatus=getattr(exc,'code',event.get('httpStatus')))
+        return None
+    finally:
+        if diagnostics is not None:diagnostics.append(event)
 
 
 def _recent_business_days(today, count=2):
@@ -192,13 +200,17 @@ def _recent_business_days(today, count=2):
 
 
 def collect(core,opts):
-    warnings=[];candidates=[];downloaded=False
+    warnings=[];candidates=[];downloaded=False;attempts=[]
+    from gilt_freshness import load_calendar,assess
+    try:calendar=load_calendar(offline=opts.offline)
+    except Exception as exc:
+        calendar={'holidays':[],'source':'https://www.gov.uk/bank-holidays.json'};warnings.append('UK holiday calendar unavailable: '+str(exc)[:100])
     # Any uploaded DMO D10B Excel file counts, whatever it is called: the newest
     # report date wins. Upload the DMO download as-is; no renaming needed.
-    for book in sorted(ROOT.glob('*.xls*')):
+    for book in sorted([*ROOT.glob('*.xls*'),*(ROOT/'dmo_prices').glob('*.xls*')]):
         try:
             seed_rows,day=parse_dmo_xlsx(book.read_bytes())
-            candidates.append({'asOf':day.isoformat(),'bonds':seed_rows})
+            candidates.append({'asOf':day.isoformat(),'bonds':seed_rows,'origin':'uploaded official DMO file','sourceFile':book.name})
         except Exception as e:
             if book==SEED:warnings.append('DMO spreadsheet could not be parsed: '+str(e)[:150])
     if LATEST.exists():
@@ -212,18 +224,25 @@ def collect(core,opts):
             if old:candidates.append(old)
         except Exception:pass
         today=dt.datetime.now(dt.timezone.utc).date()
-        for day in _recent_business_days(today):
-            if candidates and max(x['asOf'] for x in candidates)>=day.isoformat():break
-            new=_download_dmo_for(day)
+        expected=dt.date.fromisoformat(assess(None,calendar=calendar)['expectedQuotationDate'])
+        for day in _recent_business_days(expected,count=3):
+            if day.isoformat() in calendar['holidays']:continue
+            new=_download_dmo_for(day,attempts)
             if new:
                 candidates.append(new);downloaded=True;break
+            if attempts and attempts[-1].get('httpStatus') in (403,429):break
     if not candidates:
         warnings.append('No verified DMO Excel prices available; prices remain blank')
+        status={**assess(None,calendar=calendar),'downloadedFresh':False,'attempts':attempts,'coverage':{'total':0}}
+        fp=ROOT/'.terminal_sources/dmo_verification.json';fp.parent.mkdir(parents=True,exist_ok=True);fp.write_text(json.dumps(status,indent=2))
         return [],[],warnings,0
-    latest=max(candidates,key=lambda p:p['asOf'])
+    latest=max(candidates,key=lambda p:(p['asOf'],p.get('retrievedAt') or ''))
     rows=[dict(g) for g in latest['bonds']]
-    if not downloaded and not opts.offline:
-        warnings.append('DMO automatic Excel export not verified; displaying latest dated DMO snapshot '+latest['asOf'])
+    freshness=assess(latest['asOf'],calendar=calendar)
+    diagnostics={**freshness,'downloadedFresh':downloaded,'retrievedAt':latest.get('retrievedAt'),'origin':latest.get('origin','recovered verified snapshot'),'sourceUrl':latest.get('sourceUrl',DMO_PAGE),'attempts':attempts,'coverage':{'total':len(rows),'conventional':sum(not r['indexLinked'] for r in rows),'indexLinked':sum(r['indexLinked'] for r in rows)}}
+    diagnostic_path=ROOT/'.terminal_sources/dmo_verification.json';diagnostic_path.parent.mkdir(parents=True,exist_ok=True);diagnostic_path.write_text(json.dumps(diagnostics,indent=2))
+    if freshness['stale']:warnings.append('DMO PRICES STALE: quotation '+latest['asOf']+'; expected '+freshness['expectedQuotationDate'])
+    if not downloaded and not opts.offline:warnings.append('DMO retrieval failed; retained verified quotation '+latest['asOf'])
     LATEST.write_text(json.dumps(latest,separators=(',',':'),ensure_ascii=False),encoding='utf-8')
     prior={}
     if not opts.offline:

@@ -5,3 +5,5 @@ __pycache__/
 terminal.html
 terminal_demo.html
 public/
+
+.terminal_*.json
