@@ -100,6 +100,7 @@ renderEtfTracker=function(){
 };
 
 function etfOriginalSetup(){
+ const heading=$('view-etfs')?.querySelector('.workspace-title h1'),subtitle=$('view-etfs')?.querySelector('.workspace-title span');if(heading)heading.textContent='ETF RESEARCH';if(subtitle)subtitle.textContent='TER · tracking error · country funds · equities · bonds';
  $('etf-selected-comparisons')?.remove();
  const stylesheet=$('etf-original-styles');if(stylesheet)document.head.append(stylesheet);
 }

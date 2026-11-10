@@ -185,3 +185,8 @@
 #etf-tracker-panel .etf-peer-box .small-scroll{max-height:none!important}
 
 #etf-tracker-panel .mt-quality-link{display:none!important}
+
+/* Original ETF workspace title; main navigation remains unchanged. */
+#view-etfs>.workspace-title h1{font:600 18px var(--font);color:var(--amber);margin:0}
+#view-etfs>.workspace-title span{font:11px var(--font);color:var(--muted)}
+@media(max-width:680px){#view-etfs>.workspace-title h1{font-size:15px}}
