@@ -1,5 +1,5 @@
 // Release 2.2 navigation: move existing panels; no financial calculations.
-const terminalSubViews={fx:[['prices','Prices & Markets',['monitor']],['analytics','Risk & Relative Performance',['analytics-rolling','market-valuations','compare','score-panel']]],equities:[['screen','Screening & Constituents',['movers','equity-screener','constituents']],['research','Company Research',['companies','peer-panel','company-news-panel','company-events-panel','forensic-panel']],['analytics','Breadth & Sectors',['analytics-breadth','analytics-sectors']]]};
+const terminalSubViews={fx:[['prices','Prices & Markets',['monitor','movers']],['news','News',['news']],['analytics','Risk & Relative Performance',['analytics-rolling','market-valuations','compare','score-panel','analytics-breadth','analytics-sectors']]],equities:[['screen','Screening & Constituents',['equity-screener','constituents']],['research','Company Research',['companies','peer-panel','company-news-panel','company-events-panel','forensic-panel']]]};
 let terminalNavSaved={};try{terminalNavSaved=JSON.parse(localStorage.getItem('market-terminal-navigation-v2')||'{}');}catch{}
 const terminalSubSelection={fx:terminalNavSaved.fx||'prices',equities:terminalNavSaved.equities||'screen'};
 function terminalBuildSubViews(view,key){
@@ -16,6 +16,7 @@ function terminalSetSubView(key,name){
 }
 function terminalResolveRoute(route){
  const [key,subview]=route.split(':');
+ if(key==='equities'&&subview==='analytics')return {key:'fx',subview:'analytics'};
  const researchSection={'peer-panel':3,'company-events-panel':4,'forensic-panel':5};
  if(Object.hasOwn(researchSection,key))return {key:'equities',subview:'research',researchView:researchSection[key]};
  if(key==='companies')return {key:'equities',subview:'research'};

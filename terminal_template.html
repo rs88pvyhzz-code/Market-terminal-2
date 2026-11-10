@@ -2566,7 +2566,7 @@ function initWatchlist(){
 
 const WORKSPACES=['overview','fx','equities','bonds','etfs','economics','watchlist','quality'];
 let activeWorkspace='overview', searchHits=[], searchCursor=0;
-const workspaceForSection={'etf-tracker-panel':'etfs','personal-watchlist-panel':'watchlist','analytics-breadth':'equities:analytics','analytics-sectors':'equities:analytics','analytics-rolling':'analytics','market-valuations':'analytics','corporate-credit':'bonds','company-events-panel':'companies','us-treasuries':'bonds',gilts:'bonds',news:'overview',headline:'overview',monitor:'fx:prices',movers:'equities:screen','equity-screener':'equities:screen',constituents:'equities:screen',companies:'companies','peer-panel':'companies',rates:'bonds',real:'bonds',sovereign:'bonds',macro:'economics',calendar:'economics',compare:'analytics','quality-panel':'quality',sources:'quality'};
+const workspaceForSection={'etf-tracker-panel':'etfs','personal-watchlist-panel':'watchlist','analytics-breadth':'fx:analytics','analytics-sectors':'fx:analytics','analytics-rolling':'analytics','market-valuations':'analytics','corporate-credit':'bonds','company-events-panel':'companies','us-treasuries':'bonds',gilts:'bonds',news:'fx:news',headline:'fx:prices',monitor:'fx:prices',movers:'fx:prices','equity-screener':'equities:screen',constituents:'equities:screen',companies:'companies','peer-panel':'companies',rates:'bonds',real:'bonds',sovereign:'bonds',macro:'economics',calendar:'economics',compare:'analytics','quality-panel':'quality',sources:'quality'};
 function paintWorkspace(key){
   switch(key){
     case 'overview': renderNews(); renderPulse(); renderMarketBriefing(); break;
