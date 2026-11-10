@@ -30,3 +30,16 @@ h2[id],h3[id]{scroll-margin-top:calc(var(--r24-nav-height) + 100px)}
 @media(max-width:600px){.r25-section-links{position:static;gap:5px 9px}.r25-financial-chart svg{min-height:180px!important}}
 .mt-bond-nav{position:sticky;top:var(--r24-nav-height);z-index:35;background:#10151c;padding:7px;border-bottom:1px solid #35404d}
 @media(max-width:600px){.mt-bond-nav{position:static}}
+/* Release 2.6 ETF lists: seven aligned columns, one alternatives table. */
+#etf-tracker-panel{overflow-x:visible}#etf-tracker-panel .etf-table{table-layout:fixed;width:100%;min-width:0!important}
+#etf-tracker-panel .etf-table th:first-child{width:34%}#etf-tracker-panel .etf-table th:nth-child(2){width:8%}#etf-tracker-panel .etf-table th:nth-child(3){width:5%}#etf-tracker-panel .etf-table th:nth-child(4){width:17%}
+#etf-tracker-panel .etf-table th:nth-child(n+5){width:12%}#etf-tracker-panel .etf-table td,#etf-tracker-panel .etf-table th{padding:6px!important;font-size:11px}
+#etf-tracker-panel .etf-geo-group th{text-align:left;background:#26313d;color:#e0e7ee;font-size:12px}#etf-tracker-panel .etf-benchmark-group th{text-align:left;background:#191f27;color:#afbdce;font-size:10px}
+.etf-fund-link{font:inherit;color:#d4e2ef;background:none;border:0;text-align:left;padding:0;cursor:pointer;overflow-wrap:anywhere}.etf-fund-link:hover{text-decoration:underline}.etf-fund-link:focus-visible{outline:2px solid #bfd3e8}
+#etf-r26-pick{display:block;width:100%;margin:5px 0 10px}#etf-cost-peers:empty,#etf-stats:empty{display:none}
+#etf-tracker-panel .etf-r26-comparison{display:table!important;width:100%;table-layout:fixed}#etf-tracker-panel .etf-r26-comparison thead{display:table-header-group!important}#etf-tracker-panel .etf-r26-comparison tbody{display:table-row-group!important}#etf-tracker-panel .etf-r26-comparison tr{display:table-row!important}#etf-tracker-panel .etf-r26-comparison td{display:table-cell!important;width:auto!important;text-align:right}
+#etf-tracker-panel .etf-r26-comparison td:before{content:none!important}#etf-tracker-panel .etf-r26-comparison th:first-child{width:29%}#etf-tracker-panel .etf-r26-comparison th:nth-child(2){width:7%}#etf-tracker-panel .etf-r26-comparison th:nth-child(3){width:13%}#etf-tracker-panel .etf-r26-comparison th:nth-child(4){width:15%}#etf-tracker-panel .etf-r26-comparison th:last-child{width:6%}
+#etf-tracker-panel .etf-r26-comparison td:first-child{text-align:left}#etf-tracker-panel .etf-r26-comparison th,#etf-tracker-panel .etf-r26-comparison td{padding:6px 4px!important;font-size:10px}
+#etf-tracker-panel .etf-r26-comparison .mini{font-size:9px}#etf-tracker-panel .etf-detail{margin-top:12px;padding-top:10px}.r26-conditions{table-layout:fixed}.r26-conditions th:not(:first-child),.r26-conditions td:not(:first-child){text-align:right;font-variant-numeric:tabular-nums}
+@media(max-width:600px){#etf-tracker-panel .etf-table td,#etf-tracker-panel .etf-table th{font-size:9px;padding:5px 3px!important}#etf-tracker-panel .etf-table .mini{font-size:8px}#etf-tracker-panel .etf-r26-comparison th,#etf-tracker-panel .etf-r26-comparison td{font-size:8px;padding:4px 2px!important}}
+.research-view .chart.r26-empty-chart{height:auto!important;min-height:0!important;margin:4px 0}.research-view .r26-empty-chart .empty{padding:6px 0!important;min-height:0!important}

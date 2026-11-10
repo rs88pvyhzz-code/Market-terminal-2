@@ -2868,15 +2868,6 @@ function etfDetails(){
   etfStatistic(host,'5Y annualised',etfPct(etfPerformance(fund,'5Y')),'Selected chart basis');
   etfStatistic(host,'Income yield','Unavailable','No validated issuer distribution yield');
   etfStatistic(host,'Tracking difference','Unavailable','Official index total-return data required');
-  const peers=ETF_FUNDS.filter(f=>f.market===fund.market).sort((a,b)=>(a.terPct==null?Infinity:a.terPct)-(b.terPct==null?Infinity:b.terPct));
-  const parent=$('etf-cost-peers');parent.replaceChildren();
-  parent.append(el('p','note','OTHER CANDIDATES IN THIS MARKET — lowest KNOWN TER first. Same market does not imply the same index or return basis.'));
-  const table=el('table','watch'),head=el('thead'),tr=el('tr');
-  for(const label of ['ETF','Benchmark','Annual OCF / TER','Replication','Quote status'])tr.append(el('th','',label));head.append(tr);table.append(head);
-  const body=el('tbody');for(const peer of peers.slice(0,12)){
-    const row=el('tr');etfCell(row,peer.symbol+' — '+peer.name);etfCell(row,peer.benchmark);
-    etfCell(row,etfFee(peer));etfCell(row,peer.replication||'Unverified');etfCell(row,peer.quoteStatus||'Unavailable');body.append(row);
-  }table.append(body);parent.append(table);
   etfDrawChart();
 }
 function renderEtfTracker(){
@@ -3987,7 +3978,7 @@ function renderGilts(){
   for(const g of rows){const tr=el('tr');tr.dataset.isin=g.isin;tr.style.cursor='pointer';if(g.ticker===giltState.symbol)tr.classList.add('selected');
     const {model,net}=metrics.get(g.ticker);
     const name=td(tr,'');name.className='gilt-identity';name.append(el('strong','',g.name),el('small','',g.isin+(g.shortTicker?' · '+g.shortTicker:'')+' · '+(g.indexLinked?'Index-linked':'Conventional')));name.title='Official quotation '+g.asOf;if(giltYieldReviewReason(g)||(model&&g.askDirty!=null&&Math.abs(model.accrued-(g.askDirty-g.askClean))>=.0005)){name.append(el('small','dn','Yield model accrual: review'));name.title+=' · model accrued interest differs from DMO dirty minus clean; check ex-dividend/irregular coupon conventions';}td(tr,g.maturity);td(tr,fmt(g.coupon,3)+'%','n');
-    td(tr,g.bidClean!=null?fmt(g.bidClean,2):'—','n');td(tr,g.askClean!=null?fmt(g.askClean,2):'—','n');
+    td(tr,g.bidClean!=null?fmt(g.bidClean,3):'—','n');td(tr,g.askClean!=null?fmt(g.askClean,3):'—','n');
     td(tr,giltYieldReviewReason(g)?'Review':g.indexLinked?'—':model?fmt(model.ytm,3)+'%*':'—','n');
     td(tr,giltYieldReviewReason(g)?'Review':net!=null?fmt(net,3)+'%':'—','n');td(tr,giltYieldReviewReason(g)?'Review':net!=null&&taxRate<100?fmt(net/(1-taxRate/100),3)+'%':'—','n');
     tr.onclick=()=>{giltState.symbol=g.ticker;renderGilts();};table.append(tr);

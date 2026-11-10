@@ -153,15 +153,6 @@ function etfDetails(){
   etfStatistic(host,'5Y annualised',etfPct(etfPerformance(fund,'5Y')),'Selected chart basis');
   etfStatistic(host,'Income yield','Unavailable','No validated issuer distribution yield');
   etfStatistic(host,'Tracking difference','Unavailable','Official index total-return data required');
-  const peers=ETF_FUNDS.filter(f=>f.market===fund.market).sort((a,b)=>(a.terPct==null?Infinity:a.terPct)-(b.terPct==null?Infinity:b.terPct));
-  const parent=$('etf-cost-peers');parent.replaceChildren();
-  parent.append(el('p','note','OTHER CANDIDATES IN THIS MARKET — lowest KNOWN TER first. Same market does not imply the same index or return basis.'));
-  const table=el('table','watch'),head=el('thead'),tr=el('tr');
-  for(const label of ['ETF','Benchmark','Annual OCF / TER','Replication','Quote status'])tr.append(el('th','',label));head.append(tr);table.append(head);
-  const body=el('tbody');for(const peer of peers.slice(0,12)){
-    const row=el('tr');etfCell(row,peer.symbol+' — '+peer.name);etfCell(row,peer.benchmark);
-    etfCell(row,etfFee(peer));etfCell(row,peer.replication||'Unverified');etfCell(row,peer.quoteStatus||'Unavailable');body.append(row);
-  }table.append(body);parent.append(table);
   etfDrawChart();
 }
 function renderEtfTracker(){

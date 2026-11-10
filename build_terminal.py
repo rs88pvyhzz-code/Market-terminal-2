@@ -681,7 +681,7 @@ def main():
         raise SystemExit('No data was retrieved. Check internet access; use --demo to preview the interface.')
     template=(ROOT/'terminal_template.html').read_text('utf-8')
     template=template.replace('/*__EQUITY_RESEARCH__*/', (ROOT/'equity_research.js').read_text('utf-8')+'\n'+(ROOT/'equity_research_r2.js').read_text('utf-8')+'\n'+(ROOT/'terminal_navigation.js').read_text('utf-8')+'\n'+(ROOT/'market_briefing.js').read_text('utf-8'))
-    template=template.replace('\ninit();\n', '\n'+(ROOT/'terminal_redesign.js').read_text('utf-8')+'\ninit();\n')
+    template=template.replace('\ninit();\n', '\n'+(ROOT/'terminal_redesign.js').read_text('utf-8')+'\n'+(ROOT/'terminal_etf_presentation.js').read_text('utf-8')+'\ninit();\n')
     template=template.replace('</head>', '<style id="release24-styles">'+(ROOT/'terminal_redesign.css').read_text('utf-8')+'</style></head>')
     # Links to the repository (e.g. 'edit watchlist') follow whichever repo builds the site.
     repo=__import__('os').environ.get('GITHUB_REPOSITORY')
