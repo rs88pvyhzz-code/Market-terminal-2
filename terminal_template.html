@@ -2604,7 +2604,7 @@ function renderPulse(){
   const sections=[
    {title:'EQUITY INDICES',items:[['^GSPC','S&P 500'],['^FTSE','FTSE 100'],['^STOXX','STOXX 600'],['^N225','Nikkei 225']]},
    {title:'FOREIGN EXCHANGE',items:[['GBPUSD=X','GBP / USD'],['EURUSD=X','EUR / USD'],['USDJPY=X','USD / JPY'],['GBPEUR=X','GBP / EUR']]},
-   {title:'COMMODITIES',items:[['BZ=F','Brent crude'],['GC=F','Gold'],['^VIX','VIX'],['NG=F','US natural gas']]},
+   {title:'COMMODITIES / VIX',items:[['BZ=F','Brent crude'],['GC=F','Gold'],['^VIX','VIX'],['NG=F','US natural gas']]},
    {title:'GOVERNMENT YIELDS',items:[['uk_gilt','UK 10Y gilt'],['us_tsy','US 10Y Treasury'],['eu_gov','Euro-area 10Y'],['bank_rate','BoE Bank Rate']]}
   ];
   for(const group of sections){const card=el('div','pulse-group');card.append(el('h3','',group.title));
@@ -2615,8 +2615,8 @@ function renderPulse(){
       if(!src)continue;present++;
       const v=isYield?(symbol==='uk_gilt'?src.gilt10y:symbol==='bank_rate'?src.bankRate:symbol==='us_tsy'?src.DGS10:src.eur10y):src.price;
       const button=el('button','pulse-row');button.type='button';button.setAttribute('aria-label','Open '+label);
-      const left=el('div');left.append(el('strong','',label),el('span','meta',isYield?((src.date||'')+' · yield %'):(src.currency||'')+' · '+(src.asOf||'').slice(0,10)));
-      const right=el('div','v');right.append(document.createTextNode(fmt(v,isYield?2:Math.abs(v)>100?1:4)+(isYield?'%':'')));
+      const left=el('div');left.append(el('strong','',label),el('span','meta',isYield?((src.date||'')+' · yield %'):(symbol==='^VIX'?'Index points':src.currency||'')+' · '+(src.asOf||'').slice(0,10)));
+      const right=el('div','v');right.append(document.createTextNode(fmt(v,isYield||symbol==='^VIX'?2:Math.abs(v)>100?1:4)+(isYield?'%':'')));
       if(!isYield)right.append(el('span','change '+tone(src.changePct),pc(src.changePct)));
       button.append(left,right);button.onclick=()=>isYield?activateWorkspace('bonds'):marketInstrument(symbol);card.append(button);
     }

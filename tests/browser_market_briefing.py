@@ -11,6 +11,7 @@ with sync_playwright() as p:
     page.locator('#tab-overview').click();assert page.locator('#workspace-tabs [role=tab]').count()==8
     assert page.locator('#news-pills > button').count()==6
     assert page.locator('.r23-regions button').count()==5
+    if any(q.get('symbol')=='^VIX' for q in data['quotes']):assert 'Index points' in page.get_by_role('button',name='Open VIX',exact=True).inner_text()
     expected=['overview-board','news','r23-alerts','r23-moves','r23-calendar','r23-conditions','r23-watch']
     order=page.locator('#view-overview > [id]').evaluate_all('(els)=>els.map(e=>e.id)')
     assert [order.index(x) for x in expected]==sorted(order.index(x) for x in expected)
