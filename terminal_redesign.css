@@ -11,5 +11,10 @@ body{font-family:Arial,Helvetica,sans-serif;font-size:12px;line-height:1.45;colo
 @media(max-width:600px){.wrap{padding:0 8px}#market-pulse{grid-template-columns:repeat(2,minmax(0,1fr))!important}.commandline .label{display:none}.panel{padding:10px}.workspace-nav button{font-size:10px!important;padding:5px 7px!important}.etf-controls{grid-template-columns:repeat(2,minmax(0,1fr))}.r24-calendar-table{table-layout:auto}.r24-table td{font-size:9px}.workspace-title{padding-top:5px}}
 /* Constrain grid tracks rather than clipping long source/diagnostic strings. */
 .workspace-view,.terminal-subview{grid-template-columns:minmax(0,1fr)}.r23-panel,.r24-section{width:100%;max-width:100%;min-width:0}.r23-body,.r24-content,.r24-support{min-width:0;overflow-wrap:anywhere}.mini,.note{overflow-wrap:anywhere}.r24-snapshot-item{overflow-wrap:anywhere}.constituents-scroll,.gilt-table-scroll{max-height:none!important}
-/* Keep existing relevance/sector visibility conditions; only disclosures are removed. */
+/* Keep existing relevance/sector visibility conditions for directly visible decision sections. */
 .r24-support[hidden]{display:none!important}.panel,.r24-support{scroll-margin-top:12px}
+
+/* Selective support: native disclosure controls remain usable; essential sections are plain. */
+.release24 details{margin:12px 0;border-top:1px solid #303844;padding-top:8px;min-width:0}
+.release24 details>summary{cursor:pointer;color:#bdcddd;font:600 12px/1.5 Arial,sans-serif;padding:4px 0}
+.release24 details[open]>summary{margin-bottom:8px}.release24 details>summary:focus-visible{outline:2px solid #bdcddd;outline-offset:3px}

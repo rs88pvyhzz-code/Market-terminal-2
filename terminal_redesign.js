@@ -9,17 +9,48 @@ function r24Section(id,title,parent) {
   node.lastElementChild.replaceChildren();return node.lastElementChild;
 }
 function r24Link(title,url){const a=el('a','',title);if(String(url||'').startsWith('https://')){a.href=url;a.target='_blank';a.rel='noopener noreferrer';}return a;}
-function r24NoDisclosures(root=document) {
-  // Replace, rather than force-open: there is no click-to-expand interaction.
-  for(const detail of [...root.querySelectorAll('details')].reverse()){
-    const section=el('section',detail.className+' r24-support');for(const a of detail.attributes)if(!['class','open'].includes(a.name))section.setAttribute(a.name,a.value);
-    for(const child of [...detail.childNodes]){if(child.nodeName==='SUMMARY'){const heading=el('h3','r24-support-heading');heading.append(...child.childNodes);section.append(heading);}else section.append(child);}
-    detail.replaceWith(section);
+function r24VisibleSection(detail) {
+  // Used only for named decision content/basic controls or inner support headings.
+  const section=el('section',detail.className+' r24-support');
+  for(const a of detail.attributes)if(!['class','open','data-r24-policy'].includes(a.name))section.setAttribute(a.name,a.value);
+  for(const child of [...detail.childNodes]){
+    if(child.nodeName==='SUMMARY'){const h=el('h3','r24-support-heading');h.append(...child.childNodes);section.append(h);}
+    else section.append(child);
   }
+  detail.replaceWith(section);return section;
+}
+function r24SelectivePresentation(root=document) {
+  // Decision results and basic controls are direct; workings/evidence keep native details.
+  for(const detail of root.querySelectorAll('.research-view details, details.mt-collapse')){
+    if(detail.dataset.r24Policy)continue;
+    const title=detail.querySelector(':scope > summary')?.textContent||'';
+    if(/Sector-specific evidence and sensitivity limits/.test(title)){
+      const inputs=detail.querySelector(':scope > .research-inputs');
+      if(inputs){const output=inputs.nextElementSibling,controls=el('section','r24-support');controls.append(el('h3','r24-support-heading','Commodity assumptions & result'),inputs);if(output)controls.append(output);detail.after(controls);}
+    }
+    const direct=detail.classList.contains('mt-collapse')||detail.classList.contains('research-notebook')||/^(Edit stress assumptions|Sensitivity ·|Latest reported earnings results|Dated management expectations|Principal competitors|Five-year capital allocation|Historical valuation multiples)/.test(title);
+    if(direct){const section=r24VisibleSection(detail);
+      if(/^Dated management expectations/.test(title)){
+        for(const article of section.querySelectorAll(':scope > .research-evidence')){
+          const excerpt=[...article.querySelectorAll(':scope > p.note')].find(p=>!p.textContent.startsWith('Previous:'));
+          if(excerpt){const evidence=el('details','research-detail');evidence.dataset.r24Policy='support';evidence.append(el('summary','','Supporting issuer excerpt'),excerpt);article.append(evidence);}
+        }
+      }
+      // ROIC charts stay visible; the underlying historical allocation table is optional.
+      if(/^Five-year capital allocation/.test(title)){const table=section.querySelector(':scope > .small-scroll');if(table){const history=el('details','research-detail');history.dataset.r24Policy='support';history.append(el('summary','','Historical capital-allocation table'),table);section.insertBefore(history,section.querySelector('.chart'));}}
+    }else{detail.open=false;detail.dataset.r24Policy='support';}
+  }
+  // One disclosure level only: inner source registers become headings inside their parent.
+  for(const inner of [...root.querySelectorAll('details details')].reverse())r24VisibleSection(inner);
   const overview=$('research-overview'),researchView=$('research-view-0');
-  if(overview&&researchView){const support=[...overview.children].filter(n=>n.classList.contains('r24-support'));if(support.length){researchView.querySelectorAll(':scope > [data-r24-owner="research-overview"]').forEach(n=>n.remove());for(const node of support){node.dataset.r24Owner='research-overview';researchView.append(node);}}}
-  const valuation=$('research-valuation');if(valuation){for(const node of [...valuation.children]){const title=node.querySelector(':scope > .r24-support-heading')?.textContent||'';if(node.classList.contains('research-provenance')||/Normalised FCFF calculation|Historical valuation multiples/.test(title))valuation.append(node);}}
-  for(const warning of root.querySelectorAll('.research-warning')){for(const node of warning.childNodes)if(node.nodeType===3)node.textContent=node.textContent.replace('Open source status before relying','Review source status below before relying');}
+  if(overview&&researchView){const support=[...overview.children].filter(n=>n.matches('details'));
+    if(support.length){researchView.querySelectorAll(':scope > [data-r24-owner="research-overview"]').forEach(n=>n.remove());for(const node of support){node.dataset.r24Owner='research-overview';researchView.append(node);}}}
+  const valuation=$('research-valuation');if(valuation){const support=[...valuation.children].filter(node=>/Normalised FCFF calculation/.test(node.querySelector(':scope > summary')?.textContent||''));const tail=[...valuation.children].slice(-support.length);if(support.some((node,i)=>tail[i]!==node))for(const node of support)valuation.append(node);}
+  // Never put material warnings behind a disclosure, even when detailed provenance is optional.
+  for(const warning of root.querySelectorAll('.research-warning,.phase-warning,.err')){
+    const disclosure=warning.closest('details');if(disclosure)disclosure.before(warning);
+    for(const node of warning.childNodes)if(node.nodeType===3)node.textContent=node.textContent.replace('Open source status before relying','Review source status below before relying');
+  }
   for(const view of root.querySelectorAll('.research-view')){const seen=new Set();for(const note of view.querySelectorAll('p.note')){const key=note.textContent.trim()+'|'+[...note.querySelectorAll('a')].map(a=>a.href).join('|');if(!key)continue;if(seen.has(key))note.remove();else seen.add(key);}}
 }
 function r24Fresh(item){return !intelligenceArchived(item);}
@@ -128,12 +159,12 @@ renderCalendar=function(){
   $('mt-calendar-tip')?.remove();
 };
 const r24OldPaint=paintWorkspace;
-paintWorkspace=function(key){if(key==='fx'&&terminalSubSelection.fx==='news'){renderMarketBriefing();renderNews();}else r24OldPaint(key);if(key==='fx'){renderNews();if(terminalSubSelection.fx==='analytics'){renderBreadth();renderSectors();}}r24NoDisclosures();};
+paintWorkspace=function(key){if(key==='fx'&&terminalSubSelection.fx==='news'){renderMarketBriefing();renderNews();}else r24OldPaint(key);if(key==='fx'){renderNews();if(terminalSubSelection.fx==='analytics'){renderBreadth();renderSectors();}}r24SelectivePresentation();};
 intelligenceCategory='all';
 function r24Setup(){
-  document.documentElement.classList.add('release24');const sheet=$('release24-styles');if(sheet)document.head.append(sheet);r24Overview();renderNews();renderCalendar();r24NoDisclosures();
-  // Later company changes and legacy ETF/postprocessor renders also stay directly visible.
-  new MutationObserver(records=>{if(records.some(r=>[...r.addedNodes].some(n=>n.nodeType===1&&(n.matches('details')||n.querySelector('details')))))r24NoDisclosures();}).observe(document.body,{childList:true,subtree:true});
+  document.documentElement.classList.add('release24');const sheet=$('release24-styles');if(sheet)document.head.append(sheet);r24Overview();renderNews();renderCalendar();r24SelectivePresentation();
+  // Apply the same selective policy to later company, ETF and diagnostic renders.
+  new MutationObserver(records=>{if(records.some(r=>[...r.addedNodes].some(n=>n.nodeType===1&&(n.matches('details')||n.querySelector('details')))))r24SelectivePresentation();}).observe(document.body,{childList:true,subtree:true});
   const bar=document.querySelector('.commandbar');if(bar)new ResizeObserver(()=>document.documentElement.style.setProperty('--r24-nav-height',Math.ceil(bar.getBoundingClientRect().height)+'px')).observe(bar);
 }
 document.addEventListener('DOMContentLoaded',r24Setup);

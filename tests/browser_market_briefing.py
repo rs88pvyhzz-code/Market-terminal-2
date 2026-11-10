@@ -31,7 +31,8 @@ with sync_playwright() as p:
         page.locator('#company-pick').select_option(symbol);page.locator('#research-tab-0').click();assert page.locator('.r23-company-changes').count()==1
         assert page.locator('#research-nav [role=tab]').count()==6
     page.locator('#tab-quality').click();page.wait_for_timeout(120)
-    if not page.locator('#r23-news-quality').is_visible():raise AssertionError('News source diagnostics must be directly visible')
+    assert page.locator('#mt-quality-focus').is_visible()
+    if not page.locator('#r23-news-quality').is_visible():page.locator('#mt-other-audits > summary').click()
     assert page.locator('#r23-news-quality').is_visible()
     page.locator('#tab-fx').click();page.locator('#sub-fx-prices').click();assert page.locator('#r23-market-conditions').is_visible()
     assert not errors,errors
