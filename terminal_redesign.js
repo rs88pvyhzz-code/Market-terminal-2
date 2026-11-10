@@ -43,6 +43,16 @@ function r24SelectivePresentation(root=document) {
   if(overview&&view){const support=[...overview.children].filter(n=>n.matches('section.r24-support'));
     if(support.length){view.querySelectorAll(':scope > [data-r25-owner]').forEach(n=>n.remove());for(const node of support){node.dataset.r25Owner='overview';view.append(node);}}
   }
+  // Workings stay direct, below the decision results and basic controls.
+  const valuation=$('research-valuation');if(valuation){
+    const bridge=[...valuation.children].find(n=>/Normalised FCFF calculation/.test(n.querySelector(':scope > h3')?.textContent||''));
+    if(bridge&&valuation.lastElementChild!==bridge)valuation.append(bridge);
+    for(const projected of valuation.querySelectorAll('section.r24-support')){
+      if(/^Projected FCFF/.test(projected.querySelector(':scope > h3')?.textContent||'')){
+        const parent=projected.parentElement;if(parent.lastElementChild!==projected)parent.append(projected);
+      }
+    }
+  }
   r25SectionLinks();
 }
 function r25SectionLinks(){
