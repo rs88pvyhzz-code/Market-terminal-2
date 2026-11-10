@@ -1467,7 +1467,7 @@ function renderCompanyInsight(c){
     c.name+' '+pc(c.changePct)+' on '+when+' (price change, not dividend-adjusted).';
   if(c.changePct!=null&&Math.abs(c.changePct)>=8)message+=' Large moves may reflect announcements, corporate actions, or a pricing error; verify the source.';
   $('company-move-summary').textContent=message;
-  $('company-news-stamp').textContent=snapshot?'News retrieved '+snapshot.retrievedAt:'No stored company headlines';
+  $('company-news-stamp').textContent=snapshot?'Collection attempted '+snapshot.retrievedAt+' · article retrieval dates below':'No stored company headlines';
   if(!rows.length)panel.append(el('p','note','No company-specific headlines are saved in this snapshot. Use the latest-news link below. This is not evidence that there was no news.'));
   else for(const row of rows.slice(0,5)){
     if(!String(row.url||'').startsWith('https://'))continue;
