@@ -2,6 +2,11 @@ name: Production source verification
 on:
   pull_request:
   workflow_dispatch:
+    inputs:
+      fresh_sec:
+        description: Run cache-independent identified SEC probes (stops after denial)
+        type: boolean
+        default: false
 permissions:
   contents: read
 jobs:
@@ -30,6 +35,7 @@ jobs:
       - name: Restore verified sources before independent fresh probes
         run: python source_archive.py restore
       - name: Genuinely fresh SEC downloads (no local-cache fallback)
+        if: github.event_name == 'workflow_dispatch' && inputs.fresh_sec
         run: python verify_fresh_sec.py
       - name: Build using real production collectors
         run: >-

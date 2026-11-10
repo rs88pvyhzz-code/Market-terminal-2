@@ -74,7 +74,7 @@ class SourceIntegrityTests(unittest.TestCase):
 
     def test_denial_stops_provider_and_missing_values_are_warned(self):
         from urllib.error import HTTPError
-        with patch.dict('os.environ',{'SEC_USER_AGENT':'Market Terminal research contact@example.org'}),patch.object(source_transport,'record'),patch('urllib.request.urlopen',side_effect=HTTPError('url',403,'Forbidden',{},None)) as request:
+        with patch.dict('os.environ',{'SEC_USER_AGENT':'Market Terminal research contact@example.org','GITHUB_RUN_ID':''}),patch.object(source_transport,'record'),patch('urllib.request.urlopen',side_effect=HTTPError('url',403,'Forbidden',{},None)) as request:
             source_transport._BLOCKED.clear()
             with self.assertRaises(HTTPError):source_transport.get('https://data.sec.gov/test')
             with self.assertRaisesRegex(OSError,'further requests stopped'):source_transport.get('https://data.sec.gov/another')
