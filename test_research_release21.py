@@ -36,6 +36,11 @@ class SourceIntegrityTests(unittest.TestCase):
             c={'symbol':'SHEL.L','annual':rows,'research':company_research.analyse(rows)}
             composed=research_intelligence.compose(c,evidence,[c],asof='2026-11-10')
             self.assertTrue(composed['reportedResults']);self.assertTrue(composed['guidance']);self.assertTrue(composed['topics']['catalysts']);self.assertTrue(composed['topics']['risks'])
+            cache=root/'.terminal_research'/research_intelligence.CACHE_NAME
+            cache.write_text(json.dumps({'records':{'SHEL.L':{'schema':1,'documents':[],'checkedAt':'2026-11-10T00:00:00+00:00','attemptedAt':'2026-11-10T00:00:00+00:00'}}}))
+            with patch('company_profiles._restore_published',return_value={}):
+                research_intelligence.collect([c],[],cache.parent,asof='2026-11-10T01:00:00+00:00',batch=0)
+            self.assertTrue(c['intelligence']['sources'],'Retry backoff must not hide recoverable real documents')
 
     def test_archive_never_overwrites_newer_sources_or_accepts_unsafe_paths(self):
         blob=(ROOT/'verified_sources'/source_archive.NAME).read_bytes()
