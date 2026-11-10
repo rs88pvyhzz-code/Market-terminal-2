@@ -63,6 +63,9 @@ class SourceIntegrityTests(unittest.TestCase):
             self.assertEqual(rows[1]['workingCapitalCashChange'],-12)
             self.assertEqual(rows[1]['provenance']['workingCapitalCashChange']['retrievedAt'],'2026-11-09')
             self.assertEqual(rows[1]['depreciation'],33)
+            # Retained financial amounts cannot cross reporting currencies.
+            mismatch=company_filings.retain_financial_history('TEST',[{'fiscalEnd':'2025-12-31','provenance':{}}],directory,currency='GBP')
+            self.assertNotIn('workingCapitalCashChange',mismatch[0])
 
     def test_missing_sec_identity_never_sends_fake_contact(self):
         with patch.dict('os.environ',{'SEC_USER_AGENT':''}),patch.object(source_transport,'record'),patch('urllib.request.urlopen') as request:

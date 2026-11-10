@@ -138,7 +138,7 @@ def merge_rows(yahoo, primary, currency):
     return [merged[d] for d in sorted(merged, reverse=True)[:5]]
 
 
-def retain_financial_history(symbol, rows, directory=None):
+def retain_financial_history(symbol, rows, directory=None, currency=None):
     """Fill missing exact-period fields from dated source history, not new estimates."""
     root=Path(directory or Path(__file__).parent/'.terminal_filings');root.mkdir(parents=True,exist_ok=True)
     path=root/('financial_history_'+symbol+'.json')
@@ -148,6 +148,7 @@ def retain_financial_history(symbol, rows, directory=None):
     for old in saved:
         row=merged.setdefault(old['fiscalEnd'],{'fiscalEnd':old['fiscalEnd'],'fiscalYear':old.get('fiscalYear'),'provenance':{}})
         for key,p in old.get('provenance',{}).items():
+            if currency and p.get('currency') not in (currency,'shares'):continue
             if row.get(key) is None and old.get(key) is not None and p.get('retrievedAt'):
                 row[key]=old[key];row['provenance'][key]=dict(p)
     result=[merged[d] for d in sorted(merged,reverse=True)[:5]]
