@@ -28,3 +28,5 @@ h2[id],h3[id]{scroll-margin-top:calc(var(--r24-nav-height) + 100px)}
 #gilts .gilt-table thead th:first-child{text-align:left}
 #mt-screener-form{border:0;padding:0}#mt-screener-form [aria-invalid=true]{outline:1px solid #f18c8c}
 @media(max-width:600px){.r25-section-links{position:static;gap:5px 9px}.r25-financial-chart svg{min-height:180px!important}}
+.mt-bond-nav{position:sticky;top:var(--r24-nav-height);z-index:35;background:#10151c;padding:7px;border-bottom:1px solid #35404d}
+@media(max-width:600px){.mt-bond-nav{position:static}}

@@ -47,7 +47,8 @@ function r24SelectivePresentation(root=document) {
 }
 function r25SectionLinks(){
   for(const host of document.querySelectorAll('.research-view,#subview-fx-prices,#view-economics')){
-    const headings=[...host.querySelectorAll('h2,h3')].filter(h=>!h.closest('details')&&!h.closest('[hidden]')&&!/rules|methodology|coverage|source register|snapshot metrics|evidence that would/i.test(h.textContent)).slice(0,7);
+    const all=[...host.querySelectorAll('h2,h3')].filter(h=>!h.closest('details')&&!h.closest('[hidden]')&&!/rules|methodology|coverage|source register|snapshot metrics|evidence that would/i.test(h.textContent));
+    const headings=all.slice(0,7),source=all.find(h=>/Field-level sources|Source documents|Valuation sources/i.test(h.textContent));if(source&&!headings.includes(source))headings.splice(6,1,source);
     let nav=host.querySelector(':scope > .r25-section-links');
     const signature=headings.map(h=>h.textContent).join('|');
     if(nav?.dataset.signature===signature)continue;

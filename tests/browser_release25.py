@@ -55,10 +55,10 @@ with sync_playwright() as p:
             page.locator('#research-tab-'+str(view)).click();page.wait_for_timeout(70)
             assert page.locator('.research-view details:not([data-r25-disclosure])').count()==0
             assert page.evaluate('document.body.scrollWidth<=innerWidth')
-        page.locator('#research-tab-1').click()
+        page.locator('#research-tab-1').click();page.wait_for_timeout(100)
         for id in ['research-financial-chart','research-cash-chart','research-margin-chart','research-return-chart']:
             assert page.locator('#'+id).is_visible()
-            assert page.locator('#'+id).bounding_box()['height']<=260
+            assert page.locator('#'+id).evaluate('(e)=>{const r=e.getBoundingClientRect();return r.height>0&&r.height<=260;}')
         page.locator('#tab-bonds').click();page.wait_for_timeout(80)
         assert page.locator('#gilts thead th').first.evaluate('(e)=>getComputedStyle(e).position')=='sticky'
         assert page.locator('details details').count()==0
