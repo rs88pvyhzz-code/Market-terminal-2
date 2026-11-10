@@ -1,7 +1,7 @@
 /* Release 2.6: presentation only; existing return/risk/FX and issuer renderers are reused. */
 function etfR26Key(f){const text=[f.name,f.benchmark,f.market].join(' ');const explicit=text.match(/\b(?:GBP|USD|EUR|JPY|CHF)\s*[- ]?hedged\b/i)?.[0]||(/\bunhedged\b/i.test(text)?'unhedged':'');return etfV5Key(f)+'|'+explicit.toLowerCase().replace(/[- ]+/g,' ');}
 function etfR26Region(f){
-  if(f.category==='Bonds')return [7,ETF_BOND_GEO[f.market]?.[0]??99,'Bonds'];
+  if(f.category==='Bonds'){const order=['UK short gilts','UK gilts','UK index linked','US Treasury 0-1y','US Treasury 1-3y','US Treasury 3-7y','US Treasury 7-10y','US Treasury 20y+','US Treasury long dated','US inflation linked','EUR government 0-6m','Global government','Global inflation-linked','Global aggregate bond','Global aggregate GBP hedged','UK investment grade','USD investment grade','EUR investment grade','EUR high yield','USD high yield','EM sovereign debt','EM local currency debt','USD floating rate','Global green bonds','Global green bonds GBP hedged'];return [7,order.includes(f.market)?order.indexOf(f.market):99,'Bonds'];}
   if(f.category==='Thematic')return [8,0,'Specialist funds'];
   if(f.category==='Commodity ETC')return [9,0,'Commodities'];
   const geo=ETF_GEO[f.market];
@@ -13,11 +13,12 @@ function etfR26Region(f){
   if(geo||['South Korea','Saudi Arabia'].includes(f.market))return [5,geo?.[1]??99,'Emerging Markets'];
   return [6,0,'Other markets'];
 }
-function etfR26VerifiedAum(f){return Number.isFinite(f.fundSize)&&f.fundSize>=0&&!!f.fundSizeCurrency&&/issuer|audited/i.test(f.fundSizeSource||'')&&!/fallback|unverified|not independently/i.test(f.fundSizeStatus||'');}
+function etfR26VerifiedAum(f){return Number.isFinite(f.fundSize)&&f.fundSize>=0&&!!f.fundSizeCurrency&&/issuer|audited/i.test(f.fundSizeSource||'')&&!f.identifierWarning&&!f.auditIsinConflict&&!/fallback|unverified|not independently/i.test(f.fundSizeStatus||'');}
 function etfR26Size(f){return f.fundSize===0&&f.fundSizeCurrency?f.fundSizeCurrency+' 0':etfFundSize(f)==='—'?'Unavailable':etfFundSize(f);}
 function etfR26Priority(a,b){
   const verified=Number(etfR26VerifiedAum(b))-Number(etfR26VerifiedAum(a));if(verified)return verified;
   const x=etfR26VerifiedAum(a)?etfAumUSD(a):null,y=etfR26VerifiedAum(b)?etfAumUSD(b):null;
+  if((x!=null)!==(y!=null))return x!=null?-1:1;
   if(x!=null&&y!=null&&x!==y)return y-x;
   const fee=(a.terPct??Infinity)-(b.terPct??Infinity);if(!Number.isNaN(fee)&&fee)return fee;
   const coverage=f=>['return1Y','return3Y','return5Y'].filter(k=>Number.isFinite(f[k])).length+Number((ETF_HISTORY.get(f.symbol)||[]).length>1);
@@ -60,7 +61,7 @@ renderSameIndexETFs=function(){
 };
 const etfR26OriginalChart=etfDrawChart;
 etfDrawChart=function(){const f=ETF_BY_SYMBOL.get(etfState.selected);if(f){const allowed=new Set(etfR26Alternatives(f).map(p=>p.symbol));etfState.compared=new Set([...etfState.compared].filter(s=>allowed.has(s)).slice(0,3));}etfR26OriginalChart();let legend=$('etf-r26-legend');if(!legend){legend=el('div','r25-chart-legend');legend.id='etf-r26-legend';$('etf-chart').after(legend);}legend.replaceChildren();
-  const shown=[etfState.selected,...etfState.compared].filter(s=>{const p=ETF_BY_SYMBOL.get(s);return p&&etfRows(p).length>1;});if($('etf-chart').querySelector('svg'))shown.forEach((symbol,i)=>{const label=el('span','',symbol);label.style.borderLeft='3px solid '+['#ffa028','#5caeff','#60d5ce','#c6a0ff'][i];legend.append(label);});
+  const shown=[etfState.selected,...etfState.compared].filter(s=>{const p=ETF_BY_SYMBOL.get(s);return p&&etfRows(p).length>1;});if($('etf-chart').querySelector('svg'))shown.forEach((symbol,i)=>{const label=el('span','',symbol);label.style.borderLeft='3px solid '+['#ffa028','#5caeff','#60d5ce','#c6a0ff'][i];legend.append(label);});if($('etf-reference').checked&&$('etf-chart').querySelector('svg')){const reference=etfReference(f);if(reference?.points.length>1){const label=el('span','',reference.name);label.style.borderLeft='3px solid '+['#ffa028','#5caeff','#60d5ce','#c6a0ff','#ff6f91'][shown.length];legend.append(label);}}
 };
 const etfR26OriginalDetails=etfDetails;
 etfDetails=function(){
@@ -129,7 +130,7 @@ r24Overview=function(){
     unique.forEach(q=>body.append(el('div','r23-observation',(q.name||q.symbol)+' '+pc(q.changePct)+' · '+q.asOf)));panel.hidden=!unique.length;
   }
   // Only verified material watchlist developments appear in the short Overview.
-  const watch=$('r24-watch .r24-content')||$('r24-watch')?.lastElementChild;
+  const watch=$('r24-watch')?.querySelector('.r24-content')||$('r24-watch')?.lastElementChild;
   if(watch){for(const article of [...watch.querySelectorAll('article')]){const link=article.querySelector('a'),item=(D.news||[]).find(n=>n.url===link?.href);
     if(item&&!(item.significanceEvidence?.length||item.official&&item.developmentStatus==='confirmed_event'))article.remove();}
     if(!watch.querySelector('article')){watch.replaceChildren(el('p','note','No material current watchlist development is verified. Full company news and risk statistics remain in My Watchlist and Markets.'));}

@@ -9,6 +9,9 @@ with sync_playwright() as p:
     page=browser.new_page(viewport={'width':1024,'height':768});errors=[];page.on('pageerror',lambda e:errors.append(str(e)))
     page.route('http://localhost:8765/**',lambda r:r.fulfill(body=html,content_type='text/html'))
     page.goto('http://localhost:8765/',wait_until='domcontentloaded',timeout=120000);page.locator('#tab-etfs').click();page.wait_for_timeout(100)
+    # Pure formatter edge cases; these objects never enter the live dataset.
+    assert page.evaluate('__etf.size({fundSize:null,fundSizeCurrency:"USD"})')=='Unavailable'
+    assert page.evaluate('__etf.size({fundSize:0,fundSizeCurrency:"USD"})')=='USD 0'
     assert page.locator('#etf-r26-pick option').count()==len(data['etfTracker']['funds'])
     assert page.locator('#etf-rows tr[data-etf-symbol]').count()>0
     assert page.locator('#etf-rows').evaluate('''e=>{const rows=[...e.querySelectorAll('[data-etf-symbol]')],counts={};for(const r of rows)counts[r.dataset.benchmarkKey]=(counts[r.dataset.benchmarkKey]||0)+1;return Object.values(counts).every(n=>n<=2)&&new Set(rows.map(r=>r.dataset.etfSymbol)).size===rows.length&&rows.every((r,i)=>!i||+r.dataset.regionOrder>=+rows[i-1].dataset.regionOrder);}''')
