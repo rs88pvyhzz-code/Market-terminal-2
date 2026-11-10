@@ -27,7 +27,7 @@ renderSameIndexETFs=function(){
  const peers=etfOriginalPeers(f);target.replaceChildren();
  if(!peers.length){target.append(el('p','note','No other exact-benchmark and hedge-label alternatives are available.'));}
  else{
-  const table=el('table','watch'),head=el('thead'),line=el('tr');
+  const table=el('table','watch etf-index-table'),head=el('thead'),line=el('tr');
   for(const label of ['ETF','TER','P/S','Fund AUM','1Y','3Y','5Y','Cmp'])line.append(el('th','',label));head.append(line);table.append(head);const body=el('tbody');
   for(const p of peers){const row=el('tr');row.dataset.etfAlternative=p.symbol;const first=etfCell(row,'');const button=el('button','btn',p.symbol+' · '+p.name);button.onclick=()=>etfV5Choose(p.symbol);first.append(button,el('span','secondary',(p.hedged?'Hedged '+p.hedged:'Hedge label unspecified')+' · '+(p.quote?.currency||'Quote currency unavailable')+' · '+(p.distribution||'Income unspecified')));
    etfCell(row,etfFee(p),'n');const method=etfCell(row,etfV5Kind(p)[0]);method.title=etfV5Kind(p)[1];etfCell(row,etfFundSize(p),'n');for(const y of ['1Y','3Y','5Y'])etfCell(row,etfPct(etfPerformance(p,y)),'n');
