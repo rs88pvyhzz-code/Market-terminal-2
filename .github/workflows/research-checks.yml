@@ -39,6 +39,7 @@ jobs:
           python tests/browser_release22.py /tmp/research-demo.html
           python tests/browser_market_briefing.py /tmp/research-demo.html
           python tests/browser_release24.py /tmp/research-demo.html
+          python tests/browser_release25.py /tmp/research-demo.html
       - name: Upload review screenshots
         uses: actions/upload-artifact@v4
         with:
@@ -49,3 +50,4 @@ jobs:
             /tmp/release22-*.png
             /tmp/release23-*.png
             /tmp/release24-*.png
+            /tmp/release25-*.png
