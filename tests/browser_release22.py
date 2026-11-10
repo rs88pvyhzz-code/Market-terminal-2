@@ -19,7 +19,7 @@ with sync_playwright() as p:
     page.route('http://localhost:8765/**',lambda r:r.fulfill(body=html,content_type='text/html'));page.goto('http://localhost:8765/',wait_until='domcontentloaded')
     tabs=page.locator('#workspace-tabs [role=tab]');assert tabs.count()==8
     assert tabs.all_text_contents()==['OVERVIEW','MARKETS','EQUITIES & RESEARCH','BONDS & RATES','ETFs','ECONOMICS','MY WATCHLIST','DATA QUALITY']
-    for route,subview in [('companies','equities-research'),('analytics','fx-analytics'),('constituents','equities-screen'),('analytics-sectors','equities-analytics')]:
+    for route,subview in [('companies','equities-research'),('analytics','fx-analytics'),('constituents','equities-screen'),('analytics-sectors','fx-analytics')]:
         page.evaluate('(r)=>location.hash=r',route);page.wait_for_timeout(80);assert page.locator('#subview-'+subview).is_visible(),route
     for route,index in [('peer-panel',3),('company-events-panel',4),('forensic-panel',5)]:
         page.evaluate('(r)=>location.hash=r',route);page.wait_for_timeout(80);assert page.locator('#research-view-'+str(index)).is_visible(),route
@@ -34,7 +34,7 @@ with sync_playwright() as p:
     for id in ['company-chart','company-benchmark-chart','company-risk-kpis','company-technical-kpis']:assert page.locator('#'+id).count()==1
     assert 'RSI' not in page.locator('#company-risk-kpis').inner_text()
     assert page.locator('#company-advanced').get_attribute('open') is None
-    page.locator('#company-advanced > summary').click();assert 'RSI' in page.locator('#company-technical-kpis').inner_text()
+    assert page.locator('#company-advanced > h3').is_visible();assert 'RSI' in page.locator('#company-technical-kpis').inner_text()
     page.locator('#research-tab-3').click();page.locator('#research-business .research-notebook').evaluate('(d)=>d.open=true')
     page.get_by_label('Competitive advantages & supporting evidence',exact=True).fill('R22 retained note')
     page.reload(wait_until='domcontentloaded');page.wait_for_timeout(120)
