@@ -38,7 +38,7 @@ def classify(item, now, watch_names=()):
     official_region={'Federal Reserve':'US','Bank of England':'UK','ECB':'Europe'}.get(item.get('source')) if item.get('official') else None
     if official_region and 'rates' not in cats:cats.append('rates')
     regions=[official_region] if official_region else []
-    for label,pattern in [('UK',r'\b(uk|britain|british|sterling|bank of england|ftse)\b'),('US',r'\b(us|u\.s\.|fed|federal reserve|wall street|nasdaq|s&p)\b'),('Europe',r'\b(europe|european|euro|ecb|german|france)\b')]:
+    for label,pattern in [('UK',r'\b(uk|u\.k|britain|british|england|scotland|sterling|bank of england|ftse)\b'),('US',r'\b(us|u\.s|united states|fed|federal reserve|wall street|nasdaq|s&p)\b'),('Europe',r'\b(europe|european|euro|eurozone|ecb|german|germany|france|french|italy|spain|eu|e\.u)\b')]:
         if re.search(pattern,text) and label not in regions:regions.append(label)
     published=timestamp(item.get('published'));age=(now-published).total_seconds()/3600 if published else None
     archived=bool(item.get('restored') or item.get('archived') or age is None or age>THRESHOLDS['maxNewsAgeHours'] or age<-.1 or not item.get('retrievedAt'))

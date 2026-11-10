@@ -19,6 +19,9 @@ class BriefingTests(unittest.TestCase):
         fed=classify(story('Federal Reserve cuts interest rates by 25 basis points'),NOW)
         self.assertIn('economic',uk['categories']);self.assertIn('UK',uk['regions'])
         self.assertIn('rates',fed['categories']);self.assertIn('US',fed['regions'])
+    def test_punctuated_countries_and_eurozone(self):
+        for title,region in [('U.S. inflation released','U'+'S'),('U.K. GDP rises','UK'),('Eurozone bond yields rise','Europe'),('Germany GDP falls','Europe')]:
+            self.assertIn(region,classify(story(title),NOW)['regions'])
     def test_official_bank_source_provides_jurisdiction(self):
         item=classify(dict(story('Bank rate increased to 4%'),source='Bank of England',official=True),NOW)
         self.assertIn('UK',item['regions']);self.assertIn('rates',item['categories'])
