@@ -119,8 +119,8 @@ def enrich(payload):
     fresh=[x for x in payload['news'] if not x['archived']]
     for item in fresh:
         text=item['title'].lower()
-        preview=bool(re.search(r'\b(ahead of|expected to|forecast to|outlook|preview|odds)\b',text))
-        announcement=bool(re.search(r'\b(earnings|guidance|profit warning|acquisition|acquires|buybacks?|merger)\b',text))
+        preview=bool(re.search(r'\b(ahead of|expected to|forecast to|outlook|preview|odds|calendar|recap)\b',text))
+        announcement=bool(re.search(r'\b(earnings|profit warning|acquisition|acquires|buybacks?|merger)\b',text) or re.search(r'\b(profit|revenue|sales|cash|margin|management|capital)\b.{0,60}\bguidance\b|\bguidance\b.{0,60}\b(cut|raised|lowered|upgraded|downgraded)\b',text))
         official_decision=bool(item.get('official') and re.search(r'\b(decision|statement|announces?|announced)\b',text))
         reported_release=bool(re.search(r'\b(inflation|cpi|payrolls|gdp|employment)\b.{0,70}\b(rises?|falls?|released|reported|accelerates?|slows?)\b',text))
         if not preview and (announcement or official_decision or reported_release):

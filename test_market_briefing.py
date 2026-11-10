@@ -58,7 +58,7 @@ class BriefingTests(unittest.TestCase):
         p=enrich({'generatedAt':NOW.isoformat(),'calendar':[{'title':'Consumer Price Index','date':'2026-11-10','url':'https://example.test/synthetic-calendar'}]})
         self.assertTrue(any(x['kind']=='Scheduled' for x in p['marketBriefing']['alerts']))
     def test_routine_rate_commentary_does_not_dominate_alerts(self):
-        p=enrich({'generatedAt':NOW.isoformat(),'news':[story('Bond yields rise ahead of inflation rates outlook')]})
+        p=enrich({'generatedAt':NOW.isoformat(),'news':[story(t) for t in ['Bond yields rise ahead of inflation rates outlook','UK earnings calendar for next 7 days','Weekly recap of share buybacks','Euro ministers await leaders guidance']]})
         self.assertFalse(any(x['kind']=='Reported' for x in p['marketBriefing']['alerts']))
     def test_no_recovered_news_alert(self):
         p=enrich({'generatedAt':NOW.isoformat(),'news':[story('Shell profit warning',archived=True)]})
