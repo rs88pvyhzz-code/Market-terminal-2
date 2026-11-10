@@ -191,10 +191,10 @@ def _download_dmo_for(trade_date,diagnostics=None):
         if diagnostics is not None:diagnostics.append(event)
 
 
-def _recent_business_days(today, count=2):
+def _recent_business_days(today, count=2, holidays=None):
     result=[];cur=today
     while len(result)<count:
-        if cur.weekday()<5:result.append(cur)
+        if cur.weekday()<5 and cur.isoformat() not in (holidays or []):result.append(cur)
         cur-=dt.timedelta(days=1)
     return result
 
@@ -225,8 +225,7 @@ def collect(core,opts):
         except Exception:pass
         today=dt.datetime.now(dt.timezone.utc).date()
         expected=dt.date.fromisoformat(assess(None,calendar=calendar)['expectedQuotationDate'])
-        for day in _recent_business_days(expected,count=3):
-            if day.isoformat() in calendar['holidays']:continue
+        for day in _recent_business_days(expected,count=3,holidays=calendar['holidays']):
             new=_download_dmo_for(day,attempts)
             if new:
                 candidates.append(new);downloaded=True;break
@@ -239,7 +238,8 @@ def collect(core,opts):
     latest=max(candidates,key=lambda p:(p['asOf'],p.get('retrievedAt') or ''))
     rows=[dict(g) for g in latest['bonds']]
     freshness=assess(latest['asOf'],calendar=calendar)
-    diagnostics={**freshness,'downloadedFresh':downloaded,'retrievedAt':latest.get('retrievedAt'),'origin':latest.get('origin','recovered verified snapshot'),'sourceUrl':latest.get('sourceUrl',DMO_PAGE),'attempts':attempts,'coverage':{'total':len(rows),'conventional':sum(not r['indexLinked'] for r in rows),'indexLinked':sum(r['indexLinked'] for r in rows)}}
+    selected_fresh=downloaded and latest.get('origin')=='official DMO download' and any(a.get('success') and a.get('sha256')==latest.get('sha256') and a.get('quotationDate')==latest['asOf'] for a in attempts)
+    diagnostics={**freshness,'downloadedFresh':selected_fresh,'networkDownloadSucceeded':downloaded,'retrievedAt':latest.get('retrievedAt'),'origin':latest.get('origin','recovered verified snapshot'),'sourceUrl':latest.get('sourceUrl',DMO_PAGE),'attempts':attempts,'coverage':{'total':len(rows),'conventional':sum(not r['indexLinked'] for r in rows),'indexLinked':sum(r['indexLinked'] for r in rows)}}
     diagnostic_path=ROOT/'.terminal_sources/dmo_verification.json';diagnostic_path.parent.mkdir(parents=True,exist_ok=True);diagnostic_path.write_text(json.dumps(diagnostics,indent=2))
     if freshness['stale']:warnings.append('DMO PRICES STALE: quotation '+latest['asOf']+'; expected '+freshness['expectedQuotationDate'])
     if not downloaded and not opts.offline:warnings.append('DMO retrieval failed; retained verified quotation '+latest['asOf'])
@@ -270,7 +270,7 @@ def collect(core,opts):
     HISTORY.write_text(json.dumps(prior,separators=(',',':')),encoding='utf-8')
     history=[{'ticker':g['ticker'],'date':d,'close':v}
              for g in rows for d,v in prior.get(g['ticker'],[])][-15000:]
-    return rows,history,warnings,int(downloaded)
+    return rows,history,warnings,int(selected_fresh)
 
 if __name__=='__main__':
     import sys
