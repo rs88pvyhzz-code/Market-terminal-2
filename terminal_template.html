@@ -897,7 +897,7 @@ h2{font:600 15px/1.35 var(--font);color:var(--amber);margin:0}h3{font:500 13px v
   <select id="ust-kind" class="field" aria-label="Treasury security type"><option value="all">All US Treasuries</option><option value="Bill">Bills</option><option value="Note">Notes</option><option value="Bond">Bonds</option><option value="TIPS">TIPS</option><option value="FRN">Floating-rate notes</option></select>
   <a class="btn" href="https://www.treasurydirect.gov/GA-FI/FedInvest/todaySecurityPriceDate.htm" target="_blank" rel="noopener noreferrer">OFFICIAL US PRICES</a>
  </div>
- <div class="constituents-scroll" style="max-height:390px"><table class="watch" style="min-width:1080px"><thead><tr>
+ <div id="ust-securities-scroll" class="constituents-scroll" role="region" aria-label="US Treasury securities" tabindex="0"><table class="watch" style="min-width:1080px"><thead><tr>
  <th>Security</th><th>CUSIP</th><th>Maturity</th><th class="n">Coupon</th><th class="n">Bid / SELL</th><th class="n">Offer / BUY</th><th class="n">EOD price</th><th class="n">Est. gross YTM*</th><th>Quote date</th>
  </tr></thead><tbody id="ust-rows"></tbody></table></div>
  <p class="note" id="ust-quality">The free FedInvest file supplies official reference quotations, not guaranteed prices obtainable from an individual broker.</p>
@@ -4036,6 +4036,7 @@ function ustModel(b,p,date){
   return b.type==='Bill'?ustBill(b,p,date):giltValuation(b,p,date);
 }
 function renderUST(){
+  const viewport=$('ust-securities-scroll'),scrollTop=viewport.scrollTop,scrollLeft=viewport.scrollLeft;
   const table=$('ust-rows');table.replaceChildren();
   const filtered=ustList.filter(b=>(ustState.kind==='all'||b.type===ustState.kind)&&(!ustState.query||[b.cusip,b.name,b.maturity,b.coupon].join(' ').toLowerCase().includes(ustState.query)));
   const valid=ustList.filter(b=>b.quoted).length;
@@ -4050,6 +4051,8 @@ function renderUST(){
     td(tr,b.type==='TIPS'?'Real-indexed':b.type==='FRN'?'Floating':v?fmt(b.type==='Bill'?v.investment:v.ytm,3)+'%*':'—','n');td(tr,b.asOf||'—');
     tr.onclick=()=>{ustState.selected=b.cusip;renderUST();};table.append(tr);
   }
+  // Rebuilding rows must not return the bounded list to its first security.
+  viewport.scrollTop=scrollTop;viewport.scrollLeft=scrollLeft;
   const b=ustList.find(b=>b.cusip===ustState.selected);
   if(!b){$('ust-selected').textContent='NO US TREASURY QUOTES RETRIEVED';$('ust-selected-date').textContent='';$('ust-clean-input').value='';$('ust-stats').replaceChildren();empty('ust-chart','No verified individual US Treasury price history yet.');return;}
   $('ust-selected').textContent=b.name+' · '+b.cusip;

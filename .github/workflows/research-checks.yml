@@ -41,6 +41,7 @@ jobs:
           python tests/browser_release24.py /tmp/research-demo.html
           python tests/browser_release25.py /tmp/research-demo.html
           python tests/browser_release26.py /tmp/research-demo.html
+          python tests/browser_treasury_scroll.py /tmp/research-demo.html
       - name: Upload review screenshots
         uses: actions/upload-artifact@v4
         with:
