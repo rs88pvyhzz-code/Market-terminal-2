@@ -178,7 +178,7 @@ function renderResearchValuation(c){
     for(const [key,tag] of badges)tag.textContent=m.overrides.has(key)?'User assumption / override':reported.has(key)?'Sourced · dated above':calculated.has(key)?'Calculated · FCFF bridge':'User assumption';
     output.replaceChildren();
     if(stale&&!m.acceptDated){output.append(el('p','research-warning','Valuation paused until dated balances are reviewed and accepted.'));return;}
-    if(!['fcf','adjustment','debt','cash','shares','fx','debtAdjustment','years','discount','terminal','bear','base','bull'].every(k=>Number.isFinite(m[k]))||!quote||!c.financialCurrency){output.append(el('p','note','Incomplete sourced inputs. Enter verified missing values as explicit user assumptions. No valuation is fabricated.'));return;}
+    if(!['fcf','adjustment','debt','cash','shares','fx','debtAdjustment','years','discount','terminal','bear','base','bull'].every(k=>Number.isFinite(m[k]))||!quote||!c.financialCurrency){output.append(el('p','research-warning','Incomplete sourced inputs. Enter verified missing values as explicit user assumptions. No valuation is fabricated.'));return;}
     const params={...m,fcf:m.fcf+m.adjustment,discount:m.discount/100,terminal:m.terminal/100},base=researchDCF({...params,growth:m.base/100});
     if(!base||m.bear<=-100||m.bear>m.base||m.base>m.bull){output.append(el('p','research-warning','Invalid assumptions: adjusted FCFF, shares and FX must be positive; debt/cash non-negative; WACC > terminal growth; integer years 1–20; growth > −100%; bear ≤ base ≤ bull.'));return;}
     const market=researchQuoteMajor(c.price,c.priceCurrency);
