@@ -27,6 +27,10 @@ jobs:
       - name: Identification status (never expose the secret)
         run: |
           python -c "import os; print('SEC contact configured:', bool(os.environ.get('SEC_USER_AGENT')))"
+      - name: Restore verified sources before independent fresh probes
+        run: python source_archive.py restore
+      - name: Genuinely fresh SEC downloads (no local-cache fallback)
+        run: python verify_fresh_sec.py
       - name: Build using real production collectors
         run: >-
           python build_terminal.py --years 10
@@ -56,4 +60,5 @@ jobs:
             terminal.sources.json
             public/source_verification.json
             .terminal_sources/requests.jsonl
+            .terminal_sources/fresh_sec_verification.json
             /tmp/research-live-*.png

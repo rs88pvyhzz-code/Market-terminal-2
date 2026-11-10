@@ -94,6 +94,36 @@ class SourceIntegrityTests(unittest.TestCase):
                 body,stamp=source.get(url)
             self.assertEqual(body,'old response');self.assertEqual(stamp,'2026-01-01T00:00:00+00:00');self.assertTrue(source.warnings)
 
+    def test_fresh_probe_never_reads_cached_body_as_a_download(self):
+        import verify_fresh_sec
+        with tempfile.TemporaryDirectory() as directory:
+            source=verify_fresh_sec.FreshSources(directory)
+            url='https://data.sec.gov/submissions/CIK0001306965.json'
+            import hashlib
+            cache=Path(directory)/'.terminal_research/documents';cache.mkdir(parents=True)
+            path=cache/(hashlib.sha256(url.encode()).hexdigest()+'.json')
+            path.write_text(json.dumps({'body':'cached','retrievedAt':'2026-11-09'}))
+            with patch.object(source_transport,'get',side_effect=OSError('denied')) as get:
+                with self.assertRaises(OSError):source.get(url)
+                get.assert_called_once()
+            self.assertEqual(source.downloads,{})
+            self.assertEqual(json.loads(path.read_text())['body'],'cached')
+            with patch.object(source_transport,'get',return_value=b'fresh') as get:
+                self.assertEqual(source.get(url)[0],'fresh')
+                self.assertEqual(source.get(url)[0],'fresh')
+                self.assertEqual(get.call_count,1,'A URL is downloaded once per probe, not once per consumer')
+            self.assertEqual(json.loads(path.read_text())['body'],'fresh')
+
+    def test_denial_marker_applies_across_processes_but_not_new_attempts(self):
+        with tempfile.TemporaryDirectory() as directory,patch('os.getcwd',return_value=directory):
+            marker=Path(directory)/'sec_denial.json'
+            marker.write_text(json.dumps({'runId':'123','runAttempt':'1'}))
+            source_transport._BLOCKED.clear()
+            original=Path.read_text
+            with patch.object(Path,'read_text',lambda path,*a,**kw: original(marker,*a,**kw) if str(path).endswith('sec_denial.json') else original(path,*a,**kw)):
+                with patch.dict('os.environ',{'GITHUB_RUN_ID':'123','GITHUB_RUN_ATTEMPT':'1'}):self.assertTrue(source_transport.sec_denied())
+                with patch.dict('os.environ',{'GITHUB_RUN_ID':'123','GITHUB_RUN_ATTEMPT':'2'}):self.assertFalse(source_transport.sec_denied())
+
     def test_financial_math_unchanged_and_history_thresholds(self):
         js=(ROOT/'equity_research.js').read_text()
         self.assertIn('rows.length>=12',js);self.assertIn('>=90',js)

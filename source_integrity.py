@@ -48,7 +48,7 @@ def report(payload,output):
     result['requests']=[json.loads(s) for s in log.read_text().splitlines()[-500:]] if log.exists() else []
     import hashlib,os
     run_id=os.environ.get('GITHUB_RUN_ID')
-    if run_id:result['requests']=[r for r in result['requests'] if r.get('runId')==run_id]
+    if run_id:result['requests']=[r for r in result['requests'] if r.get('runId')==run_id and r.get('runAttempt','1')==os.environ.get('GITHUB_RUN_ATTEMPT','1')]
     for request in result['requests']:
         url=request['url'];cache=Path('.terminal_research/documents')/(hashlib.sha256(url.encode()).hexdigest()+'.json')
         try:request['lastVerifiedRetrievedAt']=json.loads(cache.read_text()).get('retrievedAt')
