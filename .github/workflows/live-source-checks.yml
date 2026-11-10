@@ -64,6 +64,8 @@ jobs:
           python tests/browser_market_briefing.py terminal.html
           python tests/browser_release24.py terminal.html
           python tests/browser_release25.py terminal.html
+          python tests/browser_release26.py terminal.html
+          python tests/browser_treasury_scroll.py terminal.html
       - name: Upload actual terminal and source diagnostics for review
         if: always()
         uses: actions/upload-artifact@v4
@@ -77,6 +79,7 @@ jobs:
             /tmp/release23-*.png
             /tmp/release24-*.png
             /tmp/release25-*.png
+            /tmp/release26-*.png
             .terminal_sources/requests.jsonl
             .terminal_sources/fresh_sec_verification.json
             /tmp/research-live-*.png
