@@ -33,9 +33,13 @@ def classify(item, now, watch_names=()):
     if re.search(r'\b(oil|gold|currency|stocks|markets?|vix|sterling|dollar|yields?)\b',text) and re.search(r'\b(surge|slump|rally|rout|plunge|jump|rebound|record|tumble|spike|soar)\w*\b',text):score+=20;reasons.append('Reported sharp market movement')
     if score>=35:cats.insert(0,'market_moving')
     if not cats:cats=['corporate']
-    regions=[]
+    # An identified official central-bank feed establishes jurisdiction; a
+    # commercial publisher's country suffix does not establish story geography.
+    official_region={'Federal Reserve':'US','Bank of England':'UK','ECB':'Europe'}.get(item.get('source')) if item.get('official') else None
+    if official_region and 'rates' not in cats:cats.append('rates')
+    regions=[official_region] if official_region else []
     for label,pattern in [('UK',r'\b(uk|britain|british|sterling|bank of england|ftse)\b'),('US',r'\b(us|u\.s\.|fed|federal reserve|wall street|nasdaq|s&p)\b'),('Europe',r'\b(europe|european|euro|ecb|german|france)\b')]:
-        if re.search(pattern,text):regions.append(label)
+        if re.search(pattern,text) and label not in regions:regions.append(label)
     published=timestamp(item.get('published'));age=(now-published).total_seconds()/3600 if published else None
     archived=bool(item.get('restored') or item.get('archived') or age is None or age>THRESHOLDS['maxNewsAgeHours'] or age<-.1 or not item.get('retrievedAt'))
     item.update(categories=list(dict.fromkeys(cats)),regions=regions or ['Global'],rank=score+(10 if age is not None and 0<=age<24 else 0),rankReasons=reasons,archived=archived)
