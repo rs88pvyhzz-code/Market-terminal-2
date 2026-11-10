@@ -82,8 +82,10 @@ def run(root=Path(__file__).resolve().parent):
                 previous=records.get(symbol,{})
                 urls={d['url'] for d in record['documents']}
                 record['documents']=(record['documents']+[d for d in previous.get('documents',[]) if d['url'] not in urls])[:8]
-                record.update(checkedAt=research.now_iso(),attemptedAt=research.now_iso())
-                records[symbol]=research.compact_record(record)
+                # Let the normal collector recompute peer/competitor context with
+                # the full universe; verification must not replace that analysis.
+                record.update(checkedAt=None,attemptedAt=None)
+                records[symbol]=record
         except Exception as exc:item['research']={'status':'download_failed','error':str(exc)[:180]}
     cache.parent.mkdir(parents=True,exist_ok=True)
     cache.write_text(json.dumps({'schema':research.SCHEMA,'records':records},separators=(',',':')))
