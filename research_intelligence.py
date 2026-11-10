@@ -318,6 +318,8 @@ def collect(companies,profiles,directory,news=None,offline=False,batch=6,fetcher
             try:
                 recovered=parse_sources(c,PublicSources(root/'documents',offline=True),previous,asof=stamp[:10])
                 if recovered.get('documents'):
+                    if not offline and c['symbol'] in PRINCIPAL:
+                        recovered['documents'].extend(issuer_alternatives(c,source,recovered['documents'],stamp[:10],recovered['warnings']))
                     records[c['symbol']]={**previous,**recovered,'checkedAt':previous.get('checkedAt'),'attemptedAt':previous.get('attemptedAt'),'recoveredAt':stamp}
             except Exception:pass
     pending=[c for c in all_companies if (records.get(c['symbol'],{}).get('schema')!=SCHEMA or age(records.get(c['symbol'],{}).get('checkedAt'))>=REFRESH_HOURS) and age(records.get(c['symbol'],{}).get('attemptedAt'))>=RETRY_HOURS]
