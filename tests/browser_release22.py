@@ -23,6 +23,9 @@ with sync_playwright() as p:
         page.evaluate('(r)=>location.hash=r',route);page.wait_for_timeout(80);assert page.locator('#subview-'+subview).is_visible(),route
     for route,index in [('peer-panel',3),('company-events-panel',4),('forensic-panel',5)]:
         page.evaluate('(r)=>location.hash=r',route);page.wait_for_timeout(80);assert page.locator('#research-view-'+str(index)).is_visible(),route
+    page.locator('#tab-fx').click();page.locator('#sub-fx-analytics').click();assert page.locator('#mt-risk-comparison').is_visible()
+    assert page.locator('#mt-risk-rows tr').count()==8;page.locator('#mt-risk-period').select_option('3Y');assert page.locator('#mt-risk-rows tr').count()==8
+    page.locator('#tab-quality').click();assert 'Equities & Research' in page.locator('#mt-quality-tab-filter').inner_text();assert 'Company Research' not in page.locator('#mt-quality-tab-filter').inner_text()
     page.locator('#tab-equities').click();page.locator('#sub-equities-research').click();assert page.locator('#research-nav [role=tab]').count()==6
     page.locator('#research-tab-0').click();page.wait_for_timeout(80)
     order=page.locator('#research-view-0 > [id]').evaluate_all('(els)=>els.map(e=>e.id)')

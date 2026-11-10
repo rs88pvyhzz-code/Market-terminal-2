@@ -242,7 +242,9 @@ function renderCalendar(){
 }
 function mtBuildQuality(){
  const panel=$('quality-panel');if(!panel||$('mt-quality-focus'))return;
- const quality=D.quality||{},issues=[],add=(tab,severity,msg)=>issues.push({tab,severity,msg});
+ const mtTabName=tab=>({'Equities':'Equities & Research','Company Research':'Equities & Research','Analytics':'Markets','ETF Trackers':'ETFs'}[tab]||tab);
+ const quality=D.quality||{},issues=[],add=(tab,severity,msg)=>issues.push({tab:mtTabName(tab),severity,msg});
+ if(D.giltFreshness?.stale)add('Bonds & Rates','Attention','DMO quotation '+(D.giltFreshness.quotationDate||'missing')+'; expected '+D.giltFreshness.expectedQuotationDate);
  const quoteMissing=Math.max(0,(quality.requested||0)-(quality.quoted||0));
  if(quoteMissing)add('Markets','Attention',quoteMissing+' market instruments without a validated quote');
  const stale=quality.staleQuotes||[];if(stale.length)add('Markets','Attention',stale.length+' stale market quotes: '+stale.slice(0,7).join(', '));
@@ -273,7 +275,7 @@ function mtBuildQuality(){
  }
  container.append(stats);
  const selector=el('select','field');selector.id='mt-quality-tab-filter';
- for(const tab of ['All tabs','Markets','Equities','Company Research','Bonds & Rates','Analytics','ETF Trackers','Economics','My Watchlist','Data Quality'])selector.add(new Option(tab,tab));
+ for(const tab of ['All tabs','Overview','Markets','Equities & Research','Bonds & Rates','ETFs','Economics','My Watchlist','Data Quality'])selector.add(new Option(tab,tab));
  const label=el('label','mini','FILTER BY TAB ');label.append(selector);container.append(label);
  const body=el('div','mt-quality-issue-list');body.id='mt-quality-list';container.append(body);
  const detail=el('details','mt-full-audit');detail.id='mt-full-audit';detail.append(el('summary','','Full source audit, missing data and retrieval logs'));
@@ -290,7 +292,7 @@ function mtBuildQuality(){
  for(const [id,tab] of [['macro','Economics'],['calendar','Economics'],['company-events-panel','Company Research'],['score-panel','Analytics'],['personal-watchlist-panel','My Watchlist'],['etf-tracker-panel','ETF Trackers'],['gilts','Bonds & Rates']]){
   const sec=$(id);if(!sec||sec.querySelector('.mt-quality-link'))continue;
   const a=el('button','btn mt-quality-link','DATA CHECKS');a.type='button';a.onclick=()=>{
-   activateWorkspace('quality');selector.value=tab;draw();
+   activateWorkspace('quality');selector.value=mtTabName(tab);draw();
    container.scrollIntoView({behavior:'smooth',block:'start'});
   };
   const header=sec.querySelector('.row')||sec;header.append(a);
