@@ -1,0 +1,131 @@
+{
+  "purpose": "Real dated public-source response recovery, collected 9 November 2026. No test fixtures, model valuations or synthetic company data. Archive entries retain original response timestamps.",
+  "entries": [
+    {
+      "path": ".terminal_filings/SHEL.L.json",
+      "sha256": "46b26f71070ce5c22f1b9c3cfecf3e73108001575897e889cf4194e10fce52ea",
+      "retrievedAt": "2026-11-09T21:51:07+00:00",
+      "type": "original cached response"
+    },
+    {
+      "path": ".terminal_filings/MSFT.json",
+      "sha256": "af7f7b648e78bdcdc4cedbf44e0463721ab8035144078e03a0c1375814526fde",
+      "retrievedAt": "2026-11-09T21:51:10+00:00",
+      "type": "original cached response"
+    },
+    {
+      "path": ".terminal_filings/shell_supplemental.json",
+      "sha256": "d86e399474adf83e970fa3e51345473274fd44d35de6a29c8979d6fa31134f54",
+      "retrievedAt": null,
+      "type": "issuer source responses and parsed debt/share supplement"
+    },
+    {
+      "path": ".terminal_filings/HSBA.L.json",
+      "sha256": "db8d6dbb283b819c50ad57ecd6a13047b833858b2475e8b770e15c93a4f3a898",
+      "retrievedAt": "2026-11-09T21:51:11+00:00",
+      "type": "original cached response"
+    },
+    {
+      "path": ".terminal_research/documents/58f4d038283efe536f91b60c39314b42a3aafa5cba48efd7e71cff8601507742.json",
+      "sha256": "3824a742a7a7343843f0011abbb87de59be0c930fbf7d396f131fa1426edccb4",
+      "retrievedAt": "2026-11-09T23:13:05+00:00",
+      "type": "original cached response"
+    },
+    {
+      "path": ".terminal_research/documents/7894ad9e72c2568245c3a5fef0d31a98a33bcf79a148cb23c20f72dc9a149da8.json",
+      "sha256": "07334b750b0da59ddcd01f2a565b7a2d211cf4fd313b721a2e7fae9d08c8dc91",
+      "retrievedAt": "2026-11-09T22:15:36+00:00",
+      "type": "original cached response"
+    },
+    {
+      "path": ".terminal_research/documents/ef055d13b1b76eeab2f59bd00af5b3a5939b20962125452d1323a564cb8fcd04.json",
+      "sha256": "f159bef298a47d8aac77b7b178251dbdd3dfd45237cdfe046deda32ffb8643df",
+      "retrievedAt": "2026-11-09T23:12:19+00:00",
+      "type": "original cached response"
+    },
+    {
+      "path": ".terminal_research/documents/049d1a9065596b53d97f2b5ac0b7497276b0d39a4832a0023cdcf8cec42fb517.json",
+      "sha256": "22537f5070fa21cd71ee2567f65e2f14f40853bff25b3c63e422477a3dd4791c",
+      "retrievedAt": "2026-11-09T23:21:14+00:00",
+      "type": "original cached response"
+    },
+    {
+      "path": ".terminal_research/documents/0fd5ce6ac10f2265770ba1e88e976992ac98eb0a25c976dd40879ba150f22c0c.json",
+      "sha256": "e5b0fa0eb2b850a88e11dacd06ef589caee402c1cc64f4d196fa07589ddd487c",
+      "retrievedAt": "2026-11-09T23:21:13+00:00",
+      "type": "original cached response"
+    },
+    {
+      "path": ".terminal_research/documents/54280b5c9eb34c805d0c4e168ee8d448ce6b5f6fe05c92878829ea81005f368e.json",
+      "sha256": "9f973857a2ed3f5a9127dae1bd50027b48549439d4b38f5c225d7307642bbfc1",
+      "retrievedAt": "2026-11-09T23:13:05+00:00",
+      "type": "original cached response"
+    },
+    {
+      "path": ".terminal_research/documents/c98dbff588e3b9db0ceda7b12500a0aac7b5fb2527ba62b5184c14ba92b1e46a.json",
+      "sha256": "da5c3b873bec0107f8fd5b83787895653062b257d53cff9cbf246ec4192d3857",
+      "retrievedAt": "2026-11-09T23:21:14+00:00",
+      "type": "original cached response"
+    },
+    {
+      "path": ".terminal_research/documents/ebf163ca42f9948ec4962cadedec53548a57303fc4072d733f6240680bb7cb5c.json",
+      "sha256": "a0a3ce8a6062b980e71eef848038b9dfee56c187a912c185e40f8f4415a81dee",
+      "retrievedAt": "2026-11-09T22:16:00+00:00",
+      "type": "original cached response"
+    },
+    {
+      "path": ".terminal_research/documents/8afeb5cf39b1733c6fa3509254dd6d470085980fb4333759599ab5c4dd997e2c.json",
+      "sha256": "66add0ea4b81c420016f7f30215185e32d273c85c2afc87cb7a71c218d02b9ea",
+      "retrievedAt": "2026-11-09T23:21:14+00:00",
+      "type": "original cached response"
+    },
+    {
+      "path": ".terminal_research/documents/a2ab6db890b15d145b7faa58524f8910a0e2cace2f21a63fca684c48f3b0d4a7.json",
+      "sha256": "f3f85f62280da83979899fc216164d7aa93c4272caf6e74147519feda2f7daf9",
+      "retrievedAt": "2026-11-09T23:28:22+00:00",
+      "type": "original cached response"
+    },
+    {
+      "path": ".terminal_research/documents/78588d0344bda2cc329bcb8190556a3f1cde0b8b2a650504d2a33979bc525d7f.json",
+      "sha256": "5762ee7685a97219f1cbc6b0872025715a1e3c825f6e61ad1334d845cd078954",
+      "retrievedAt": "2026-11-09T23:21:11+00:00",
+      "type": "original cached response"
+    },
+    {
+      "path": ".terminal_research/documents/de79b051ca3611e35f30ca321e1c8dfe99a829f26a83239e4a8c906103b2146c.json",
+      "sha256": "01715d3f2e650454c6f01864b811b80a5bc898688841e7f48ed1dbbff881fd8c",
+      "retrievedAt": "2026-11-09T23:12:39+00:00",
+      "type": "original cached response"
+    },
+    {
+      "path": ".terminal_research/documents/9e25fe48b60d5b551692ac06d50841f6606ee24426c496949987019222d2c2f2.json",
+      "sha256": "780ee9d09487514aa2a0cda940505834e47036d495a9fbdb2c10fa427e9779aa",
+      "retrievedAt": "2026-11-09T21:46:43+00:00",
+      "type": "original cached response"
+    },
+    {
+      "path": ".terminal_research/documents/f6fe718fc495159d5a9bdf556327731413597f72f78927e52879c622fbe88e99.json",
+      "sha256": "60f2e8d188053385383f899049f528279974bbccf0f16124f69da137e61d0092",
+      "retrievedAt": "2026-11-09T23:12:40+00:00",
+      "type": "original cached response"
+    },
+    {
+      "path": ".terminal_research/documents/9807dc0a9db3475eb0f217a0ab9f46b5520a200a9bd9f69d9f58eef0c7b58796.json",
+      "sha256": "e94d29dd0344206b0a05a4b92e0cc8c8da42a6f2a52dc90a55e64bdb94b8c1fc",
+      "retrievedAt": "2026-11-09T22:15:19+00:00",
+      "type": "original cached response"
+    },
+    {
+      "path": ".terminal_research/documents/f0eed44417dcd37b08ae5c650100a82f473ea6f648ed19847a70c23f58d78284.json",
+      "sha256": "22588aabfaa1ab002610c27159350c3f02fc2f704ec561e0b013c55eb6f3e1a6",
+      "retrievedAt": "2026-11-09T23:12:19+00:00",
+      "type": "original cached response"
+    },
+    {
+      "path": ".terminal_research/documents/48d5d954a0ecb9785c528908c71784dbe5a91431fc310ce526ee684fb6bff699.json",
+      "sha256": "e1af23ce5159c5f2d818266ecc0a3aa8422d9069bbda7d2852fcfbae70131159",
+      "retrievedAt": "2026-11-09T23:12:39+00:00",
+      "type": "original cached response"
+    }
+  ]
+}

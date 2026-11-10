@@ -1,0 +1,70 @@
+name: Production source verification
+on:
+  pull_request:
+  workflow_dispatch:
+    inputs:
+      fresh_sec:
+        description: Run cache-independent identified SEC probes (stops after denial)
+        type: boolean
+        default: false
+permissions:
+  contents: read
+jobs:
+  actual-terminal:
+    runs-on: ubuntu-latest
+    timeout-minutes: 45
+    env:
+      SEC_USER_AGENT: ${{ secrets.SEC_USER_AGENT }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - uses: actions/cache@v4
+        with:
+          path: |
+            .terminal_filings
+            .terminal_research
+            .terminal_sources
+          key: primary-sources-v21-review-${{ github.run_id }}
+          restore-keys: primary-sources-v21-
+      - run: python -m pip install 'yfinance>=0.2.55,<1'
+      - name: Identification status (never expose the secret)
+        run: |
+          python -c "import os; print('SEC contact configured:', bool(os.environ.get('SEC_USER_AGENT')))"
+      - name: Restore verified sources before independent fresh probes
+        run: python source_archive.py restore
+      - name: Genuinely fresh SEC downloads (no local-cache fallback)
+        if: github.event_name == 'workflow_dispatch' && inputs.fresh_sec
+        run: python verify_fresh_sec.py
+      - name: Build using real production collectors
+        run: >-
+          python build_terminal.py --years 10
+          --workers 2 --cache-hours 0
+          --movers-markets FTSE100,FTSE250,SP500,NASDAQ100
+          --mover-history-limit 30 --company-news-limit 20
+          --price-history-batch 60 --companies AXON,CCH.L,SHAW.L,NFLX
+          --output terminal.html
+      - run: python verify_snapshot.py terminal.html
+      - run: python terminal_research_upgrade.py terminal.html
+      - run: python market_terminal_cleanup.py --post --html terminal.html
+      - name: Audit actual Shell, Microsoft and HSBC research
+        run: python verify_live_research.py terminal.html
+      - name: Install browser runner
+        run: |
+          python -m pip install playwright
+          python -m playwright install --with-deps chromium
+      - name: Browser verification of actual live payload
+        run: python tests/browser_research_live.py terminal.html
+      - name: Upload actual terminal and source diagnostics for review
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: actual-terminal-source-verification
+          path: |
+            terminal.html
+            terminal.sources.json
+            public/source_verification.json
+            .terminal_sources/requests.jsonl
+            .terminal_sources/fresh_sec_verification.json
+            /tmp/research-live-*.png

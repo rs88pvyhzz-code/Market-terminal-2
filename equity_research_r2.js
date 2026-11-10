@@ -48,6 +48,7 @@ function researchModelSnapshot(c){
 function researchR2Executive(c){
   const host=$('research-executive');if(!host)return;host.replaceChildren();const d=researchR2Data(c),annual=researchData(c).annual||[],r=annual[0]||{},fin=researchIsFinancial(c),params=researchModelSnapshot(c),value=params?researchDCF(params):null;
   host.append(el('h3','','EXECUTIVE RESEARCH SUMMARY'));
+  if(!fin&&c.valuationIntegrity?.issues?.length)host.append(el('p','research-warning','VALUATION REQUIRES SOURCE REVIEW · Dated or unverified inputs are in use. Open Valuation for source status.'));
   const grid=el('div','research-executive-grid');host.append(grid);
   const add=(title,text,kind='calculated')=>{const card=el('article','research-executive-card');card.append(el('span','research-kind',kind),el('h4','',title),el('p','',text));grid.append(card);return card;};
   add('Business quality',fin?`ROE ${pc(r.roe)}. Regulatory capital, RoTE and credit quality need issuer evidence.`:`ROIC ${pc(r.roic)}; OCF / profit ${Number.isFinite(r.cashConversion)?fmt(r.cashConversion,2)+'×':'unavailable'}. Financial returns do not establish a competitive moat.`);
@@ -71,7 +72,8 @@ function researchR2Business(c,host){
   host.append(el('p','note',summary.split(/(?<=[.!?])\s/)[0]));
   const full=researchDetails(host,'Business description & provider provenance');full.append(el('p','note',summary),el('p','note',`Provider facts retrieved ${c.financialAsOf||'unknown'} · ${c.fundamentalSource||'unavailable'}. Qualitative issuer claims below are not independently verified moats.`));
   const mix=el('div','research-pair');host.append(mix);
-  for(const [key,title] of [['segments','Reported revenue segments'],['geography','Geographic revenue exposure']]){const panel=el('section');mix.append(panel);panel.append(el('h4','',title));const b=d.revenueBreakdown?.[key];if(!b){panel.append(el('p','research-gap','No compatible reported breakdown extracted. Open issuer reports; no mix is estimated.'));continue;}
+  if(!d.revenueBreakdown?.segments&&!d.revenueBreakdown?.geography)mix.append(el('p','note','Reported segment and geographic breakdowns are unavailable; open issuer reports in source coverage.'));
+  for(const [key,title] of [['segments','Reported revenue segments'],['geography','Geographic revenue exposure']]){const panel=el('section');mix.append(panel);panel.append(el('h4','',title));const b=d.revenueBreakdown?.[key];if(!b){panel.remove();continue;}
     panel.append(researchSourceLink(c,b.sourceId),el('p','note',`${b.period} · ${b.currency}. ${b.basis}`));researchTable(panel,['Reported category','Revenue'],b.rows.map(r=>[r.label,companyAmount(r.value,b.currency)]));}
   const competitors=researchDetails(host,'Principal competitors and peer relevance',true);
   if(d.reportedCompetitors?.length){for(const p of d.reportedCompetitors){const line=el('p','note',`${p.name} (${p.symbol}) · named in a collected competition passage; not a market-share ranking. `);line.append(researchSourceLink(c,p.sourceId));competitors.append(line);}}
@@ -79,7 +81,7 @@ function researchR2Business(c,host){
   const peers=d.peerCandidates||[];
   if(peers.length){researchTable(competitors,['Suggested peer','P/E TTM','EV/EBITDA','Provider ROE'],peers.map(p=>[`${p.name} (${p.symbol})`,p.trailingPE>0?fmt(p.trailingPE,1)+'×':'—',!researchIsFinancial(c)&&p.enterpriseToEbitda>0?fmt(p.enterpriseToEbitda,1)+'×':'—',pc(p.roePct)]));competitors.append(el('p','note',peers[0].basis+'. Ratios are provider snapshots; verify reporting periods in the existing peer comparator.'));
     const button=el('button','btn','COMPARE CURRENT COMPANY WITH THESE PEERS');button.type='button';button.onclick=()=>{[c.symbol,...peers.map(p=>p.symbol)].slice(0,4).forEach((s,i)=>{const select=$('peer'+i);if(select&&[...select.options].some(o=>o.value===s)){select.value=s;state.peers[i]=s;}});renderPeers();$('peer-panel')?.scrollIntoView({behavior:'smooth',block:'start'});};competitors.append(button);}
-  const advantages=researchDetails(host,'Competitive advantage evidence · issuer claims, not verified conclusions',true);
+  const advantages=researchDetails(host,'Competitive advantage evidence · issuer claims, not verified conclusions');
   for(const [key,title] of [['pricingPower','Pricing power'],['switchingCosts','Switching costs / retention'],['marketPosition','Market position'],['costStructure','Cost structure']]){const panel=researchDetails(advantages,title);researchEvidence(panel,c,d.topics?.[key],`No sufficiently specific ${title.toLowerCase()} passage extracted. Margin/ROIC trends alone do not prove an advantage.`,2);}
   const allocation=researchDetails(host,'Five-year capital allocation & value creation evidence',true),rows=d.capitalAllocation||[];
   if(!rows.length){allocation.append(el('p','research-gap','No annual allocation history has been sourced. Missing dividends, buybacks or acquisition flows are not assumed to be zero.'));return;}
@@ -93,19 +95,20 @@ function researchR2Outlook(c,host){
   const recent=(d.sources||[]).filter(s=>s.kind==='results'||s.kind==='interim').sort((a,b)=>b.published.localeCompare(a.published)).slice(0,3);
   if(recent.length)for(const doc of recent){const row=el('p','note',`${doc.title} · published ${doc.published} · period ${doc.period||'not extracted'} · retrieved ${String(doc.retrievedAt||'unknown').slice(0,10)} `);row.append(researchSourceLink(c,doc.id));host.append(row);}
   else host.append(el('p','research-gap','No current primary results source collected. Provider news does not replace filed results.'));
+  if(!d.sources?.length){host.lastElementChild?.remove();host.append(el('p','research-gap','Primary research coverage unavailable. Financial history and personal notes remain available; source failures are in the expandable coverage panel.'));const coverage=researchDetails(host,'Source coverage & failed requests');for(const text of d.gaps||[])coverage.append(el('p','note',text));return;}
   const results=researchDetails(host,'Latest reported earnings results',true);
   const reported=d.reportedResults||[];
   if(reported.length){researchTable(results,['Reported metric','Amount','Period'],reported.map(r=>[r.metric,companyAmount(r.value,r.currency||c.financialCurrency),r.period]));results.append(researchSourceLink(c,reported[0].sourceId),el('p','note','Reported first quarter column from a source table, with its stated definition. Adjusted measures are labelled; no consensus estimate is inferred.'));}
   else results.append(el('p','research-gap','No unambiguous quarterly results table was extracted. Open the dated results documents; annual financial history remains in Financials.'));
-  const guidance=researchDetails(host,'Dated management expectations & extracted changes',true);
+  const guidance=researchDetails(host,'Dated management expectations & extracted changes',!!d.guidance?.length);
   guidance.append(el('p','note','Latest sources appear first. Older ambitions can coexist with newer guidance; different periods, definitions and qualifications are not treated as like-for-like revisions. Open sources before relying on an expectation.'));
   if(!d.guidance?.length)guidance.append(el('p','research-gap','No unambiguous numeric management guidance extracted; neither analyst consensus nor a transcript is invented.'));
   for(const g of d.guidance||[]){const row=el('article','research-evidence');row.append(el('span','research-kind','management expectation'),el('h4','',g.metric+' · '+(g.horizon||g.relativeHorizon||'horizon not extracted')),el('p','',`${g.amountText} (${g.qualifier}; ${g.basis||'basis not separately identified'}). ${g.comparison}.`),el('p','note',g.excerpt),researchSourceLink(c,g.sourceId));if(g.previous){row.append(el('p','note',`Previous: ${g.previous.amountText} (${g.previous.qualifier}), published ${g.previous.published}. Amount/wording changes do not establish like-for-like upgrades; verify scope, qualifications and units.`),researchSourceLink(c,g.previous.sourceId));}guidance.append(row);}
-  const catalysts=researchDetails(host,'Developments with potential 1–3 year relevance',true);
+  const catalysts=researchDetails(host,'Developments with potential 1–3 year relevance',!!d.topics?.catalysts?.length);
   catalysts.append(el('p','note','A reported development is not a forecast of investment returns. Source statements are classified below; timing and valuation impact are unproven unless explicitly guided.'));
   researchEvidence(catalysts,c,d.topics?.catalysts,'No specific primary-source development extracted. No catalyst is manufactured.',5);
   if(d.longTermDevelopments?.length){const longer=researchDetails(host,'Longer-term or historical developments · outside the near-term catalyst list');researchEvidence(longer,c,d.longTermDevelopments,'No longer-term evidence',4);}
-  const risks=researchDetails(host,'Principal downside risks & challenging evidence',true);researchEvidence(risks,c,d.topics?.risks,'No primary risk passage extracted. Absence of extracted evidence does not mean low risk.',5);
+  const risks=researchDetails(host,'Principal downside risks & challenging evidence',!!d.topics?.risks?.length);researchEvidence(risks,c,d.topics?.risks,'No primary risk passage extracted. Absence of extracted evidence does not mean low risk.',5);
   const monitors=researchDetails(host,'Indicators to monitor');for(const w of d.financialWarnings||[])monitors.append(el('p','note',`${w.title}: ${w.monitor} Rule: ${w.rule}`));
   if(d.news?.length){const news=researchDetails(host,'Recent company news · media evidence, not confirmed company guidance');for(const item of d.news){const a=el('a','research-source',`${item.title} · ${item.source||'publisher'} · ${item.published||'unknown date'}`);if(item.url?.startsWith('https://')){a.href=item.url;a.target='_blank';a.rel='noopener noreferrer';news.append(a);}}}
   const transcripts=researchDetails(host,'Earnings-call access & transcripts');

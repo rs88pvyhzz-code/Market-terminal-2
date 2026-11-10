@@ -115,9 +115,8 @@ def collect(symbol, offline=False, directory=None):
     if not offline and age > 86400:
         try:
             cik = ISSUERS[symbol][0]
-            req = urllib.request.Request(f'https://data.sec.gov/api/xbrl/companyfacts/CIK{cik}.json',
-                headers={'User-Agent': os.environ.get('SEC_USER_AGENT', 'MarketTerminal/1.0 (github.com/rs88pvyhzz-code/Market-terminal-2)'), 'Accept': 'application/json'})
-            with urllib.request.urlopen(req, timeout=18) as response: fresh = json.load(response)
+            import source_transport
+            fresh=json.loads(source_transport.get(f'https://data.sec.gov/api/xbrl/companyfacts/CIK{cik}.json',fields=['annual financial statements','FCFF components','ROIC']))
             retrieved = dt.datetime.now(dt.timezone.utc).isoformat(timespec='seconds')
             data = fresh
             root.mkdir(parents=True, exist_ok=True)
@@ -137,3 +136,22 @@ def merge_rows(yahoo, primary, currency):
             row[key] = p[key]
             row['provenance'][key] = source
     return [merged[d] for d in sorted(merged, reverse=True)[:5]]
+
+
+def retain_financial_history(symbol, rows, directory=None, currency=None):
+    """Fill missing exact-period fields from dated source history, not new estimates."""
+    root=Path(directory or Path(__file__).parent/'.terminal_filings');root.mkdir(parents=True,exist_ok=True)
+    path=root/('financial_history_'+symbol+'.json')
+    try:saved=json.loads(path.read_text()).get('annual',[])
+    except (OSError,ValueError):saved=[]
+    merged={r['fiscalEnd']:{**r,'provenance':dict(r.get('provenance',{}))} for r in rows}
+    for old in saved:
+        row=merged.setdefault(old['fiscalEnd'],{'fiscalEnd':old['fiscalEnd'],'fiscalYear':old.get('fiscalYear'),'provenance':{}})
+        for key,p in old.get('provenance',{}).items():
+            if currency and p.get('currency') not in (currency,'shares'):continue
+            if row.get(key) is None and old.get(key) is not None and p.get('retrievedAt'):
+                row[key]=old[key];row['provenance'][key]=dict(p)
+    result=[merged[d] for d in sorted(merged,reverse=True)[:5]]
+    dates=[str(p.get('retrievedAt') or '') for r in result for p in r.get('provenance',{}).values()]
+    path.write_text(json.dumps({'annual':result,'retrievedAt':max(dates,default='')},separators=(',',':'),allow_nan=False))
+    return result
