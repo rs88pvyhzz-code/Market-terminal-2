@@ -33,3 +33,5 @@ The production workflow runs the new restoration test and all existing retained 
 Screenshots and visual-property/source-hash records are uploaded as review artifacts. External missing issuer/AUM/benchmark evidence remains labelled; no data or claims are invented to make the reference match.
 
 The original publication polish’s responsive detail grid (three columns at iPad landscape) is restored. The original existing US bond-reference disclosure is retained rather than forced permanently open by Release 2.5; no disclosure is added around selected-fund details or controls. Detail screenshot crops suppress only the sticky global command-bar overlay, without altering ETF content, styles or data.
+
+The newer selected-fund quotation (including its currency, source and date) is retained in the existing metadata line. Current issuer/TER/structure/lending URLs and retrieval/snapshot dates are retained in the existing issuer-source text, deduplicated against the original header links. These are preservation of newer information, not additional cards or controls.

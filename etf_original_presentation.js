@@ -39,7 +39,16 @@ renderSameIndexETFs=function(){
 };
 initEtfSameIndex=function(){const selector=$('etf-same-index-benchmark');if(selector)selector.onchange=()=>{const f=ETF_FUNDS.find(f=>f.benchmark===selector.value);if(f)etfV5Choose(f.symbol);};};
 const etfOriginalDetails=etfDetails;
-etfDetails=function(){etfOriginalDetails();renderEtfStructure();renderEtfIssuerVerified();renderSameIndexETFs();};
+etfDetails=function(){
+ etfOriginalDetails();renderEtfStructure();renderEtfIssuerVerified();renderSameIndexETFs();
+ const f=ETF_BY_SYMBOL.get(etfState.selected);if(!f)return;
+ // Keep the newer unique quote/source information inside the original text areas.
+ const q=f.quote;if(q?.price!=null)$('etf-selected-meta').append(document.createTextNode(' · Last quote '+fmt(q.price,Math.abs(q.price)<2?4:2)+' '+(q.currency||'')+' · '+(q.asOf||'Quote date unavailable')+' · '+(q.source||'Source unavailable')));
+ const host=$('etf-issuer-snapshot');if(host){const sources=el('p','note'),seen=new Set([$('etf-facts-link')?.href,$('etf-quote-link')?.href]);
+  for(const [label,url] of [['Issuer',f.issuerVerifiedUrl||f.officialFactsUrl],['TER source',f.terUrl],['Structure',f.structureSource],['Lending policy',f.lendingPolicySource]])if(url?.startsWith('https://')&&!seen.has(url)){seen.add(url);const a=el('a','',label);a.href=url;a.target='_blank';a.rel='noopener noreferrer';sources.append(a,document.createTextNode(' · '));}
+  sources.append(document.createTextNode('Issuer checked '+(f.issuerCheckedAt||'not recorded')+' · snapshot '+(f.snapshotCapturedAt||'not recorded')));host.append(sources);
+ }
+};
 function etfV5PickMain(){
   const all=etfFiltered();
   const groups=new Map();

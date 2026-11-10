@@ -29,6 +29,8 @@ with sync_playwright() as p:
         if not any(f['symbol']==symbol for f in data['etfTracker']['funds']):continue
         choose(page,symbol);assert symbol in page.locator('#etf-selected').inner_text()
         assert symbol in page.locator('#etf-quote-link').get_attribute('href')
+        fund=next(f for f in data['etfTracker']['funds'] if f['symbol']==symbol)
+        if fund.get('quote',{}):assert fund['quote'].get('asOf','') in page.locator('#etf-selected-meta').inner_text()
         assert page.locator('#etf-same-index [data-etf-alternative]').count()<=3
         assert page.evaluate('''()=>{const f=__etf.funds.find(f=>f.symbol===__etf.state.selected),p=__etf.peers(f);return p.every(x=>x.symbol!==f.symbol&&__etf.key(x)===__etf.key(f))&&new Set(p.map(x=>x.isin||x.symbol)).size===p.length;}''')
     # A benchmark with at least three valid alternatives must genuinely display three.
