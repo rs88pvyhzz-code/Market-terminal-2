@@ -2,6 +2,11 @@
 import copy
 import datetime as dt
 import unittest
+import tempfile
+from types import SimpleNamespace
+from unittest.mock import patch
+from pathlib import Path
+import market_intelligence as news
 from market_briefing import classify,deduplicate,enrich,timestamp,THRESHOLDS
 from market_intelligence import rss_articles
 
@@ -42,5 +47,13 @@ class BriefingTests(unittest.TestCase):
     def test_no_recovered_news_alert(self):
         p=enrich({'generatedAt':NOW.isoformat(),'news':[story('Shell profit warning',archived=True)]})
         self.assertFalse(any(x['kind']=='Reported' for x in p['marketBriefing']['alerts']))
+    def test_first_build_without_public_directory(self):
+        with tempfile.TemporaryDirectory() as root:
+            with patch.object(news,'__file__',str(Path(root)/'market_intelligence.py')),patch.object(news,'_collect_legacy_news',return_value=([],[],0)),patch.object(news,'_published_news_archive',return_value=[]),patch.object(news,'PRIMARY_NEWS_FEEDS',[]):
+                news.collect_news(None,SimpleNamespace(offline=False))
+                self.assertTrue((Path(root)/'public'/'news_cache.json').exists())
+                with patch.object(Path,'write_text',side_effect=OSError('synthetic unavailable disk')):
+                    _,warnings,_=news.collect_news(None,SimpleNamespace(offline=False))
+                    self.assertIn('could not be saved',warnings[-1])
     def test_timezones(self):self.assertEqual(timestamp('2026-11-10T13:00:00+01:00'),NOW)
 if __name__=='__main__':unittest.main()

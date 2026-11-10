@@ -57,6 +57,7 @@ jobs:
           python test_research_release2.py
           python test_research_release21.py
           python test_release22.py
+          python test_market_briefing.py
 
       - name: Download data and build terminal
         run: >-
@@ -72,6 +73,10 @@ jobs:
       - name: Verify actual published research payload
         run: python verify_live_research.py terminal.html
 
+      - name: News provenance and coverage diagnostics
+        continue-on-error: true
+        run: python verify_market_briefing.py terminal.html
+
       - name: Upload production source diagnostics
         if: always()
         uses: actions/upload-artifact@v4
@@ -80,6 +85,7 @@ jobs:
           path: |
             .terminal_sources/dmo_verification.json
             terminal.sources.json
+            public/news_verification.json
             .terminal_sources/requests.jsonl
 
       - name: DMO freshness diagnostics (independent of other market publication)

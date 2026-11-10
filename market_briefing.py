@@ -22,8 +22,9 @@ def classify(item, now, watch_names=()):
     if any(n and re.search(r'\b'+re.escape(n.lower())+r'\b',text) for n in watch_names):cats.append('watchlist');score+=25;reasons.append('Watchlist match')
     if re.search(r'\b(oil|gold|currency|stocks|markets?|vix|sterling|dollar)\b',text):score+=20
     if item.get('official'):score+=5;reasons.append('Primary source')
+    if re.search(r'\b(oil|gold|currency|stocks|markets?|vix|sterling|dollar|yields?)\b',text) and re.search(r'\b(surge|slump|rally|rout|plunge|jump|rebound|record|tumble|spike|soar)\w*\b',text):score+=20;reasons.append('Reported sharp market movement')
     if score>=35:cats.insert(0,'market_moving')
-    if not cats:cats=['corporate'] if item.get('category') in ['COMPANY','COMPANIES'] else []
+    if not cats:cats=['corporate']
     regions=[]
     for label,pattern in [('UK',r'\b(uk|britain|british|sterling|bank of england|ftse)\b'),('US',r'\b(us|u\.s\.|fed|federal reserve|wall street|nasdaq|s&p)\b'),('Europe',r'\b(europe|european|euro|ecb|german|france)\b')]:
         if re.search(pattern,text):regions.append(label)
@@ -55,7 +56,7 @@ def deduplicate(items):
 
 def enrich(payload):
     now=timestamp(payload.get('generatedAt')) or dt.datetime.now(dt.timezone.utc)
-    names=[re.sub(r'\b(plc|inc|corporation|corp|limited|ltd|holdings)\b.*','',r.get('name',''),flags=re.I).strip() for r in payload.get('personalWatchlist',[]) if isinstance(r,dict)]
+    names=[re.sub(r'\b(plc|inc|corporation|corp|limited|ltd|holdings|ag|se)\b.*','',r.get('name',''),flags=re.I).strip() for r in payload.get('personalWatchlist',[]) if isinstance(r,dict)]
     items=list(payload.get('news',[]))
     for group in payload.get('watchlist_news',[]) or []:
         if isinstance(group,dict):
@@ -91,6 +92,9 @@ def enrich(payload):
     for symbol in critical:
         q=quotes.get(symbol,{});date=timestamp(q.get('asOf'))
         if q.get('price') is None or date is None or (now-date).days>THRESHOLDS['criticalMaxAgeDays']:unavailable.append(symbol)
+    for series,key,label in [('uk_rates','gilt10y','UK10Y'),('us_rates','DGS10','US10Y')]:
+        dates=[timestamp(x.get('date')) for x in payload.get(series,[]) if isinstance(x.get(key),(int,float)) and timestamp(x.get('date'))]
+        if not dates or (now-max(dates)).days>THRESHOLDS['criticalMaxAgeDays']:unavailable.append(label)
     if unavailable:alerts.insert(0,{'title':'Critical quote coverage: '+', '.join(unavailable),'detail':'Missing or older than the configured calendar-day tolerance. See Data Quality.','date':payload.get('generatedAt'),'kind':'Coverage'})
     for series,key,label in [('uk_rates','gilt10y','UK 10Y'),('us_rates','DGS10','US 10Y'),('eu_rates','eur10y','Euro-area 10Y')]:
         rows=[x for x in payload.get(series,[]) if isinstance(x.get(key),(int,float)) and x.get('date')]; rows.sort(key=lambda x:x['date'])

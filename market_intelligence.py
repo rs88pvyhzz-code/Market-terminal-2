@@ -192,7 +192,7 @@ def collect_news(core,opts):
     target=pathlib.Path(__file__).resolve().parent/'public'/'news_cache.json'
     try:prior=json.loads(target.read_text()).get('articles',[])
     except (OSError,ValueError,AttributeError):prior=[]
-    if not prior and not opts.offline:prior=_published_news_archive()
+    if not opts.offline:prior=_published_news_archive()+prior
     articles,warnings,cached=_collect_legacy_news(core,opts)
     for item in prior:
         try:age=(dt.datetime.now(dt.timezone.utc)-dt.datetime.strptime(item['published'],'%Y-%m-%d %H:%M UTC').replace(tzinfo=dt.timezone.utc)).total_seconds()
@@ -214,7 +214,13 @@ def collect_news(core,opts):
     # The public snapshot is the recovery layer already published by the workflow.
     if not opts.offline:
         target=pathlib.Path(__file__).resolve().parent/'public'/'news_cache.json'
-        target.write_text(json.dumps({'schemaVersion':2,'attemptedAt':dt.datetime.now(dt.timezone.utc).isoformat(),'articles':articles,'diagnostics':NEWS_DIAGNOSTICS},ensure_ascii=False),encoding='utf-8')
+        try:
+            target.parent.mkdir(parents=True,exist_ok=True)
+            temporary=target.with_suffix('.tmp')
+            temporary.write_text(json.dumps({'schemaVersion':2,'attemptedAt':dt.datetime.now(dt.timezone.utc).isoformat(),'articles':articles,'diagnostics':NEWS_DIAGNOSTICS},ensure_ascii=False),encoding='utf-8')
+            temporary.replace(target)
+        except OSError as exc:
+            warnings.append('News recovery cache could not be saved: '+str(exc)[:120])
     return articles,warnings,cached
 
 
