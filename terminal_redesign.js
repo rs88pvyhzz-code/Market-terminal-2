@@ -60,7 +60,7 @@ function r24Snapshot(){
   for(const [symbol,label] of [['^FTSE','FTSE 100'],['^GSPC','S&P 500'],['^IXIC','Nasdaq Composite'],['UK10','UK 10Y gilt yield'],['GBPUSD=X','GBP/USD'],['BZ=F','Brent crude'],['^VIX','VIX']]){
     const tile=el('button','r24-snapshot-item'),q=qMap.get(symbol),rows=(D.uk_rates||[]).filter(x=>Number.isFinite(x.gilt10y)),last=rows.at(-1),prior=rows.at(-2);
     tile.type='button';tile.setAttribute('aria-label','Open '+(symbol==='^VIX'?'VIX':label));tile.onclick=()=>symbol==='UK10'?activateWorkspace('bonds'):marketInstrument(symbol);
-    tile.append(el('div','lab',label));
+    tile.append(el('div','lab',label+(symbol==='BZ=F'&&q?.currency?' · '+q.currency:'')));
     if(symbol==='UK10')tile.append(el('strong','',last?fmt(last.gilt10y,2)+'%':'Unavailable'),el('div','mini',last&&prior?fmt((last.gilt10y-prior.gilt10y)*100,1)+' bp since '+prior.date:'Change unavailable'),el('div','mini',last?.date||'Date unavailable'));
     else tile.append(el('strong','',q?fmt(q.price,symbol==='GBPUSD=X'?4:2):'Unavailable'),el('div',q?.changePct>0?'pos':q?.changePct<0?'neg':'mini',q?pc(q.changePct):'Change unavailable'),el('div','mini',(symbol==='^VIX'?'Index points · ':'')+(q?.asOf||'Date unavailable')));
     host.append(tile);
