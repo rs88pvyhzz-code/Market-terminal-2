@@ -20,38 +20,41 @@ function r24VisibleSection(detail) {
   detail.replaceWith(section);return section;
 }
 function r24SelectivePresentation(root=document) {
-  // Decision results and basic controls are direct; workings/evidence keep native details.
-  for(const detail of root.querySelectorAll('.research-view details, details.mt-collapse')){
-    if(detail.dataset.r24Policy)continue;
+  // Only exceptions and technical audits are disclosures. Facts, sources and models stay direct.
+  for(const detail of [...root.querySelectorAll('details')]){
     const title=detail.querySelector(':scope > summary')?.textContent||'';
-    if(/Sector-specific evidence and sensitivity limits/.test(title)){
-      const inputs=detail.querySelector(':scope > .research-inputs');
-      if(inputs){const output=inputs.nextElementSibling,controls=el('section','r24-support');controls.append(el('h3','r24-support-heading','Commodity assumptions & result'),inputs);if(output)controls.append(output);detail.after(controls);}
-    }
-    const direct=detail.classList.contains('mt-collapse')||detail.classList.contains('research-notebook')||/^(Edit stress assumptions|Sensitivity ·|Latest reported earnings results|Dated management expectations|Principal competitors|Five-year capital allocation|Historical valuation multiples)/.test(title);
-    if(direct){const section=r24VisibleSection(detail);
-      if(/^Dated management expectations/.test(title)){
-        for(const article of section.querySelectorAll(':scope > .research-evidence')){
-          const excerpt=[...article.querySelectorAll(':scope > p.note')].find(p=>!p.textContent.startsWith('Previous:'));
-          if(excerpt){const evidence=el('details','research-detail');evidence.dataset.r24Policy='support';evidence.append(el('summary','','Supporting issuer excerpt'),excerpt);article.append(evidence);}
-        }
-      }
-      // ROIC charts stay visible; the underlying historical allocation table is optional.
-      if(/^Five-year capital allocation/.test(title)){const table=section.querySelector(':scope > .small-scroll');if(table){const history=el('details','research-detail');history.dataset.r24Policy='support';history.append(el('summary','','Historical capital-allocation table'),table);section.insertBefore(history,section.querySelector('.chart'));}}
-    }else{detail.open=false;detail.dataset.r24Policy='support';}
+    const diagnostic=detail.closest('#view-quality')||/^(Source status|Failed requests|Technical diagnostics|Retrieval diagnostics)/i.test(title);
+    if(diagnostic){
+      detail.dataset.r25Disclosure='diagnostic';
+      if(!detail.dataset.r24Policy){detail.open=false;detail.dataset.r24Policy='diagnostic';}
+    }else r24VisibleSection(detail);
   }
-  // One disclosure level only: inner source registers become headings inside their parent.
   for(const inner of [...root.querySelectorAll('details details')].reverse())r24VisibleSection(inner);
-  const overview=$('research-overview'),researchView=$('research-view-0');
-  if(overview&&researchView){const support=[...overview.children].filter(n=>n.matches('details'));
-    if(support.length){researchView.querySelectorAll(':scope > [data-r24-owner="research-overview"]').forEach(n=>n.remove());for(const node of support){node.dataset.r24Owner='research-overview';researchView.append(node);}}}
-  const valuation=$('research-valuation');if(valuation){const support=[...valuation.children].filter(node=>/Normalised FCFF calculation/.test(node.querySelector(':scope > summary')?.textContent||''));const tail=[...valuation.children].slice(-support.length);if(support.some((node,i)=>tail[i]!==node))for(const node of support)valuation.append(node);}
-  // Never put material warnings behind a disclosure, even when detailed provenance is optional.
   for(const warning of root.querySelectorAll('.research-warning,.phase-warning,.err')){
     const disclosure=warning.closest('details');if(disclosure)disclosure.before(warning);
-    for(const node of warning.childNodes)if(node.nodeType===3)node.textContent=node.textContent.replace('Open source status before relying','Review source status below before relying');
   }
-  for(const view of root.querySelectorAll('.research-view')){const seen=new Set();for(const note of view.querySelectorAll('p.note')){const key=note.textContent.trim()+'|'+[...note.querySelectorAll('a')].map(a=>a.href).join('|');if(!key)continue;if(seen.has(key))note.remove();else seen.add(key);}}
+  for(const view of root.querySelectorAll('.research-view')){
+    const seen=new Set();for(const note of view.querySelectorAll('p.note')){
+      const key=note.textContent.trim()+'|'+[...note.querySelectorAll('a')].map(a=>a.href).join('|');
+      if(key&&seen.has(key))note.remove();else seen.add(key);
+    }
+  }
+  const overview=$('research-overview'),view=$('research-view-0');
+  if(overview&&view){const support=[...overview.children].filter(n=>n.matches('section.r24-support'));
+    if(support.length){view.querySelectorAll(':scope > [data-r25-owner]').forEach(n=>n.remove());for(const node of support){node.dataset.r25Owner='overview';view.append(node);}}
+  }
+  r25SectionLinks();
+}
+function r25SectionLinks(){
+  for(const host of document.querySelectorAll('.research-view,#subview-fx-prices,#view-economics')){
+    const headings=[...host.querySelectorAll('h2,h3')].filter(h=>!h.closest('details')&&!h.closest('[hidden]')&&!/rules|methodology|coverage|source register|snapshot metrics|evidence that would/i.test(h.textContent)).slice(0,7);
+    let nav=host.querySelector(':scope > .r25-section-links');
+    const signature=headings.map(h=>h.textContent).join('|');
+    if(nav?.dataset.signature===signature)continue;
+    if(!nav){nav=el('nav','r25-section-links');nav.setAttribute('aria-label','Jump to section');host.prepend(nav);}
+    nav.dataset.signature=signature;nav.replaceChildren();nav.hidden=headings.length<3;
+    headings.forEach((h,i)=>{if(!h.id)h.id=host.id+'-section-'+i;const text=h.textContent.trim().split(' · ')[0];const a=el('a','',text.length>38?text.slice(0,35)+'…':text);a.title=h.textContent;a.href='#'+h.id;a.onclick=e=>{e.preventDefault();h.scrollIntoView({block:'start'});};nav.append(a);});
+  }
 }
 function r24Fresh(item){return !intelligenceArchived(item);}
 function r24Item(host,item,label){

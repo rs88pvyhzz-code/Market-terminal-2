@@ -63,13 +63,11 @@ with sync_playwright() as p:
             assert stress<base,(symbol,base,stress)
             if symbol=='SHEL.L':
                 assert abs(base-43.69)<.01  # Release 1 validated base remains unchanged
-                evidence=page.locator('#research-stress-panel details').filter(has=page.locator('summary',has_text='Sector-specific evidence and sensitivity limits'))
+                evidence=page.locator('#research-stress-panel section').filter(has=page.locator(':scope > h3',has_text='Sector-specific evidence and sensitivity limits'))
                 coefficient=page.get_by_label('Annual FCFF impact per +10% commodity price (reporting millions) · user assumption',exact=True)
                 assert coefficient.is_visible()
                 assert evidence.get_attribute('open') is None
-                evidence.locator(':scope > summary').click()
                 assert 'impairment' in evidence.inner_text()
-                evidence.locator(':scope > summary').click()
                 assert coefficient.is_visible()
                 assert 'Commodity-linked DCF unavailable' in page.locator('#research-stress-panel').inner_text()
                 page.get_by_label('Annual FCFF impact per +10% commodity price (reporting millions) · user assumption',exact=True).fill('1000')

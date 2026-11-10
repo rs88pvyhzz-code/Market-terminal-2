@@ -18,3 +18,13 @@ body{font-family:Arial,Helvetica,sans-serif;font-size:12px;line-height:1.45;colo
 .release24 details{margin:12px 0;border-top:1px solid #303844;padding-top:8px;min-width:0}
 .release24 details>summary{cursor:pointer;color:#bdcddd;font:600 12px/1.5 Arial,sans-serif;padding:4px 0}
 .release24 details[open]>summary{margin-bottom:8px}.release24 details>summary:focus-visible{outline:2px solid #bdcddd;outline-offset:3px}
+/* Release 2.5: direct analysis, compact chart scales and in-page navigation. */
+.r25-section-links{position:sticky;top:var(--r24-nav-height);z-index:35;display:flex;flex-wrap:wrap;gap:4px 12px;background:#10151c;padding:7px;margin:0 0 10px;border-bottom:1px solid #35404d;font-size:10px}
+.r25-section-links[hidden]{display:none}.r25-section-links a{max-width:100%;overflow-wrap:anywhere}
+h2[id],h3[id]{scroll-margin-top:calc(var(--r24-nav-height) + 100px)}
+.chart,.chart svg{min-height:0!important}.r25-financial-chart{height:auto}.r25-financial-chart svg{max-height:240px}.r25-chart-legend{display:flex;flex-wrap:wrap;gap:6px 14px;font-size:10px}.r25-chart-legend span{padding-left:5px}
+#gilts .gilt-table-scroll{max-height:65vh!important;overflow:auto}
+#gilts .gilt-table thead th{position:sticky!important;top:0;z-index:2;background:#171d25;text-align:right;font-variant-numeric:tabular-nums}
+#gilts .gilt-table thead th:first-child{text-align:left}
+#mt-screener-form{border:0;padding:0}#mt-screener-form [aria-invalid=true]{outline:1px solid #f18c8c}
+@media(max-width:600px){.r25-section-links{position:static;gap:5px 9px}.r25-financial-chart svg{min-height:180px!important}}

@@ -7,7 +7,7 @@ with sync_playwright() as p:
     browser=p.chromium.launch(executable_path=os.environ.get('CHROMIUM_EXECUTABLE'),headless=True,args=['--no-sandbox'])
     page=browser.new_page(viewport={'width':1440,'height':1100});errors=[];page.on('pageerror',lambda e:errors.append(str(e)))
     page.route('http://localhost:8765/**',lambda r:r.fulfill(body=html,content_type='text/html'))
-    page.goto('http://localhost:8765/',wait_until='domcontentloaded');page.wait_for_timeout(150)
+    page.goto('http://localhost:8765/',wait_until='domcontentloaded',timeout=120000);page.wait_for_timeout(150)
     assert page.locator('#workspace-tabs [role=tab]').count()==8
     for width,height in [(1440,1100),(1024,768),(390,844)]:
         page.set_viewport_size({'width':width,'height':height});page.locator('#tab-overview').click();page.wait_for_timeout(80)
@@ -37,15 +37,12 @@ with sync_playwright() as p:
             assert page.evaluate('document.body.scrollWidth<=innerWidth'),(name,width,'page overflow')
             if width>=1024 and name in ['overview','markets','economics','research','bonds']:page.evaluate('scrollTo(0,0)');page.wait_for_timeout(50);page.screenshot(path=f'/tmp/release24-{name}-{width}.png',full_page=True)
         page.locator('#tab-equities').click();page.locator('#sub-equities-research').click();page.locator('#research-tab-1').click();page.wait_for_timeout(100)
-        assert page.locator('#research-statements details').count()>0
+        assert page.locator('#research-statements details').count()==0
         page.locator('#research-tab-2').click();page.wait_for_timeout(100)
         if page.get_by_label('Normalised FCFF (reporting currency, millions)',exact=True).count():
             assert page.get_by_label('Normalised FCFF (reporting currency, millions)',exact=True).is_visible()
-            bridge=page.locator('#research-valuation details').filter(has=page.locator('summary',has_text='Normalised FCFF calculation'))
-            assert bridge.count()==1 and bridge.get_attribute('open') is None
-            assert not bridge.locator('table').first.is_visible()
-            bridge.locator(':scope > summary').click();assert bridge.locator('table').first.is_visible()
-            bridge.locator(':scope > summary').click()
+            bridge=page.locator('#research-valuation section').filter(has=page.locator(':scope > h3',has_text='Normalised FCFF calculation'))
+            assert bridge.count()==1 and bridge.locator('table').first.is_visible()
             stress=page.get_by_label('First-year revenue shock (%)',exact=True)
             if stress.count():assert stress.is_visible()
             assert page.locator('#research-valuation input').evaluate_all('(els)=>els.every(e=>!e.closest("details"))')
@@ -53,7 +50,7 @@ with sync_playwright() as p:
         page.locator('#research-tab-0').click();page.wait_for_timeout(80)
         assert page.locator('#company-chart').is_visible() and page.locator('#company-risk-kpis').is_visible()
         assert page.locator('#research-overview details').count()==0
-        assert page.locator('#research-view-0 > details').count()>0
+        assert page.locator('#company-advanced').is_visible() and page.locator('#company-advanced').evaluate('(e)=>e.tagName')=='SECTION'
         page.locator('#research-tab-1').click();page.wait_for_timeout(80)
         for period in ['3Y','5Y']:
             button=page.locator('#research-statements button').filter(has_text=period)

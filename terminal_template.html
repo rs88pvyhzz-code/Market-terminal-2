@@ -660,7 +660,7 @@ h2{font:600 15px/1.35 var(--font);color:var(--amber);margin:0}h3{font:500 13px v
 <section class="panel" id="equity-screener">
   <div class="row"><div><h2>EQUITY STOCK SCREENER</h2>
     <p class="note">Filter FTSE 100, FTSE 250, S&amp;P 500 and Nasdaq 100 constituents using sourced financial metrics and observed historical price returns. Missing facts are never treated as zero.</p></div><span id="screener-stamp" class="mini"></span></div>
-  <div class="screener-grid">
+  <form id="mt-screener-form" class="screener-grid" autocomplete="off" onsubmit="return false">
     <label>INDEX<select id="screen-market" class="field" aria-label="Screener market"><option value="all">All four indices</option><option value="FTSE100">FTSE 100</option><option value="FTSE250">FTSE 250</option><option value="SP500">S&amp;P 500</option><option value="NASDAQ100">Nasdaq 100</option></select></label>
     <label>SECTOR<select id="screen-sector" class="field" aria-label="Screener sector"><option value="all">All sectors</option></select></label>
     <label>MAX P/E (TTM)<input id="screen-pe" type="number" class="field" min="0" max="500" step="0.5" inputmode="decimal" placeholder="e.g. 15"></label>
@@ -671,8 +671,8 @@ h2{font:600 15px/1.35 var(--font);color:var(--amber);margin:0}h3{font:500 13px v
     <label>MAX 1Y VOLATILITY %<input id="screen-vol" type="number" class="field" min="0" max="500" step="1" inputmode="decimal" placeholder="e.g. 30"></label>
     <label>MIN SIX-MONTH PRICE RETURN %<input id="screen-mom" type="number" class="field" min="-100" max="1000" step="1" inputmode="decimal" placeholder="e.g. 0"></label>
     <label>SORT BY<select id="screen-sort" class="field" aria-label="Sort screened companies"><option value="cap">Market cap, largest first</option><option value="pe">P/E, lowest first</option><option value="div">Dividend, highest first</option><option value="roe">ROE, highest first</option><option value="growth">Earnings growth, highest first</option><option value="vol">Volatility, lowest first</option><option value="momentum">Six-month momentum, highest first</option><option value="name">Company name A–Z</option></select></label>
-  </div>
-  <div class="screener-actions"><button class="btn" type="button" id="screen-value">VALUE + INCOME</button><button class="btn" type="button" id="screen-quality">QUALITY</button><button class="btn" type="button" id="screen-clear">CLEAR FILTERS</button><button class="btn" type="button" id="screen-export">EXPORT MATCHES CSV</button></div>
+  </form>
+  <div class="screener-actions"><button class="btn" type="button" id="screen-value">VALUE + INCOME</button><button class="btn" type="button" id="screen-quality">QUALITY</button><button class="btn" type="button" id="screen-clear">RESET FILTERS</button><button class="btn" type="button" id="screen-export">EXPORT MATCHES CSV</button></div>
   <p id="screen-results" class="screener-count" aria-live="polite"></p>
   <div class="screener-scroll"><table class="watch"><thead><tr><th>Company / index</th><th>Ticker</th><th>Sector</th><th class="n">P/E</th><th class="n">Dividend %</th><th class="n">ROE %</th><th class="n">Earnings growth %</th><th class="n">Total debt / EBITDA</th><th class="n">1Y volatility %</th><th class="n">6M price return %</th><th class="n">1Y max drawdown %</th><th>Financials checked</th><th>Price history</th></tr></thead><tbody id="screen-rows"></tbody></table></div>
   <p class="screener-footnote" id="screen-note">Financial data come from unofficial Yahoo summaries and can be stale. Growth figures are reported estimates, not audited forecasts. Total debt / EBITDA is not net debt / EBITDA. Historical volatility and momentum are calculated from observed split-adjusted price history, not total returns. Missing values are excluded when their filter is active. Tap any row for Company Research.</p>
@@ -1211,7 +1211,7 @@ const chartTime=p=>p.t!=null?p.t:Date.parse(p.date+'T00:00:00Z');
 function chart(id,series,opt={}){
  const host=$(id);host.replaceChildren();const good=series.filter(s=>s.pts&&s.pts.length);
  if(!good.length){empty(id,'No historical data available for this selection.');return;}
- const W=Math.max(360,Math.min(1800,host.clientWidth||940)),H=290,L=10,R=78,T=16,B=34, plotW=W-L-R,plotH=H-T-B;
+ const W=Math.max(360,Math.min(1800,host.clientWidth||940)),H=opt.height||250,L=10,R=78,T=16,B=34, plotW=W-L-R,plotH=H-T-B;
  const all=good.flatMap(s=>s.pts);const dates=all.map(chartTime).filter(Number.isFinite);
  const xMin=Math.min(...dates),xMax=Math.max(...dates);const uniqueMax=xMax>xMin?xMax:xMin+86400000;
  let min=Math.min(...all.map(p=>p.v)),max=Math.max(...all.map(p=>p.v));
@@ -1540,14 +1540,22 @@ function renderCompany(){
   renderCompanyRisk(c);
   renderEquityResearch(c);
   const destination=$('company-annual');destination.replaceChildren();
-  if(!c.annual||!c.annual.length){destination.append(el('div','empty','Annual income statements unavailable from the free feed.'));return;}
-  const table=el('table');const header=el('tr');
-  ['Fiscal year','Revenue','Operating profit','Net profit'].forEach(t=>header.append(el('th','',t)));
-  const head=el('thead');head.append(header);table.append(head);
-  const body=el('tbody');for(const row of c.annual.filter(r=>[r.revenue,r.operatingProfit,r.netProfit].some(v=>v!=null))){const tr=el('tr');
-    [row.fiscalYear||row.fiscalEnd,companyAmount(row.revenue,''),companyAmount(row.operatingProfit,''),companyAmount(row.netProfit,'')].forEach(v=>tr.append(el('td','',v)));
-    body.append(tr);
+  // Only remove exact duplicates in the same reporting currency and fiscal period.
+  // Distinct periods or conflicting provider values remain visible for reconciliation.
+  const annual=researchData(c).annual||[];
+  const unique=(c.annual||[]).map(row=>{
+    const reported=annual.find(r=>r.fiscalEnd===row.fiscalEnd);
+    const fields=['revenue','operatingProfit','netProfit'].map(k=>({key:k,value:row[k],duplicate:row[k]!=null&&reported?.[k]===row[k]}));
+    return {row,fields};
+  }).filter(x=>x.fields.some(f=>f.value!=null&&!f.duplicate));
+  const wrapper=destination.closest('[data-legacy-income]');if(wrapper)wrapper.hidden=!unique.length;
+  if(!unique.length)return;
+  const table=el('table','watch research-table'),head=el('thead'),header=el('tr');
+  ['Additional provider periods / values','Revenue','Operating profit','Net profit'].forEach((t,i)=>header.append(el('th',i?'n':'',t)));head.append(header);table.append(head);
+  const body=el('tbody');for(const {row,fields} of unique){const tr=el('tr');tr.append(el('td','',row.fiscalEnd||row.fiscalYear));
+    fields.forEach(f=>tr.append(el('td','n',f.duplicate?'Already in statements':companyAmount(f.value,c.financialCurrency||''))));body.append(tr);
   }table.append(body);destination.append(table);
+
 }
 function chosenMoverMarket(){return (D.movers||[]).find(m=>m.id===state.moversMarket)||null;}
 // INDEX UNIVERSE SCREENER — missing data and sample coverage are explicit.
@@ -1576,7 +1584,11 @@ const screenRows=(()=>{
   });
 })();
 const screenFields=[['pe','max'],['div','min'],['roe','min'],['growth','min'],['debt','max'],['vol','max'],['mom','min']];
-function screenNumber(id){const input=$('screen-'+id);return input&&input.value.trim()!==''?numberOrNull(input.value):null;}
+// DOM/browser restoration is never the source of truth for numeric filters.
+function screenNumber(id){return screenState.filters[id]??null;}
+function screenSync(){for(const [id] of screenFields){const input=$('screen-'+id);if(!screenState.invalid?.has(id))input.value=screenNumber(id)??'';}}
+function screenSet(values={}){screenState.invalid=new Set();screenState.filters=Object.fromEntries(screenFields.map(([id])=>[id,values[id]??null]));screenSync();}
+
 function screenApply(){
   const filters=Object.fromEntries(screenFields.map(([id])=>[id,screenNumber(id)]));
   const limits=[['pe','pe'],['div','div'],['roe','roe'],['growth','growth'],['debt','leverage'],['vol','vol'],['mom','momentum']];
@@ -1598,7 +1610,9 @@ function screenApply(){
   return {matched,missing,outside,universe:unique.length,filters};
 }
 function renderScreener(){
-  const host=$('screen-rows');if(!host)return;host.replaceChildren();
+  const host=$('screen-rows');if(!host)return;host.replaceChildren();screenSync();
+  const invalid=screenState.invalid?.size; $('screen-export').disabled=!!invalid;
+  if(invalid){screenState.matches=[];$('screen-results').textContent='Review '+invalid+' invalid filter(s): enter values within the displayed limits or Reset Filters.';return;}
   const {matched,missing,outside,universe,filters}=screenApply();
   const financial=screenRows.filter(x=>x.pe!=null).length,historical=screenRows.filter(x=>x.vol!=null).length;
   const active=Object.values(filters).some(x=>x!==null);
@@ -1620,8 +1634,17 @@ function initScreener(){
   const refresh=()=>{screenState.market=$('screen-market').value;screenState.sector=$('screen-sector').value;
     screenState.sort=$('screen-sort').value;renderScreener();};
   for(const id of ['market','sector','sort'])$('screen-'+id).addEventListener('change',refresh);
-  for(const [id] of screenFields){$('screen-'+id).addEventListener('input',refresh);}
-  const preset=values=>{for(const [id] of screenFields)$('screen-'+id).value=values[id]??'';refresh();};
+  screenSet();
+  for(const [id] of screenFields){const input=$('screen-'+id);input.name='equity_screen_'+id;input.autocomplete='off';
+    input.addEventListener('input',event=>{
+      if(!event.isTrusted||document.activeElement!==input){screenSync();return;}
+      if(!input.validity.badInput&&!input.validity.rangeOverflow&&!input.validity.rangeUnderflow){screenState.invalid.delete(id);screenState.filters[id]=input.value===''?null:Number(input.value);}
+      else screenState.invalid.add(id);
+      input.setAttribute('aria-invalid',String(screenState.invalid.has(id)));refresh();
+    });
+  }
+  window.addEventListener('pageshow',()=>{screenSync();renderScreener();});
+  const preset=values=>{screenSet(values);for(const [id] of screenFields)$('screen-'+id).setAttribute('aria-invalid','false');refresh();};
   $('screen-value').onclick=()=>preset({pe:15,div:3});
   $('screen-quality').onclick=()=>preset({roe:15,growth:5,debt:2});
   $('screen-clear').onclick=()=>{$('screen-market').value='all';$('screen-sector').value='all';$('screen-sort').value='cap';preset({});};
@@ -3963,7 +3986,7 @@ function renderGilts(){
   if(!rows.length){const tr=el('tr');const cell=td(tr,'No gilts match this filter');cell.colSpan=8;table.append(tr);}
   for(const g of rows){const tr=el('tr');tr.dataset.isin=g.isin;tr.style.cursor='pointer';if(g.ticker===giltState.symbol)tr.classList.add('selected');
     const {model,net}=metrics.get(g.ticker);
-    const name=td(tr,'');name.className='gilt-identity';name.append(el('strong','',g.name),el('small','',g.isin+(g.shortTicker?' · '+g.shortTicker:'')));name.title='Official quotation '+g.asOf;if(giltYieldReviewReason(g)||(model&&g.askDirty!=null&&Math.abs(model.accrued-(g.askDirty-g.askClean))>=.0005)){name.append(el('small','dn','Yield model accrual: review'));name.title+=' · model accrued interest differs from DMO dirty minus clean; check ex-dividend/irregular coupon conventions';}td(tr,g.maturity);td(tr,fmt(g.coupon,3)+'%','n');
+    const name=td(tr,'');name.className='gilt-identity';name.append(el('strong','',g.name),el('small','',g.isin+(g.shortTicker?' · '+g.shortTicker:'')+' · '+(g.indexLinked?'Index-linked':'Conventional')));name.title='Official quotation '+g.asOf;if(giltYieldReviewReason(g)||(model&&g.askDirty!=null&&Math.abs(model.accrued-(g.askDirty-g.askClean))>=.0005)){name.append(el('small','dn','Yield model accrual: review'));name.title+=' · model accrued interest differs from DMO dirty minus clean; check ex-dividend/irregular coupon conventions';}td(tr,g.maturity);td(tr,fmt(g.coupon,3)+'%','n');
     td(tr,g.bidClean!=null?fmt(g.bidClean,2):'—','n');td(tr,g.askClean!=null?fmt(g.askClean,2):'—','n');
     td(tr,giltYieldReviewReason(g)?'Review':g.indexLinked?'—':model?fmt(model.ytm,3)+'%*':'—','n');
     td(tr,giltYieldReviewReason(g)?'Review':net!=null?fmt(net,3)+'%':'—','n');td(tr,giltYieldReviewReason(g)?'Review':net!=null&&taxRate<100?fmt(net/(1-taxRate/100),3)+'%':'—','n');

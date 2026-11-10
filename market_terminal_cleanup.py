@@ -284,7 +284,7 @@ function mtBuildQuality(){
  function draw(){body.replaceChildren();const chosen=selector.value==='All tabs'?issues:issues.filter(x=>x.tab===selector.value);
   for(const item of chosen.slice(0,8)){const row=el('div','mt-quality-issue');row.append(el('span','mt-quality-section',item.tab),el('span','mt-quality-severity',item.severity),el('span','',item.msg));body.append(row);}
   let more=container.querySelector('.mt-quality-more');if(more)more.remove();
-  if(chosen.length>8){more=el('details','mt-quality-more');more.append(el('summary','',String(chosen.length-8)+' additional exceptions'));
+  if(chosen.length>8){more=el('details','mt-quality-more');more.append(el('summary','',String(chosen.length-8)+' additional exceptions · '+[...new Set(chosen.slice(8).map(x=>x.severity))].map(level=>chosen.slice(8).filter(x=>x.severity===level).length+' '+level).join(' / ')));
    for(const item of chosen.slice(8))more.append(el('p','note',item.tab+': '+item.msg));container.append(more);}
   if(!chosen.length)body.append(el('p','note','No recorded exceptions for this tab.'));
  }
