@@ -39,6 +39,10 @@ class BriefingTests(unittest.TestCase):
         titles=['Euro zone ministers to discuss ECB appointments - Euronext Markets: Real-time Data','Euro zone ministers to discuss ECB appointments - Reuters','Bond yields rise ahead of inflation -- 2nd Update - marketscreener.com','Bond yields rise ahead of inflation - WSJ']
         records=[classify(story(t),NOW) for t in titles]
         self.assertEqual(len(deduplicate(records)),2)
+    def test_opposite_reported_movements_remain_distinct(self):
+        a=classify(story('European bond yields rise ahead of inflation and central bank decisions'),NOW)
+        b=classify(story('European bond yields fall ahead of inflation and central bank decisions'),NOW)
+        self.assertEqual(len(deduplicate([a,b])),2)
     def test_archives_missing_future(self):
         for item in [story('Shell earnings',restored=True),dict(story('Shell earnings'),published='2026-11-01 10:00 UTC'),dict(story('Shell earnings'),published=None),dict(story('Shell earnings'),published='2026-11-11 10:00 UTC')]:
             self.assertTrue(classify(item,NOW)['archived'])

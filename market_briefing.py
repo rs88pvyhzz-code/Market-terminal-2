@@ -48,19 +48,22 @@ def deduplicate(items):
         title=headline_text(item)
         normal=title.replace('federal reserve','fed').replace('bank of england','boe').replace('consumer price index','cpi').replace('lowers rates','cuts rates').replace('raises rates','hikes rates')
         tokens=set(re.findall(r'[a-z0-9]+',normal)) - {'the','a','an','in','of','to','and','for','on','as','with','after','says'}
-        numbers=set(re.findall(r'\d+(?:\.\d+)?',title));match=None
+        numbers=set(re.findall(r'\d+(?:\.\d+)?',title));directions=set()
+        for direction,pattern in [('up',r'\b(rises?|rising|raises?|hikes?|increases?)\b'),('down',r'\b(falls?|falling|cuts?|lowers?|decreases?)\b'),('flat',r'\b(holds?|unchanged)\b')]:
+            if re.search(pattern,normal):directions.add(direction)
+        match=None
         for other in result:
             same_url=item['url']==other['url']
             overlap=len(tokens & other['_tokens'])/max(1,len(tokens | other['_tokens']))
             same_day=item.get('published','')[:10]==other.get('published','')[:10]
-            if same_url or (same_day and numbers==other['_numbers'] and overlap>=.72):match=other;break
+            if same_url or (same_day and numbers==other['_numbers'] and directions==other['_directions'] and overlap>=.72):match=other;break
         if match:
             match['categories']=list(dict.fromkeys(match['categories']+item['categories']))
             if item['url']!=match['url'] and not any(x['url']==item['url'] for x in match['coverage']):
                 match['coverage'].append({k:item.get(k) for k in ['title','url','source','published','retrievedAt','archived']})
         else:
-            item.update(id=hashlib.sha256((title+item.get('published','')[:10]).encode()).hexdigest()[:16],coverage=[],_tokens=tokens,_numbers=numbers);result.append(item)
-    for item in result:item.pop('_tokens');item.pop('_numbers')
+            item.update(id=hashlib.sha256((title+item.get('published','')[:10]).encode()).hexdigest()[:16],coverage=[],_tokens=tokens,_numbers=numbers,_directions=directions);result.append(item)
+    for item in result:item.pop('_tokens');item.pop('_numbers');item.pop('_directions')
     return sorted(result,key=lambda x:(x['archived'],-x['rank'], -(timestamp(x.get('published')).timestamp() if timestamp(x.get('published')) else 0)))
 
 def enrich(payload):
