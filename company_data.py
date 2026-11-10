@@ -67,6 +67,7 @@ _BALANCE = {
 _CASHFLOW = {
     'operatingCashFlow': ['Operating Cash Flow'], 'capex': ['Capital Expenditure'],
     'investingCashFlow': ['Investing Cash Flow'], 'financingCashFlow': ['Financing Cash Flow'],
+    'netBusinessAcquisitions': ['Acquisitions Net', 'Net Business Purchase And Sale'],
     'workingCapitalCashChange': ['Change In Working Capital'],
     'depreciation': ['Depreciation And Amortization', 'Depreciation Amortization Depletion'],
     'shareBasedComp': ['Stock Based Compensation'],

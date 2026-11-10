@@ -403,6 +403,9 @@ def build(opts):
         import company_research
         for c in demo['companies']:
             c['research']=company_research.analyse(c.get('annual',[]),company_research.financial_sector(c))
+        import research_intelligence
+        for c in demo['companies']:
+            c['intelligence']=research_intelligence.compose(c,{},demo['companies'],asof=demo['generatedAt'][:10])
         demo_profiles={c['symbol']:c for c in demo['companies']}
         demo_hist={}
         for r in demo.get('company_history',[]):demo_hist.setdefault(r['symbol'],[]).append(r)
@@ -544,6 +547,16 @@ def build(opts):
     warnings.extend(profile_warnings)
     import company_research
     company_research.enrich(companies,profiles,ROOT/'.terminal_profiles',offline=opts.offline)
+    import research_intelligence
+    try:
+        research_coverage,research_warnings=research_intelligence.collect(companies,profiles,ROOT/'.terminal_research',news=[*watch_news,*company_news],offline=opts.offline or opts.no_companies,batch=6)
+        warnings.extend(research_warnings)
+        research_intelligence.publish(ROOT/'.terminal_research',ROOT/'public')
+        print(f'Research evidence: {research_coverage["primaryCovered"]}/{research_coverage["companies"]} with primary documents; {research_coverage["refreshed"]} refreshed',flush=True)
+    except Exception as exc:
+        warnings.append('Research evidence unavailable; core terminal preserved: '+str(exc)[:150])
+        for c in [*companies,*profiles]:
+            c['intelligence']=research_intelligence.compose(c,{},[*companies,*profiles])
     company_profiles.publish(ROOT/'.terminal_profiles',ROOT/'public')
     print(f'Company profiles: {profile_coverage["profiles"]}/{profile_coverage["universe"]} cached; {profile_coverage["fetchedThisRun"]} refreshed this run',flush=True)
     print(f'Fundamentals: {fcoverage["summaries"]} of {fcoverage["eligible"]} unique constituents have summaries; {fcoverage["available"]} have P/E',flush=True)
@@ -657,7 +670,7 @@ def main():
     if not payload['quotes'] and not payload['uk_rates'] and not payload['macro'] and not payload['us_rates']:
         raise SystemExit('No data was retrieved. Check internet access; use --demo to preview the interface.')
     template=(ROOT/'terminal_template.html').read_text('utf-8')
-    template=template.replace('/*__EQUITY_RESEARCH__*/', (ROOT/'equity_research.js').read_text('utf-8'))
+    template=template.replace('/*__EQUITY_RESEARCH__*/', (ROOT/'equity_research.js').read_text('utf-8')+'\n'+(ROOT/'equity_research_r2.js').read_text('utf-8'))
     # Links to the repository (e.g. 'edit watchlist') follow whichever repo builds the site.
     repo=__import__('os').environ.get('GITHUB_REPOSITORY')
     if repo and '/' in repo: template=template.replace('rs88pvyhzz-code/market-terminal',repo)

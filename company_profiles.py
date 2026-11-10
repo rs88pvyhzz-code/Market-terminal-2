@@ -91,7 +91,7 @@ def _profile(symbol, name, info, annual, status, events, stamp):
         'revenue': latest.get('revenue'), 'operatingProfit': latest.get('operatingProfit'),
         'netProfit': latest.get('netProfit'), 'fiscalEnd': latest.get('fiscalEnd'),
         'financialCurrency': info.get('financialCurrency') or '', 'annual': annual, 'events': events,
-        'fundamentalSource': status, 'financialAsOf': stamp[:10], 'asOf': stamp, 'schema': 4,
+        'fundamentalSource': status, 'financialAsOf': stamp[:10], 'asOf': stamp, 'schema': 5,
     }
 
 
@@ -123,9 +123,9 @@ def collect(movers, fundamentals, detailed, directory, batch=35, offline=False, 
     records = {k: v for k, v in records.items() if k in wanted_syms}
 
     def stale(sym):
-        # Schema 4 adds filing provenance and dated balance inputs;
+        # Schema 5 adds sourced acquisition cash-flow lines for capital allocation;
         # older cached profiles are refreshed in rotation without waiting a week.
-        if sym in records and records[sym].get('schema') != 4:
+        if sym in records and records[sym].get('schema') != 5:
             return True
         if sym in records:
             return age(records[sym].get('asOf')) >= REFRESH_DAYS and age(attempts.get(sym)) >= RETRY_DAYS
