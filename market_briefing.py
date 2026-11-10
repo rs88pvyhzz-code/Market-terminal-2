@@ -37,7 +37,13 @@ def deduplicate(items):
     """Conservative headline event grouping; keep differing numbers/directions separate."""
     result=[]
     for item in sorted(items,key=lambda x:(x['archived'],-x['rank'],x.get('published','')),reverse=False):
-        title=re.sub(r'\s+-\s+[^-]+$','',item['title'].lower())
+        title=item['title'].lower()
+        # RSS search appends publisher names (which may themselves contain hyphens).
+        # Edition numbers are metadata, not conflicting economic numerical claims.
+        if not item.get('official') and ' - ' in title:
+            headline,suffix=title.rsplit(' - ',1)
+            if suffix==str(item.get('source','')).lower() or not re.search(r'\d|\b(cuts?|hikes?|rates?|inflation|earnings|guidance|gdp|cpi)\b',suffix):title=headline
+        title=re.sub(r'\s*--?\s*\d+(?:st|nd|rd|th)\s+update\b.*$','',title)
         normal=title.replace('federal reserve','fed').replace('bank of england','boe').replace('consumer price index','cpi').replace('lowers rates','cuts rates').replace('raises rates','hikes rates')
         tokens=set(re.findall(r'[a-z0-9]+',normal)) - {'the','a','an','in','of','to','and','for','on','as','with','after','says'}
         numbers=set(re.findall(r'\d+(?:\.\d+)?',title));match=None
