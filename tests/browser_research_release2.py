@@ -53,6 +53,8 @@ with sync_playwright() as p:
         assert page.locator('#research-warning-priority > .small-scroll tbody tr').count()==5
         assert 'unassessed' in page.locator('#research-warning-priority').inner_text()
         page.locator('#research-tab-2').click()
+        if page.get_by_role('button',name='OPEN ADVANCED DCF & STRESS MODEL').count():
+            page.get_by_role('button',name='OPEN ADVANCED DCF & STRESS MODEL').click()
         if symbol=='HSBA.L':
             assert 'Corporate FCFF recession modelling is excluded' in page.locator('#research-stress-panel').inner_text()
             assert page.locator('#research-stress-panel input').count()==0
