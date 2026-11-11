@@ -46,7 +46,7 @@ class CatalogTests(unittest.TestCase):
                  ['2026-11-09',139.80,139.80]]
         # Before the chart has today's bar, 1Y is calculated to Nov 9.
         ret,basis=etf_tracker.annualised_performance(history,1)
-        expected=100*((139.80/126.84)**(365.25/364)-1)
+        expected=100*(139.80/126.84-1)
         self.assertAlmostEqual(ret,round(expected,2),places=2)
         self.assertEqual(basis,'Adjusted close proxy')
 
