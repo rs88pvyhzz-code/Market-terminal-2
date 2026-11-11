@@ -57,6 +57,7 @@ jobs:
       - name: Run source-backed Release 2.8 unit tests
         run: python -m unittest test_release28.py
       - run: node --check terminal_release29.js
+      - run: node --check terminal_release210.js
       - name: Install browser runner
         run: |
           python -m pip install playwright
@@ -83,6 +84,7 @@ jobs:
           python tests/browser_release27.py terminal.html
           python tests/browser_release28.py terminal.html
           python tests/browser_release29.py terminal.html
+          python tests/browser_release210.py terminal.html
           python tests/browser_treasury_scroll.py terminal.html
       - name: Upload actual terminal and source diagnostics for review
         if: always()
@@ -101,6 +103,7 @@ jobs:
             /tmp/release27-*.png
             /tmp/release27-visual-verification.json
             /tmp/release29-*.png
+            /tmp/release210-*.png
             .terminal_sources/requests.jsonl
             .terminal_sources/fresh_sec_verification.json
             /tmp/research-live-*.png
