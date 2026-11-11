@@ -3,7 +3,8 @@
 // Remove Terminal 2's nested, duplicate-subsection navigation.
 const terminalSubViews={};
 let terminalNavSaved={};try{terminalNavSaved=JSON.parse(localStorage.getItem('market-terminal-navigation-v2')||'{}');}catch{}
-const terminalSubSelection={fx:terminalNavSaved.fx||'prices',equities:terminalNavSaved.equities||'screen'};
+// The original top-level tabs supersede saved nested-subview choices.
+const terminalSubSelection={fx:'prices',equities:'screen'};
 function terminalBuildSubViews(view,key){
  const nav=el('nav','terminal-subnav');nav.setAttribute('aria-label',key==='equities'?'Equities and Research sections':'Markets sections');nav.setAttribute('role','tablist');view.append(nav);
  terminalSubViews[key].forEach(([name,label,ids],i)=>{const button=el('button','btn',label);button.id='sub-'+key+'-'+name;button.type='button';button.setAttribute('role','tab');button.setAttribute('aria-controls','subview-'+key+'-'+name);button.onclick=()=>activateWorkspace(key,{subview:name,scroll:false});button.onkeydown=e=>{if(!['ArrowLeft','ArrowRight','Home','End'].includes(e.key))return;e.preventDefault();const choices=terminalSubViews[key],index=e.key==='Home'?0:e.key==='End'?choices.length-1:(i+(e.key==='ArrowRight'?1:-1)+choices.length)%choices.length;activateWorkspace(key,{subview:choices[index][0],scroll:false});$('sub-'+key+'-'+choices[index][0]).focus();};nav.append(button);
