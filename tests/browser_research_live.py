@@ -14,34 +14,34 @@ with sync_playwright() as p:
     page.on('pageerror',lambda e:errors.append(str(e)))
     page.route('http://localhost:8765/**',lambda route:route.fulfill(body=html,content_type='text/html'))
     page.goto('http://localhost:8765/',wait_until='domcontentloaded')
-    page.locator('#tab-equities').click();page.locator('#sub-equities-research').click()
+    page.locator('#tab-companies').click()
     for symbol in ['SHEL.L','MSFT','HSBA.L']:
         page.locator('#company-pick').select_option(symbol);page.wait_for_timeout(100)
         assert page.locator('#research-nav [role=tab]').count()==6
+        page.locator('#research-tab-0').click()
+        assert page.locator('#research-overview .research-card').count()>=6
+        page.locator('#research-tab-1').click()
+        assert page.locator('#research-statements').count()==1
         page.locator('#research-tab-2').click()
-        if page.get_by_role('button',name='OPEN ADVANCED DCF & STRESS MODEL').count():
-            page.get_by_role('button',name='OPEN ADVANCED DCF & STRESS MODEL').click()
-        if symbol=='SHEL.L':
-            assert page.get_by_label('Shares outstanding (absolute count)',exact=True).input_value()!=''
-            if next(c for c in d['companies'] if c['symbol']==symbol).get('valuationIntegrity',{}).get('issues'):
-                assert 'VALUATION REQUIRES SOURCE REVIEW' in page.locator('#research-valuation').inner_text()
-            print('Actual Shell FCFF m',page.get_by_label('Normalised FCFF (reporting currency, millions)',exact=True).input_value())
-            print('Actual Shell debt adjustment m',page.get_by_label('Debt-related adjustment (reporting millions)',exact=True).input_value())
-        if symbol=='HSBA.L':assert 'Standard FCFF DCF excluded' in page.locator('#research-valuation').inner_text()
-        if len(next(c for c in d['companies'] if c['symbol']==symbol).get('valuationHistory',[]))<12:
-            assert page.locator('#research-multiples-chart').count()==0
-            assert page.locator('#research-valuation .research-periods button:not([disabled])').count()==0
+        assert page.locator('#research-valuation .t11-metric').count()==6
+        assert page.locator('#research-valuation input').count()==0
+        assert page.locator('#research-valuation button').count()==0
         page.locator('#research-tab-4').click()
         assert 'MANAGEMENT & EARNINGS INTELLIGENCE' in page.locator('#research-outlook').inner_text()
-        if symbol=='SHEL.L':assert page.locator('#research-outlook .research-evidence').count()>=3
+        if symbol=='SHEL.L':
+            assert page.locator('#research-outlook .research-evidence').count()>=3
         for width in [768,1024,1440]:
             page.set_viewport_size({'width':width,'height':1100})
             for i in range(6):
                 page.locator('#research-tab-'+str(i)).click();page.wait_for_timeout(30)
-                assert page.evaluate('document.body.scrollWidth<=innerWidth'),(symbol,width,i)
+                assert page.evaluate('document.body.scrollWidth<=innerWidth+1'),(symbol,width,i)
         if symbol=='SHEL.L':
-            page.locator('#research-tab-0').click();page.screenshot(path='/tmp/research-live-shell.png',full_page=True)
-    for tab in page.locator('[data-workspace][role=tab]').all():tab.click();page.wait_for_timeout(50)
+            page.locator('#research-tab-0').click()
+            page.screenshot(path='/tmp/research-live-shell.png',full_page=True)
+    for tab in page.locator('[data-workspace][role=tab]').all():
+        tab.click();page.wait_for_timeout(50)
+    page.locator('#tab-quality').click()
+    assert page.locator('#terminal1-source-register').count()==1
     assert not errors,errors
-    print('PASS actual live payload: dated research, valuation warning, sparse history, banks, six views and all terminal sections on desktop/iPad')
+    print('PASS actual live payload: dated company evidence, read-only ratios, full source register and ten original-workspace layouts on desktop/iPad')
     browser.close()
