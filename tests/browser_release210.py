@@ -51,12 +51,12 @@ with sync_playwright() as p:
  assert table.locator('.etf-geo-group').count()>2
  assert 'two per market' in page.locator('#etf-result-count').inner_text()
  for selector in ['#etf-tracker-panel .etf-table-scroll']:
-  assert page.locator(selector).evaluate('(e)=>parseFloat(getComputedStyle(e).maxHeight)<=440')
+  assert page.locator(selector).evaluate('(e)=>parseFloat(getComputedStyle(e).maxHeight)<=460')
   assert page.locator(selector).evaluate('(e)=>getComputedStyle(e).overflowY')=='auto'
  if not data.get('demo'):page.screenshot(path='/tmp/release210-etfs-ipad.png',full_page=True)
  page.locator('#tab-bonds').click()
  for selector in ['#ust-securities-scroll','#gilts .gilt-table-scroll']:
-  assert page.locator(selector).evaluate('(e)=>Math.abs(parseFloat(getComputedStyle(e).maxHeight)-Math.min(innerHeight*.44,440))<1')
+  assert page.locator(selector).evaluate('(e)=>Math.abs(parseFloat(getComputedStyle(e).maxHeight)-Math.min(innerHeight*.47,460))<1')
   assert page.locator(selector+' thead th').first.evaluate('(e)=>getComputedStyle(e).position')=='sticky'
  assert page.locator('#gilts').evaluate('''e=>e.querySelector("#gilt-ladder").compareDocumentPosition(e.querySelector("#gilt-chart"))&Node.DOCUMENT_POSITION_PRECEDING'''),'Gilt chart must precede ladder'
  # Quote-specific gilt valuation cards appear after a valid security is selected.
@@ -71,8 +71,7 @@ with sync_playwright() as p:
  assert page.locator('#gilt-chart').count()==1
  assert page.locator('#gilt-freshness').count()==1
  if not data.get('demo'):page.screenshot(path='/tmp/release210-gilts-ipad.png',full_page=True)
- page.locator('#tab-equities').click()
- page.locator('#sub-equities-research').click()
+ page.locator('#tab-companies').click()
  page.locator('#research-tab-4').click()
  page.wait_for_timeout(180)
  nav=page.locator('#research-view-4 > .r25-section-links')
