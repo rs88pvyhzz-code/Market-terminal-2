@@ -42,6 +42,26 @@ class SourceIntegrityTests(unittest.TestCase):
                 research_intelligence.collect([c],[],cache.parent,asof='2026-11-10T01:00:00+00:00',batch=0)
             self.assertTrue(c['intelligence']['sources'],'Retry backoff must not hide recoverable real documents')
 
+    def test_missing_research_check_dates_never_abort_collection(self):
+        # A restored primary-source record may have checkedAt=None while a
+        # different record has a timestamp. Mixed dates must never crash the
+        # entire research step and remove evidence for unrelated issuers.
+        with tempfile.TemporaryDirectory() as directory:
+            root=Path(directory)
+            cache=root/research_intelligence.CACHE_NAME
+            cache.write_text(json.dumps({'records':{
+                'SHEL.L':{'schema':1,'documents':[],'checkedAt':None,'attemptedAt':None},
+                'MSFT':{'schema':1,'documents':[],'checkedAt':'2026-11-08T12:00:00+00:00','attemptedAt':None}
+            }}))
+            companies=[{'symbol':s,'annual':[],'research':{},'financialCurrency':'USD'} for s in ('SHEL.L','MSFT')]
+            with patch.object(research_intelligence,'parse_sources',return_value={'documents':[]}),patch.object(
+                research_intelligence,'compose',return_value={'sources':[]}):
+                result,warnings=research_intelligence.collect(
+                    companies,[],root,offline=True,batch=0,asof='2026-11-11T23:00:00+00:00')
+            self.assertEqual(result['companies'],2)
+            self.assertEqual(len(companies),2)
+            self.assertTrue(all('intelligence' in c for c in companies))
+
     def test_archive_never_overwrites_newer_sources_or_accepts_unsafe_paths(self):
         blob=(ROOT/'verified_sources'/source_archive.NAME).read_bytes()
         with tempfile.TemporaryDirectory() as directory:

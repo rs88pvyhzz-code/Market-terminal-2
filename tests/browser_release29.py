@@ -32,8 +32,7 @@ with sync_playwright() as p:
     assert page.locator(".r29-news-footer").count()==1
     assert page.locator("#news-list .r29-news").count()<=8
     if not data.get("demo"):page.screenshot(path="/tmp/release29-news-ipad.png",full_page=True)
-    page.locator("#tab-equities").click()
-    page.locator("#sub-equities-research").click()
+    page.locator("#tab-companies").click()
     page.locator("#research-tab-0").click()
     page.wait_for_timeout(160)
     order=page.locator("#research-view-0 > [id]").evaluate_all("(els)=>els.map(x=>x.id)")
@@ -46,23 +45,15 @@ with sync_playwright() as p:
     if not data.get("demo"):page.screenshot(path="/tmp/release29-company-ipad.png",full_page=True)
     page.locator("#research-tab-2").click()
     page.wait_for_timeout(150)
-    assert page.locator("#research-valuation .r29-valuation-metric").count()==6
-    assert page.locator("#research-valuation input").count()==0
-    assert page.get_by_role("button",name="OPEN ADVANCED DCF & STRESS MODEL").count()==1
-    if not data.get("demo"):page.screenshot(path="/tmp/release29-valuation-ipad.png",full_page=True)
-    page.get_by_role("button",name="OPEN ADVANCED DCF & STRESS MODEL").click()
-    page.wait_for_timeout(170)
-    assert page.get_by_role("button",name="RETURN TO SIMPLE VALUATION").count()==1
-    # In the source model some inputs can be unavailable, but the controls remain.
-    assert page.locator("#research-valuation input").count()>0
-    page.get_by_role("button",name="RETURN TO SIMPLE VALUATION").click()
-    assert page.locator("#research-valuation .r29-valuation-metric").count()==6
-    assert page.locator("#research-valuation input").count()==0
+    assert page.locator('#research-valuation .t11-metric').count()==6
+    assert page.locator('#research-valuation input').count()==0
+    assert page.locator('#research-valuation button').count()==0
+    if not data.get('demo'):page.screenshot(path='/tmp/release211-valuation-readonly-ipad.png',full_page=True)
     page.locator("#tab-bonds").click()
     page.wait_for_timeout(100)
     for selector in ["#ust-securities-scroll","#gilts .gilt-table-scroll"]:
         height=page.locator(selector).evaluate("(x)=>parseFloat(getComputedStyle(x).maxHeight)")
-        expected=page.evaluate("Math.min(innerHeight*.44,440)") if page.evaluate("document.documentElement.classList.contains('release210')") else (page.evaluate("Math.min(innerHeight*.6,600)") if selector=="#ust-securities-scroll" else page.evaluate("innerHeight*.65"))
+        expected=page.evaluate("Math.min(innerHeight*.47,460)")
         assert abs(height-expected)<1,(selector,height,expected)
         assert page.locator(selector+" thead th").first.evaluate("(e)=>getComputedStyle(e).position")=="sticky",selector
     assert page.locator("#gilt-freshness").count()==1

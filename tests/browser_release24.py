@@ -8,7 +8,7 @@ with sync_playwright() as p:
     page=browser.new_page(viewport={'width':1440,'height':1100});errors=[];page.on('pageerror',lambda e:errors.append(str(e)))
     page.route('http://localhost:8765/**',lambda r:r.fulfill(body=html,content_type='text/html'))
     page.goto('http://localhost:8765/',wait_until='domcontentloaded',timeout=120000);page.wait_for_timeout(150)
-    assert page.locator('#workspace-tabs [role=tab]').count()==8
+    assert page.locator('#workspace-tabs [role=tab]').count()==10
     for width,height in [(1440,1100),(1024,768),(390,844)]:
         page.set_viewport_size({'width':width,'height':height});page.locator('#tab-overview').click();page.wait_for_timeout(80)
         sections=page.locator('#view-overview > section').evaluate_all('(els)=>els.map(e=>e.id)')
@@ -21,9 +21,9 @@ with sync_playwright() as p:
         assert page.locator('#r24-watch article').count()<=2
         assert page.locator('#r24-conditions tbody tr').count()==4
         assert page.locator('#r24-upcoming tbody tr').count()<=3
-        for tab,name in [('overview','overview'),('fx','markets'),('economics','economics'),('equities','research'),('bonds','bonds'),('etfs','etfs'),('watchlist','watchlist'),('quality','quality')]:
+        for tab,name in [('overview','overview'),('fx','markets'),('economics','economics'),('equities','equities'),('companies','research'),('analytics','analytics'),('bonds','bonds'),('etfs','etfs'),('watchlist','watchlist'),('quality','quality')]:
             page.locator('#tab-'+tab).click();page.wait_for_timeout(80)
-            if tab=='equities':page.locator('#sub-equities-research').click();page.locator('#research-tab-0').click();page.wait_for_timeout(100)
+            if tab=='companies':page.locator('#research-tab-0').click();page.wait_for_timeout(100)
             if tab=='fx':page.locator('#sub-fx-prices').click();page.wait_for_timeout(50);assert page.locator('#movers').is_visible();page.locator('#sub-fx-news').click();assert page.locator('#news').is_visible();page.locator('#sub-fx-prices').click()
             if tab=='economics':
                 assert page.locator('#calendar-items table').count()==1
@@ -37,19 +37,22 @@ with sync_playwright() as p:
                 assert not page.locator('#mt-full-audit .mt-audit-content').is_visible()
                 page.locator('#mt-full-audit > summary').click();assert page.locator('#mt-full-audit .mt-audit-content').is_visible()
                 page.locator('#mt-full-audit > summary').click()
-            assert page.evaluate('document.body.scrollWidth<=innerWidth'),(name,width,'page overflow')
+            within=page.evaluate('document.body.scrollWidth<=innerWidth')
+            if not within:
+                offenders=page.evaluate("""() => [...document.querySelectorAll('body *')]
+                  .filter(e=>{let r=e.getBoundingClientRect();return r.width>0&&r.height>0&&(r.right>innerWidth+1||r.left< -1)})
+                  .slice(0,12).map(e=>({tag:e.tagName,id:e.id,cls:String(e.className).slice(0,100),
+                    right:Math.round(e.getBoundingClientRect().right),width:Math.round(e.getBoundingClientRect().width)}))""")
+                assert within,(name,width,'page overflow',offenders)
+
             if width>=1024 and name in ['overview','markets','economics','research','bonds']:page.evaluate('scrollTo(0,0)');page.wait_for_timeout(50);page.screenshot(path=f'/tmp/release24-{name}-{width}.png',full_page=True)
-        page.locator('#tab-equities').click();page.locator('#sub-equities-research').click();page.locator('#research-tab-1').click();page.wait_for_timeout(100)
+        page.locator('#tab-companies').click();page.locator('#research-tab-1').click();page.wait_for_timeout(100)
         assert page.locator('#research-statements details').count()==0
         page.locator('#research-tab-2').click();page.wait_for_timeout(100)
-        if page.get_by_label('Normalised FCFF (reporting currency, millions)',exact=True).count():
-            assert page.get_by_label('Normalised FCFF (reporting currency, millions)',exact=True).is_visible()
-            bridge=page.locator('#research-valuation section').filter(has=page.locator(':scope > h3',has_text='Normalised FCFF calculation'))
-            assert bridge.count()==1 and bridge.locator('table').first.is_visible()
-            stress=page.get_by_label('First-year revenue shock (%)',exact=True)
-            if stress.count():assert stress.is_visible()
-            assert page.locator('#research-valuation input').evaluate_all('(els)=>els.every(e=>!e.closest("details"))')
-        assert page.locator('#research-valuation .research-warning').evaluate_all('(els)=>els.every(e=>!e.closest("details"))')
+        assert page.locator('#research-valuation .t11-metric').count()==6
+        assert page.locator('#research-valuation input').count()==0
+        assert page.locator('#research-valuation button').count()==0
+        assert 'Trailing P/E' in page.locator('#research-valuation').inner_text()
         page.locator('#research-tab-0').click();page.wait_for_timeout(80)
         assert page.locator('#company-chart').is_visible() and page.locator('#company-risk-kpis').is_visible()
         assert page.locator('#research-overview details').count()==0
@@ -61,7 +64,7 @@ with sync_playwright() as p:
             if width>=1024:
                 assert page.locator('#research-statements .research-table--annual').evaluate_all('(tables)=>tables.every(t=>t.scrollWidth<=t.parentElement.clientWidth+2)')
                 assert page.locator('#research-statements .research-table--annual thead th:not(:first-child)').evaluate_all('(els)=>els.every(e=>getComputedStyle(e).textAlign==="right")')
-        page.locator('#tab-fx').click();page.locator('#sub-fx-analytics').click();assert page.locator('#analytics-breadth').is_visible();assert page.locator('#analytics-sectors').is_visible()
+        page.locator('#tab-analytics').click();assert page.locator('#analytics-breadth').is_visible();assert page.locator('#analytics-sectors').is_visible()
     assert not errors,errors
-    print('PASS R24: '+('synthetic demo' if data['demo'] else 'actual payload')+'; five Overview sections, seven snapshots, relocated feed/movers/breadth/sectors, full calendar, selective single-level support, visible controls/warnings, eight tabs, desktop/iPad/mobile')
+    print('PASS R24: '+('synthetic demo' if data['demo'] else 'actual payload')+'; five Overview sections, fourteen snapshots, relocated feed/movers/breadth/sectors, full calendar, selective single-level support, visible controls/warnings, ten tabs, desktop/iPad/mobile')
     browser.close()

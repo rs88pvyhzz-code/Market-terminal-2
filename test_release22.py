@@ -96,7 +96,8 @@ console.log('All 67 other gilt yields match the baseline within 1e-10 percentage
 
     def test_navigation_and_calculators_have_one_copy(self):
         html=(ROOT/'terminal_template.html').read_text();js=(ROOT/'equity_research.js').read_text()
-        self.assertEqual(html.count('data-workspace="'),8)
+        # Terminal 1's original ten independent workspaces are intentionally restored.
+        self.assertEqual(html.count('data-workspace="'),10)
         self.assertEqual(html.count('id="company-chart"'),1);self.assertEqual(html.count('id="company-benchmark-chart"'),1)
         self.assertNotIn("'Performance & Risk'",js)
         self.assertIn('terminalResolveRoute',html)

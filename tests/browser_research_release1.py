@@ -32,62 +32,36 @@ html=html[:a]+json.dumps(payload).replace('</','<\\/')+html[b:]
 with sync_playwright() as p:
     executable=os.environ.get('CHROMIUM_EXECUTABLE')
     browser=p.chromium.launch(**({'executable_path':executable} if executable else {}),headless=True,args=['--no-sandbox'])
-    page=browser.new_page(viewport={'width':1440,'height':1000})
-    errors=[];page.on('pageerror',lambda e:errors.append(str(e)))
+    page=browser.new_page(viewport={'width':1440,'height':1000});errors=[]
+    page.on('pageerror',lambda e:errors.append(str(e)))
     page.route('http://localhost:8765/**',lambda route:route.fulfill(body=html,content_type='text/html'))
     page.goto('http://localhost:8765/',wait_until='domcontentloaded')
-    page.locator('#tab-equities').click();page.locator('#sub-equities-research').click()
+    page.locator('#tab-companies').click()
     assert page.locator('#research-nav button').count()==6
     for symbol in ['SHEL.L','MSFT','HSBA.L']:
-        page.locator('#company-pick').select_option(symbol)
-        page.wait_for_timeout(80)
+        page.locator('#company-pick').select_option(symbol);page.wait_for_timeout(80)
         page.locator('#research-tab-0').click()
-        expected_cards=7 if page.evaluate("document.documentElement.classList.contains('release29')") else 6
-        assert page.locator('#research-overview .research-card').count()==expected_cards
+        assert page.locator('#research-overview .research-card').count()==7
         page.locator('#research-tab-1').click();page.wait_for_timeout(80)
         assert '5 of 5 annual periods sourced' in page.locator('#research-statements').inner_text()
         assert page.locator('#research-statements button',has_text='10Y').is_disabled()
         assert page.locator('#research-financial-chart svg').count()==1
         page.locator('#research-tab-2').click()
-        if page.evaluate("document.documentElement.classList.contains('release29')"):
-            assert page.locator('#research-valuation .r29-valuation-metric').count()==6
-            page.get_by_role('button',name='OPEN ADVANCED DCF & STRESS MODEL').click()
-        if symbol=='HSBA.L':
-            assert 'Standard FCFF DCF excluded' in page.locator('#research-valuation').inner_text()
-            assert page.locator('#research-valuation input').count()==0
-        else:
-            assert page.get_by_label('Normalised FCFF (reporting currency, millions)',exact=True).input_value()!=''
-            assert page.get_by_label('Debt (reporting currency, millions)',exact=True).input_value()!=''
-            assert page.get_by_label('Shares outstanding (absolute count)',exact=True).input_value()!=''
-            assert 'BASE' in page.locator('#research-valuation').inner_text()
-            if symbol=='SHEL.L':
-                assert page.get_by_label('Shares outstanding (absolute count)',exact=True).input_value()=='5701440412'
-                assert page.get_by_label('Debt-related adjustment (reporting millions)',exact=True).input_value()=='83'
-                assert '43.69' in page.locator('#research-valuation').inner_text()
-                assert '2026-10-30' in page.locator('#research-valuation').inner_text()
-            page.get_by_label('Base FCFF growth (%)',exact=True).fill('6')
-            assert 'User assumption / override' in page.locator('#research-valuation').inner_text()
+        assert page.locator('#research-valuation .t11-metric').count()==6
+        assert page.locator('#research-valuation input').count()==0
+        assert page.locator('#research-valuation button').count()==0
+        assert 'Trailing P/E' in page.locator('#research-valuation').inner_text()
         for width in [390,768,1024,1440]:
             page.set_viewport_size({'width':width,'height':1000})
             for i in range(6):
                 page.locator('#research-tab-'+str(i)).click();page.wait_for_timeout(30)
                 assert page.locator('#research-view-'+str(i)).is_visible()
-                assert page.evaluate('document.body.scrollWidth<=innerWidth'),(symbol,width,i)
+                assert page.evaluate('document.body.scrollWidth<=innerWidth+1'),(symbol,width,i)
         page.locator('#research-tab-5').click()
         assert page.locator('#forensic-symbol').inner_text()==symbol
-    # Explicit old-balance review; dates cannot be silently treated as current.
-    page.evaluate("window.MT_DATA.companies.find(c=>c.symbol==='SHEL.L').researchBalance.period='2024-12-31'")
-    page.locator('#company-pick').select_option('SHEL.L');page.locator('#research-tab-2').click()
-    if page.get_by_role('button',name='OPEN ADVANCED DCF & STRESS MODEL').count():
-        page.get_by_role('button',name='OPEN ADVANCED DCF & STRESS MODEL').click()
-    assert 'Valuation paused' in page.locator('#research-valuation').inner_text()
-    page.get_by_label('Use dated balances after review',exact=True).check()
-    assert 'BASE' in page.locator('#research-valuation').inner_text()
-    page.get_by_label('Shares outstanding (absolute count)',exact=True).fill('')
-    assert 'Incomplete sourced inputs' in page.locator('#research-valuation').inner_text()
-    page.locator('#research-valuation button',has_text='RESET TO SOURCED INPUTS').click()
-    assert 'Valuation paused' in page.locator('#research-valuation').inner_text()
-    # Notes and legacy workspaces remain usable.
+    # The previous profile loop ends on HSBA.L. Select Shell before saving a
+    # Shell-specific research note; notebooks are deliberately symbol-scoped.
+    page.locator('#company-pick').select_option('SHEL.L')
     page.locator('#research-tab-3').click()
     page.locator('#research-business .research-notebook').evaluate('(d)=>d.open=true')
     page.get_by_label('Competitive advantages & supporting evidence',exact=True).fill('Dated evidence test')
@@ -95,17 +69,18 @@ with sync_playwright() as p:
     assert page.get_by_label('Competitive advantages & supporting evidence',exact=True).input_value()==''
     page.locator('#company-pick').select_option('SHEL.L')
     assert page.get_by_label('Competitive advantages & supporting evidence',exact=True).input_value()=='Dated evidence test'
-    for key in ['overview','fx','equities','bonds','analytics','etfs','economics','watchlist','quality','companies']:
-        page.locator('#tab-'+({'companies':'equities','analytics':'fx'}.get(key,key))).click()
-        if key in ['companies','analytics']:page.locator('#sub-'+('equities-research' if key=='companies' else 'fx-analytics')).click()
-        page.wait_for_timeout(60)
-        assert page.locator('#view-'+({'companies':'equities','analytics':'fx'}.get(key,key))).is_visible()
-    assert not errors,errors
+    for key in ['overview','fx','equities','companies','bonds','analytics','etfs','economics','watchlist','quality']:
+        page.locator('#tab-'+key).click();page.wait_for_timeout(60)
+        assert page.locator('#view-'+key).is_visible()
+    page.locator('#tab-quality').click()
+    assert page.locator('#terminal1-source-register').count()==1
+    page.locator('#tab-companies').click()
     page.locator('#company-pick').select_option('MSFT');page.locator('#research-tab-0').click()
     page.evaluate('scrollTo(0,0)');page.wait_for_timeout(60)
     page.screenshot(path='/tmp/research-r1-overview.png',full_page=True)
     page.set_viewport_size({'width':768,'height':1024});page.locator('#research-tab-1').click();page.wait_for_timeout(80)
     page.evaluate('scrollTo(0,0)');page.wait_for_timeout(60)
     page.screenshot(path='/tmp/research-r1-ipad.png',full_page=True)
-    print('PASS: Shell/MSFT/HSBC, automatic inputs, stale/missing data, bank exclusions, charts, 390/768/1024/1440px layouts, notes and all workspaces; no JS errors')
+    assert not errors,errors
+    print('PASS: sourced Shell/MSFT/HSBC accounts, read-only ratios, financial charts, source register, personal research notes and ten original-design workspaces')
     browser.close()

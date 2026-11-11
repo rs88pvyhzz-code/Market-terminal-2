@@ -323,7 +323,9 @@ def collect(companies,profiles,directory,news=None,offline=False,batch=6,fetcher
                     records[c['symbol']]={**previous,**recovered,'checkedAt':previous.get('checkedAt'),'attemptedAt':previous.get('attemptedAt'),'recoveredAt':stamp}
             except Exception:pass
     pending=[c for c in all_companies if (records.get(c['symbol'],{}).get('schema')!=SCHEMA or age(records.get(c['symbol'],{}).get('checkedAt'))>=REFRESH_HOURS) and age(records.get(c['symbol'],{}).get('attemptedAt'))>=RETRY_HOURS]
-    pending.sort(key=lambda c:(c['symbol'] not in PRINCIPAL,records.get(c['symbol'],{}).get('checkedAt','')))
+    # A previously recovered record can have checkedAt=None. Keep unknown dates
+    # first without comparing None against ISO timestamp strings.
+    pending.sort(key=lambda c:(c['symbol'] not in PRINCIPAL,records.get(c['symbol'],{}).get('checkedAt') or ''))
     updated=0;warnings=[]
     if not offline:
         for c in pending[:max(0,batch)]:

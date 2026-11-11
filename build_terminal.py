@@ -712,12 +712,15 @@ def main():
         raise SystemExit('No data was retrieved. Check internet access; use --demo to preview the interface.')
     template=(ROOT/'terminal_template.html').read_text('utf-8')
     template=template.replace('/*__EQUITY_RESEARCH__*/', (ROOT/'equity_research.js').read_text('utf-8')+'\n'+(ROOT/'equity_research_r2.js').read_text('utf-8')+'\n'+(ROOT/'terminal_navigation.js').read_text('utf-8')+'\n'+(ROOT/'market_briefing.js').read_text('utf-8'))
-    template=template.replace('\ninit();\n', '\n'+(ROOT/'terminal_redesign.js').read_text('utf-8')+'\n'+(ROOT/'terminal_etf_presentation.js').read_text('utf-8')+'\n'+(ROOT/'etf_original_presentation.js').read_text('utf-8')+'\n'+(ROOT/'terminal_release28.js').read_text('utf-8')+'\n'+(ROOT/'terminal_release29.js').read_text('utf-8')+'\n'+(ROOT/'terminal_release210.js').read_text('utf-8')+'\ninit();\n')
+    template=template.replace('\ninit();\n', '\n'+(ROOT/'terminal_redesign.js').read_text('utf-8')+'\n'+(ROOT/'terminal_etf_presentation.js').read_text('utf-8')+'\n'+(ROOT/'etf_original_presentation.js').read_text('utf-8')+'\n'+(ROOT/'terminal_release28.js').read_text('utf-8')+'\n'+(ROOT/'terminal_release29.js').read_text('utf-8')+'\n'+(ROOT/'terminal_release210.js').read_text('utf-8')+'\n'+(ROOT/'terminal11_restoration.js').read_text('utf-8')+'\ninit();\n')
     template=template.replace('</head>', '<style id="release24-styles">'+(ROOT/'terminal_redesign.css').read_text('utf-8')+'</style></head>')
     template=template.replace('</head>', '<style id="etf-original-styles">'+(ROOT/'etf_original_presentation.css').read_text('utf-8')+'</style></head>')
     template=template.replace('</head>', '<style id="release28-styles">'+(ROOT/'terminal_release28.css').read_text('utf-8')+'</style></head>')
     template=template.replace('</head>', '<style id="release29-styles">'+(ROOT/'terminal_release29.css').read_text('utf-8')+'</style></head>')
     template=template.replace('</head>', '<style id="release210-styles">'+(ROOT/'terminal_release210.css').read_text('utf-8')+'</style></head>')
+    # Original Market Terminal 1 visual specification, imported verbatim from its repository.
+    template=template.replace('</head>', '<style id="terminal1-original-theme">'+(ROOT/'terminal1_original_theme.css').read_text('utf-8')+'</style></head>')
+    template=template.replace('</head>', '<style id="terminal11-layout-adapter">'+(ROOT/'terminal11_adapter.css').read_text('utf-8')+'</style></head>')
     # Links to the repository (e.g. 'edit watchlist') follow whichever repo builds the site.
     repo=__import__('os').environ.get('GITHUB_REPOSITORY')
     if repo and '/' in repo: template=template.replace('rs88pvyhzz-code/market-terminal',repo)
