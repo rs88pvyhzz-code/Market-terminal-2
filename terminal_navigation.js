@@ -1,5 +1,7 @@
 // Release 2.2 navigation: move existing panels; no financial calculations.
-const terminalSubViews={fx:[['prices','Prices & Markets',['monitor','movers']],['news','News',['news']],['analytics','Risk & Relative Performance',['analytics-rolling','market-valuations','compare','score-panel','analytics-breadth','analytics-sectors']]],equities:[['screen','Screening & Constituents',['equity-screener','constituents']],['research','Company Research',['companies','peer-panel','company-news-panel','company-events-panel','forensic-panel']]]};
+// Terminal 1 uses separate top-level Equities, Company Research and Analytics.
+// Remove Terminal 2's nested, duplicate-subsection navigation.
+const terminalSubViews={};
 let terminalNavSaved={};try{terminalNavSaved=JSON.parse(localStorage.getItem('market-terminal-navigation-v2')||'{}');}catch{}
 const terminalSubSelection={fx:terminalNavSaved.fx||'prices',equities:terminalNavSaved.equities||'screen'};
 function terminalBuildSubViews(view,key){
@@ -15,14 +17,21 @@ function terminalSetSubView(key,name){
  try{localStorage.setItem('market-terminal-navigation-v2',JSON.stringify(terminalSubSelection));}catch{}
 }
 function terminalResolveRoute(route){
- const [key,subview]=route.split(':');
- if(key==='equities'&&subview==='analytics')return {key:'fx',subview:'analytics'};
- const researchSection={'peer-panel':3,'company-events-panel':4,'forensic-panel':5};
- if(Object.hasOwn(researchSection,key))return {key:'equities',subview:'research',researchView:researchSection[key]};
- if(key==='companies')return {key:'equities',subview:'research'};
- if(key==='analytics')return {key:'fx',subview:'analytics'};
- if(key==='markets')return {key:'fx',subview:subview||'prices'};
- if(WORKSPACES.includes(key))return {key,subview};
+ const [raw,subview]=String(route||'overview').replace(/^#/,'').split(':');
+ const key={'markets':'fx','equities':'equities','company':'companies','company-research':'companies',
+    'companies':'companies','analytics':'analytics','research':'companies'}[raw]||raw;
+ const views=['overview','fx','equities','companies','bonds','analytics','etfs','economics','watchlist','quality'];
+ const direct={'peer-panel':'companies','company-events-panel':'companies','forensic-panel':'companies',
+    'analytics-rolling':'analytics','market-valuations':'analytics','analytics-breadth':'analytics',
+    'analytics-sectors':'analytics','score-panel':'analytics','compare':'analytics',
+    'monitor':'fx','news':'fx','movers':'fx','company-news-panel':'companies',
+    'equity-screener':'equities','constituents':'equities','companies':'companies'};
+ if(raw==='fx'&&subview==='analytics')return {key:'analytics'};
+ if(raw==='equities'&&subview==='research')return {key:'companies'};
+ if(raw==='equities'&&subview==='analytics')return {key:'analytics'};
+ if(raw==='fx'&&subview==='news')return {key:'fx'};
+ if(direct[raw])return {key:direct[raw]};
+ if(views.includes(key))return {key};
  const section=workspaceForSection[key];return section?terminalResolveRoute(section):{key:'overview'};
 }
 function researchArrangeOverview(){
