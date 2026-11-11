@@ -112,5 +112,5 @@ paintWorkspace=function(key){
  if(key==='quality')renderSourceRegister();
  if(key==='companies')correctContent();
 };
-document.addEventListener('DOMContentLoaded',()=>{document.documentElement.classList.add('terminal1-design');correctContent();});
+document.addEventListener('DOMContentLoaded',()=>{document.documentElement.classList.add('terminal1-design');correctContent();for(const name of ['terminal1-original-theme','terminal11-layout-adapter']){const style=byId(name);if(style)document.head.append(style);}});
 })();
