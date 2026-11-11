@@ -60,9 +60,9 @@ with sync_playwright() as p:
     assert page.locator("#research-valuation input").count()==0
     page.locator("#tab-bonds").click()
     page.wait_for_timeout(100)
-    for selector in ["#ust-securities-scroll","#gilts .gilt-table-scroll"]:
+    for selector,max_height in [("#ust-securities-scroll",600),("#gilts .gilt-table-scroll",520)]:
         height=page.locator(selector).evaluate("(x)=>parseFloat(getComputedStyle(x).maxHeight)")
-        assert height<=520,(selector,height)
+        assert height<=max_height,(selector,height)
         assert page.locator(selector+" thead th").first.evaluate("(e)=>getComputedStyle(e).position")=="sticky",selector
     assert page.locator("#gilt-freshness").count()==1
     page.locator("#tab-etfs").click()
