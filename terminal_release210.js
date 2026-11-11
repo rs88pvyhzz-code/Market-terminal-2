@@ -22,7 +22,7 @@ r24Snapshot=function(){
  for(const [symbol,label,kind] of r210Extra){
   const tile=el('button','r24-snapshot-item');
   tile.type='button';tile.setAttribute('aria-label','Open '+label);
-  tile.onclick=()=>kind==='us10'?activateWorkspace('bonds',{scroll:false}):marketInstrument(symbol);
+  tile.onclick=()=>{if(kind==='us10'){activateWorkspace('bonds',{scroll:false});[...($r('mt-bond-nav')?.querySelectorAll('button')||[])].find(b=>b.textContent.trim()==='Yield Curves')?.click();}else marketInstrument(symbol);};
   const q=qMap.get(symbol);
   tile.append(el('div','lab',label));
   if(kind==='us10'){
