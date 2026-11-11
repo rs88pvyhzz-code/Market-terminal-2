@@ -117,3 +117,18 @@ html.terminal1-restored #t1-source-ledger .r29-source-warning{display:block!impo
  html.terminal1-restored .t1-ratio-grid{grid-template-columns:1fr}
  html.terminal1-restored .company-main{grid-template-columns:1fr!important}
 }
+
+/* Original compact tablet/mobile analytical layout: prevent wide comparison
+   inputs and indexed tables from increasing the whole page width. */
+html.terminal1-restored #view-analytics{width:100%;min-width:0}
+html.terminal1-restored #view-analytics .panel{min-width:0;max-width:100%;overflow-x:auto}
+html.terminal1-restored #view-analytics .compare-pickers{grid-template-columns:repeat(4,minmax(0,1fr));min-width:0}
+html.terminal1-restored #view-analytics .compare-pickers select{width:100%;min-width:0;max-width:100%}
+html.terminal1-restored #view-analytics .g2,html.terminal1-restored #view-analytics .g3{min-width:0}
+@media(max-width:760px){
+ html.terminal1-restored #view-analytics .compare-pickers{grid-template-columns:repeat(2,minmax(0,1fr))}
+ html.terminal1-restored #view-analytics .g2,html.terminal1-restored #view-analytics .g3{grid-template-columns:minmax(0,1fr)}
+ html.terminal1-restored #view-analytics .analytics-scroll,
+ html.terminal1-restored #view-analytics .analytic-scroll,
+ html.terminal1-restored #view-analytics .valuation-scroll{max-width:100%;overflow-x:auto}
+}
