@@ -61,7 +61,7 @@ with sync_playwright() as p:
     assert page.locator('#t11-exception-details').count()==1
     assert page.locator('#quality-panel').count()==1
     page.locator('#tab-companies').click()
-    page.locator('.t11-quality-shortcut').first.click()
+    page.locator('#view-companies .t11-quality-shortcut').click()
     assert page.locator('#view-quality').is_visible()
     for width,height in [(1440,900),(1024,768),(768,1024),(390,844)]:
         page.set_viewport_size({'width':width,'height':height})
