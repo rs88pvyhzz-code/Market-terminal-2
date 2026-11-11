@@ -1,0 +1,49 @@
+/* Release 2.10: consistent typography, short contained tables and readable navigation.
+   Original ETF 8-column table, regional headings, controls and detail cards retained. */
+.release210 #market-pulse{grid-template-columns:repeat(7,minmax(0,1fr))!important;gap:8px 0!important}
+.release210 #market-pulse .r24-snapshot-item{min-width:0;min-height:88px;border-right:1px solid #343b45;border-bottom:1px solid #313a44;padding:8px 9px}
+.release210 #market-pulse .r24-snapshot-item .lab{font-size:11px!important;font-family:Arial,sans-serif;line-height:1.35}
+.release210 #market-pulse .r24-snapshot-item strong{font:600 18px/1.45 Arial,sans-serif!important;letter-spacing:0;font-variant-numeric:tabular-nums}
+.release210 #market-pulse .r24-snapshot-item .mini,.release210 #market-pulse .r24-snapshot-item .pos,.release210 #market-pulse .r24-snapshot-item .neg{font:10px/1.4 Arial,sans-serif}
+.release210 #market-pulse .r24-snapshot-item:nth-child(7n){border-right:0}
+.release210 #r210-snapshot-note{margin:9px 0;color:#afbdc9;font-size:10px}
+.release210 #news-list .r29-news{padding:9px 4px}
+.release210 #news-list .r29-news-title{font-size:12px;line-height:1.4}
+.release210 #news-list .r29-news-meta{font-size:10px}
+.release210 #r24-developments .r24-item{padding:8px 0}
+.release210 #r24-developments .r24-item>a{font-size:12px}
+.release210 .r29-news-footer{padding:8px 4px}
+.release210 #gilts .gilt-table-scroll,.release210 #ust-securities-scroll{max-height:min(44vh,440px)!important;overflow-y:auto!important;overflow-x:auto!important;overscroll-behavior:contain}
+.release210 #etf-tracker-panel .etf-table-scroll{max-height:min(44vh,440px)!important;overflow-y:auto!important;overscroll-behavior:contain}
+.release210 .r28-table-scroll{max-height:min(44vh,440px)!important;overflow-y:auto!important;overscroll-behavior:contain}
+.release210 #company-events-panel .r210-company-events-scroll{max-height:min(43vh,430px)!important;overflow-y:auto!important;overflow-x:auto!important;overscroll-behavior:contain}
+.release210 #company-events-panel .r210-company-events-scroll table th{position:sticky!important;top:0!important;background:#18232e!important;z-index:3}
+.release210 #gilts .gilt-table-scroll thead th,.release210 #ust-securities-scroll thead th{position:sticky!important;top:0!important;background:#18232e!important;z-index:4}
+.release210 #gilts #gilt-stats .r28-gilt-single{padding:12px;gap:8px;border-color:#3a4350;background:#13161b}
+.release210 #gilts .r28-gilt-yields{grid-template-columns:repeat(2,minmax(0,1fr));gap:8px}
+.release210 #gilts .r28-gilt-yield{min-height:73px;padding:9px 11px}
+.release210 #gilts .r28-gilt-yield strong{font:600 20px/1.45 Arial,sans-serif}
+.release210 #gilts .r28-gilt-facts{grid-template-columns:repeat(4,minmax(0,1fr));gap:7px}
+.release210 #gilts .r28-gilt-fact{background:#191c23;border:1px solid #353b46;padding:9px 11px}
+.release210 #gilts .r28-gilt-fact .mini{font-size:10px}
+.release210 #gilts .r28-gilt-fact strong{font-size:13px;line-height:1.35}
+.release210 #gilts #gilt-ladder{margin-top:18px!important;border-top:1px solid #313b48;padding-top:12px}
+.release210 #gilts #gilt-ladder .constituents-scroll{max-height:min(40vh,400px)!important;overflow-y:auto!important}
+.release210 #view-bonds .research-stats>.etf-stat{min-width:0}
+.release210 #research-view-4>.r25-section-links{display:flex!important;position:sticky;top:var(--r24-nav-height);z-index:40;gap:5px;flex-wrap:wrap;padding:8px;background:#10151b;border-bottom:1px solid #3b4652}
+.release210 #research-view-4>.r25-section-links button{font-size:10px!important;white-space:normal;max-width:240px;text-align:left}
+.release210 #research-view-4>.r25-section-links button.active{background:#aa742d;color:#fff}
+.release210 #research-view-4 .r24-support-heading{scroll-margin-top:175px}
+.release210 #research-view-4 .r210-focused-heading{background:#372915;border-left:3px solid #daa14e;padding:5px 8px}
+.release210 #research-view-4 .research-evidence{padding:9px 11px;margin:6px 0}
+.release210 #research-view-4 .research-evidence h4{margin:5px 0;font-size:12px}
+.release210 #research-view-4 .research-evidence p{margin:4px 0;line-height:1.48}
+.release210 #research-view-4 .r210-more-evidence{margin:9px 0 12px}
+.release210 #research-view-4 [hidden]{display:none!important}
+.release210 #research-view-4 .r210-management-note{background:#151c22;padding:9px;border-left:2px solid #9c793f}
+.release210 #company-events-panel .inputs{position:relative;z-index:5}
+.release210 #company-events-panel .r210-company-events-scroll{border:1px solid #333f4d}
+.release210 #company-events-panel .r210-company-events-scroll td{line-height:1.35}
+.release210 #view-equities .panel h3,.release210 #view-bonds .panel h3{line-height:1.4}
+@media(max-width:1100px){.release210 #market-pulse{grid-template-columns:repeat(4,minmax(0,1fr))!important}.release210 #market-pulse .r24-snapshot-item:nth-child(7n){border-right:1px solid #343b45}.release210 #market-pulse .r24-snapshot-item:nth-child(4n){border-right:0}.release210 #gilts .r28-gilt-facts{grid-template-columns:repeat(3,minmax(0,1fr))}}
+@media(max-width:700px){.release210 #market-pulse{grid-template-columns:repeat(2,minmax(0,1fr))!important}.release210 #market-pulse .r24-snapshot-item:nth-child(4n){border-right:1px solid #343b45}.release210 #market-pulse .r24-snapshot-item:nth-child(2n){border-right:0}.release210 #market-pulse .r24-snapshot-item strong{font-size:18px!important}.release210 #gilts .r28-gilt-facts{grid-template-columns:repeat(2,minmax(0,1fr))}.release210 #research-view-4>.r25-section-links{position:relative;top:auto}}
