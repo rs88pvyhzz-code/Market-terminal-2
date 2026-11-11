@@ -462,9 +462,11 @@ h2{font:600 15px/1.35 var(--font);color:var(--amber);margin:0}h3{font:500 13px v
   <nav class="workspace-nav" id="workspace-tabs" aria-label="Market terminal workspaces" role="tablist">
     <button type="button" role="tab" id="tab-overview" aria-controls="view-overview" data-workspace="overview" aria-selected="true">OVERVIEW</button>
     <button type="button" role="tab" id="tab-fx" aria-controls="view-fx" data-workspace="fx" aria-selected="false">MARKETS</button>
-    <button type="button" role="tab" id="tab-equities" aria-controls="view-equities" data-workspace="equities" aria-selected="false">EQUITIES &amp; RESEARCH</button>
+    <button type="button" role="tab" id="tab-equities" aria-controls="view-equities" data-workspace="equities" aria-selected="false">EQUITIES</button>
+    <button type="button" role="tab" id="tab-companies" aria-controls="view-companies" data-workspace="companies" aria-selected="false">COMPANY RESEARCH</button>
     <button type="button" role="tab" id="tab-bonds" aria-controls="view-bonds" data-workspace="bonds" aria-selected="false">BONDS & RATES</button>
-    <button type="button" role="tab" id="tab-etfs" aria-controls="view-etfs" data-workspace="etfs" aria-selected="false">ETFs</button>
+    <button type="button" role="tab" id="tab-analytics" aria-controls="view-analytics" data-workspace="analytics" aria-selected="false">ANALYTICS</button>
+    <button type="button" role="tab" id="tab-etfs" aria-controls="view-etfs" data-workspace="etfs" aria-selected="false">ETF TRACKERS</button>
     <button type="button" role="tab" id="tab-economics" aria-controls="view-economics" data-workspace="economics" aria-selected="false">ECONOMICS</button>
     <button type="button" role="tab" id="tab-watchlist" aria-controls="view-watchlist" data-workspace="watchlist" aria-selected="false">MY WATCHLIST</button>
     <button type="button" role="tab" id="tab-quality" aria-controls="view-quality" data-workspace="quality" aria-selected="false">DATA QUALITY</button>
@@ -2089,13 +2091,15 @@ function reorderSections(){
   if(insight&&!$('company-news-panel')){const sec=el('section','panel');sec.id='company-news-panel';sec.append(insight);wrap.append(sec);}
   const config=[
     ['overview','MARKET OVERVIEW','Headlines · indices · FX · key yields',['news','headline','overview-board']],
-    ['fx','MARKETS','Prices · risk · relative performance · correlations',[]],
-    ['equities','EQUITIES & RESEARCH','Screening · constituents · company research · breadth & sectors',[]],
+    ['fx','MARKETS','Prices · major movements · dated news',[]],
+    ['equities','EQUITIES','Screening · indices · company constituents',['equity-screener','constituents']],
+    ['companies','COMPANY RESEARCH','Financial statements · management · analyst views',['companies','peer-panel','company-news-panel','company-events-panel','forensic-panel']],
     ['bonds','BONDS & RATES','Government bonds · corporate credit · yield curves',['gilts','us-treasuries','corporate-credit','rates','real','us-spread-panel','sovereign','cross-rates']],
-    ['etfs','ETFs','Trackers · comparisons · tracking quality',['etf-tracker-panel']],
-    ['economics','ECONOMIC DATA','Indicators · actuals versus forecasts · calendar',['macro','macro-surprise','calendar']],
+    ['analytics','ANALYTICS','Historical returns · correlations · volatility · breadth',['analytics-rolling','market-valuations','compare','score-panel','analytics-breadth','analytics-sectors']],
+    ['etfs','ETF TRACKERS','Trackers · comparisons · tracking quality',['etf-tracker-panel']],
+    ['economics','ECONOMICS','Indicators · actuals versus forecasts · calendar',['macro','macro-surprise','calendar']],
     ['watchlist','MY WATCHLIST','Selected securities · news · fundamentals · individual risk',['personal-watchlist-panel']],
-    ['quality','DATA QUALITY & SOURCES','Coverage · freshness · missing data · diagnostics',['etf-audit-panel','quality-panel','sources']]
+    ['quality','DATA QUALITY','Coverage · freshness · source diagnostics',['etf-audit-panel','quality-panel','sources']]
   ];
   for(const [key,title,desc,ids] of config){
     const view=el('div','workspace-view');view.id='view-'+key;view.dataset.workspace=key;view.setAttribute('role','tabpanel');view.setAttribute('aria-labelledby','tab-'+key);view.hidden=key!=='overview';
@@ -2587,17 +2591,19 @@ function initWatchlist(){
  $('watchlist-basis').onchange=e=>{watchState.basis=e.target.value;const w=watchlistRecords.find(r=>r.symbol===watchState.symbol);if(w){renderWatchlistChart(w,watchQuoteMap.get(w.symbol));renderWatchlistRelative(w,watchQuoteMap.get(w.symbol));}};
 }
 
-const WORKSPACES=['overview','fx','equities','bonds','etfs','economics','watchlist','quality'];
+const WORKSPACES=['overview','fx','equities','companies','bonds','analytics','etfs','economics','watchlist','quality'];
 let activeWorkspace='overview', searchHits=[], searchCursor=0;
-const workspaceForSection={'etf-tracker-panel':'etfs','personal-watchlist-panel':'watchlist','analytics-breadth':'fx:analytics','analytics-sectors':'fx:analytics','analytics-rolling':'analytics','market-valuations':'analytics','corporate-credit':'bonds','company-events-panel':'companies','us-treasuries':'bonds',gilts:'bonds',news:'fx:news',headline:'fx:prices',monitor:'fx:prices',movers:'fx:prices','equity-screener':'equities:screen',constituents:'equities:screen',companies:'companies','peer-panel':'companies',rates:'bonds',real:'bonds',sovereign:'bonds',macro:'economics',calendar:'economics',compare:'analytics','quality-panel':'quality',sources:'quality'};
+const workspaceForSection={'etf-tracker-panel':'etfs','personal-watchlist-panel':'watchlist','analytics-breadth':'analytics','analytics-sectors':'analytics','analytics-rolling':'analytics','market-valuations':'analytics','corporate-credit':'bonds','company-events-panel':'companies','us-treasuries':'bonds',gilts:'bonds',news:'fx:news',headline:'fx:prices',monitor:'fx:prices',movers:'fx:prices','equity-screener':'equities',constituents:'equities',companies:'companies','peer-panel':'companies',rates:'bonds',real:'bonds',sovereign:'bonds',macro:'economics',calendar:'economics',compare:'analytics','quality-panel':'quality',sources:'quality'};
 function paintWorkspace(key){
   switch(key){
     case 'overview': renderNews(); renderPulse(); renderMarketBriefing(); break;
-    case 'equities': if(terminalSubSelection.equities==='research'){renderCompany();renderPeers();renderCompanyEvents();}else if(terminalSubSelection.equities==='analytics'){renderBreadth();renderSectors();}else{renderMovers();renderScreener();renderConstituents();}break;
+    case 'equities': renderMovers();renderScreener();renderConstituents();break;
+    case 'companies': renderCompany();renderPeers();renderCompanyEvents();break;
+    case 'analytics': renderRolling();renderValuations();renderCompare();renderScore();renderBreadth();renderSectors();break;
     case 'bonds': renderGilts(); renderCredit(); renderRates(); usSpread(); renderReal(); renderSovereign(); break;
     case 'etfs': renderEtfTracker(); break;
     case 'economics': renderMacro(); renderEconomicPrints(); renderCalendar(); break;
-    case 'fx': renderMarketBriefing(); if(terminalSubSelection.fx==='analytics'){renderRolling();renderValuations();renderCompare();renderScore();}else{renderMain();renderWatch();}break;
+    case 'fx': renderMarketBriefing();renderMain();renderWatch();break;
     case 'watchlist': renderWatchlist(); break;
     case 'quality': renderDataQuality(); sources(); renderMarketBriefing(); break;
   }
