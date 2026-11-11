@@ -19,6 +19,7 @@ jobs:
       - run: node --check terminal_release28.js
       - run: node --check terminal_release29.js
       - run: node --check terminal_release210.js
+      - run: node --check terminal11_restoration.js
       - run: python -m unittest test_release28.py
       - run: python test_etf_tracker.py
       - run: python test_gilt_model.py
@@ -61,6 +62,7 @@ jobs:
           python tests/browser_release28.py /tmp/research-demo.html
           python tests/browser_release29.py /tmp/research-demo.html
           python tests/browser_release210.py /tmp/research-demo.html
+          python tests/browser_release211.py /tmp/research-demo.html
           python tests/browser_treasury_scroll.py /tmp/research-demo.html
       - name: Upload review screenshots
         uses: actions/upload-artifact@v4
@@ -77,3 +79,4 @@ jobs:
             /tmp/release27-*.png
             /tmp/release27-visual-verification.json
             /tmp/release210-*.png
+            /tmp/release211-*.png
