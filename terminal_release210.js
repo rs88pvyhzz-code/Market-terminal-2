@@ -93,7 +93,9 @@ function distinctNews(rows,avoid=[]){
  return unique;
 }
 let overviewHeadlines=[];
-r28NewsOverview=function(){
+const r210PreviousOverview=r24Overview;
+r24Overview=function(){r210PreviousOverview();r210NewsOverview();};
+function r210NewsOverview(){
  const host=$r('r24-developments')?.querySelector('.r24-content');if(!host)return;
  host.replaceChildren();overviewHeadlines=distinctNews(sortedNews()).filter(x=>eventWeight(x)>=23).slice(0,5);
  if(!overviewHeadlines.length){
