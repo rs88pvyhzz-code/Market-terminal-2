@@ -105,7 +105,13 @@ with sync_playwright() as p:
     assert page.locator('#etf-tracker-panel .etf-table-scroll').evaluate(
       "(e)=>getComputedStyle(e).overflowY")=='auto'
     page.locator('#tab-quality').click()
-    assert page.locator('#t1-source-ledger').is_visible()
+    assert page.locator('#t1-source-ledger').is_visible(), {
+      'count':page.locator('#t1-source-ledger').count(),
+      'viewQualityHidden':page.locator('#view-quality').get_attribute('hidden'),
+      'active':page.locator('#workspace-tabs [aria-selected="true"]').all_text_contents(),
+      'dom':page.locator('#view-quality').inner_text()[:450],
+      'jsErrors':errors[:10]
+    }
     for section in ['etf-stats','gilt-freshness','gilt-retrieval','r29-coverage']:
         assert page.locator('#t1-source-'+section).count()==1,section
     assert page.locator('#view-quality #etf-stats').count()==1
