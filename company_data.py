@@ -127,6 +127,45 @@ def latest_balance(ticker, symbol, currency, stamp):
     return max(candidates,key=lambda r:r['period']) if candidates else None
 
 
+def analyst_consensus(info):
+    """Provider-reported analyst consensus, not an investment recommendation.
+
+    Uses only documented Yahoo info fields already fetched for the company.
+    No derived ratings, presumed GBp/GBP conversion, or missing price targets.
+    Quote/target comparability is checked in the browser using quote currency.
+    """
+    def positive(field, bound=1e9):
+        value=_num(info.get(field))
+        return value if value is not None and 0 < value < bound else None
+    key=str(info.get('recommendationKey') or '').strip().lower().replace(' ', '_')
+    key=key if key in ('strong_buy','buy','hold','underperform','sell','strong_sell') else None
+    score=positive('recommendationMean',6)
+    opinions=positive('numberOfAnalystOpinions',10000)
+    count=int(opinions) if opinions is not None else None
+    target_mean=positive('targetMeanPrice')
+    target_low=positive('targetLowPrice')
+    target_high=positive('targetHighPrice')
+    target_median=positive('targetMedianPrice')
+    if target_low is not None and target_high is not None and target_low > target_high:
+        target_low=target_high=None
+    # A lone opinion count is not itself a consensus recommendation.
+    if not any(v is not None for v in (score,target_mean,target_median,target_low,target_high)) and key is None:
+        return None
+    currency=str(info.get('currency') or '').strip()
+    # No currency guessed from the financial statements, company domicile or name.
+    return {
+        'rating':key,
+        'score':score,
+        'analysts':count,
+        'targetMean':target_mean,
+        'targetMedian':target_median,
+        'targetLow':target_low,
+        'targetHigh':target_high,
+        'quoteCurrency':currency,
+        'source':'Yahoo Finance analyst aggregation (unofficial)',
+    }
+
+
 def research_metadata(info):
     """Provider facts only; never generate a moat, forecast or investment rating."""
     return {
@@ -139,6 +178,7 @@ def research_metadata(info):
         'sharesOutstanding': _num(info.get('sharesOutstanding')),
         'researchBalance': info.get('_researchBalance'),
         'filingWarning': info.get('_filingWarning'),
+        'analystConsensus':analyst_consensus(info),
     }
 
 

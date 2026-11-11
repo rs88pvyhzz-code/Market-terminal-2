@@ -55,10 +55,14 @@ with sync_playwright() as p:
         row.click();assert page.locator('#gilt-yield-review').is_visible()
         assert 'DERIVED YIELDS REQUIRE REVIEW' in page.locator('#gilt-yield-review').inner_text()
         assert 'Review required' in page.locator('#gilt-stats').inner_text()
+        # Release 2.8: one selected-gilt summary, no duplicate row in alternatives.
         peer=page.locator('#mt-gilt-tax-rows tr[data-isin="'+isin+'"]')
-        assert peer.count()==1;assert peer.locator('td').all_text_contents()[3:6]==['Review','Review','Review']
+        assert peer.count()==0
+        assert page.locator('#gilt-stats .r28-gilt-single').count()==1
+        assert page.locator('#gilt-stats .r28-gilt-yield').count()==2
         page.locator('#gilt-clean-input').fill('99');assert page.locator('#gilt-yield-review').is_visible()
-        assert peer.locator('td').all_text_contents()[3:6]==['Review','Review','Review']
+        assert peer.count()==0
+        assert 'Unavailable' in page.locator('#gilt-stats .r28-gilt-yield').all_text_contents()[0] or page.locator('#gilt-stats .r28-gilt-yield').count()==2
     page.locator('#ladder-start').fill('2029');page.locator('#ladder-years').fill('4')
     for isin in restricted:assert page.locator('#ladder-rows tr[data-isin="'+isin+'"] ').count()==0
     page.locator('#gilt-sort').select_option('net')

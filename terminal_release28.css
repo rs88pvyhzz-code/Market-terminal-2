@@ -1,0 +1,38 @@
+/* Release 2.8 scoped presentation: deliberately excludes ETF research entirely. */
+.release28 #r24-developments .r24-item{padding:9px 0;border-bottom:1px solid #2f3743}
+.release28 #r24-developments .r24-item>a,.release28 #r24-developments .r24-item>strong{font-size:12px;line-height:1.42}
+.release28 #r24-developments .r24-more,.release28 .r28-more{font-size:10px;color:#a9b7c6;margin:8px 0 0}
+.release28 .r28-more a{color:#bfd5f2}
+.release28 .r28-calendar-separator{align-self:center;color:#566070;padding:0 4px}
+.release28 #calendar-filters{display:flex;flex-wrap:wrap;align-items:center;gap:5px}
+.release28 #calendar-filters .r28-calendar-view{font-weight:600}
+.release28 #view-economics .r28-economic-sub{font:10px/1.4 Arial,sans-serif;color:#a9b6c6;padding:0 1px;margin-top:2px}
+.release28 #view-economics .r28-economic-sub.r28-consensus{color:#d1bf8d}
+.release28 #view-economics #macro-surprise{display:none!important}
+.release28 #view-economics #macro-tiles button{min-height:0}
+.release28 .r28-table-scroll{max-height:min(62vh,600px)!important;overflow-y:auto!important;overflow-x:auto!important;position:relative;overscroll-behavior:contain}
+.release28 .r28-table-scroll table{width:100%;border-collapse:collapse}
+.release28 .r28-table-scroll table thead th,.release28 .r28-table-scroll .watch th:first-child{position:sticky!important;top:0!important;z-index:3!important;background:#171d25!important;color:#d5dfe9;border-bottom:1px solid #57606e}
+.release28 .r28-table-scroll table thead th:first-child{z-index:4!important}
+.release28 #view-bonds #gilt-stats{display:block;min-width:0}
+.release28 #view-bonds #gilt-stats .r28-gilt-single{display:grid;gap:10px;background:#15171b;border:1px solid #353d49;padding:14px 15px;border-radius:3px}
+.release28 .r28-gilt-caption{font:10px/1.45 Arial,sans-serif;color:#b6c1cd}
+.release28 .r28-gilt-yields{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px}
+.release28 .r28-gilt-yield{border:1px solid #3c4652;background:#181d23;padding:10px}
+.release28 .r28-gilt-yield strong{display:block;font-size:22px;font-weight:650;font-variant-numeric:tabular-nums;color:#e4e8ed;padding-top:4px}
+.release28 .r28-gilt-facts{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:7px}
+.release28 .r28-gilt-fact{border-top:1px solid #353d49;padding:9px 2px;min-width:0}
+.release28 .r28-gilt-fact .mini{display:block;font-size:10px;color:#aeb8c6}
+.release28 .r28-gilt-fact strong{display:block;font:600 13px/1.5 Arial,sans-serif;margin-top:3px;color:#e5e7eb;overflow-wrap:anywhere}
+.release28 .r28-gilt-advanced{display:flex;flex-wrap:wrap;gap:8px 16px;color:#b2bdc9;font-size:10px;border-top:1px solid #333d49;padding-top:10px}
+.release28 .r28-analyst-panel{margin-top:16px;border-top:1px solid #3b4655;padding-top:12px;min-width:0}
+.release28 .r28-analyst-panel h3{font-size:12px!important;margin:0 0 8px;color:#e1e6ec}
+.release28 .r28-analyst-grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:8px}
+.release28 .r28-analyst-kpi{border:1px solid #3a4350;background:#171b21;padding:10px;min-width:0}
+.release28 .r28-analyst-kpi .mini{display:block;color:#b5bfcc;font-size:10px}
+.release28 .r28-analyst-kpi strong{display:block;font:600 14px/1.45 Arial,sans-serif;margin-top:5px;overflow-wrap:anywhere}
+.release28 .r28-positive{color:#82c79e}.release28 .r28-negative{color:#e4a096}
+.release28 #r23-moves .r23-body .r23-observation{padding:8px 0;border-bottom:1px solid #303b48}
+.release28 #r23-moves .r23-body .r23-observation .mini{font-size:10px;color:#b3c1cc}
+@media(max-width:750px){.release28 .r28-gilt-facts{grid-template-columns:repeat(2,minmax(0,1fr))}.release28 .r28-analyst-grid{grid-template-columns:repeat(2,minmax(0,1fr))}.release28 .r28-gilt-yield strong{font-size:19px}}
+@media(max-width:450px){.release28 .r28-gilt-facts,.release28 .r28-analyst-grid{grid-template-columns:repeat(2,minmax(0,1fr))}.release28 #view-bonds #gilt-stats .r28-gilt-single{padding:9px}}

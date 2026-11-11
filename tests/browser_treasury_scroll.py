@@ -20,7 +20,13 @@ with sync_playwright() as p:
             assert page.locator('#'+id).evaluate('(e)=>!e.closest("#ust-securities-scroll")')
         # The shared wrappers retain their existing policies.
         assert page.locator('#gilts .gilt-table-scroll').evaluate('(e)=>parseFloat(getComputedStyle(e).maxHeight)>.6*innerHeight')
-        assert page.locator('#const-rows').evaluate('(e)=>getComputedStyle(e.closest(".constituents-scroll")).maxHeight')=='none'
+        # Release 2.8 standardises sticky headers on long constituent tables.
+        const_count=page.locator('#const-rows tr').count()
+        if const_count>=9:
+            assert page.locator('#const-rows').evaluate('(e)=>e.closest(".r28-table-scroll")!==null')
+            assert page.locator('#const-rows').evaluate('(e)=>getComputedStyle(e.closest(".r28-table-scroll")).overflowY')=='auto'
+        else:
+            assert page.locator('#const-rows').count()==1
         if securities:
             viewport.scroll_into_view_if_needed();viewport.evaluate('(e)=>e.scrollTop=Math.min(3000,(e.scrollHeight-e.clientHeight)/2)');page.wait_for_timeout(80)
             before=viewport.evaluate('(e)=>e.scrollTop')

@@ -58,6 +58,7 @@ jobs:
           python test_research_release21.py
           python test_release22.py
           python test_market_briefing.py
+          python test_release28.py
 
       - name: Download data and build terminal
         run: >-
