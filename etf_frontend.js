@@ -190,7 +190,7 @@ function renderEtfTracker(){
 function etfExport(){
   const columns=['market','category','symbol','name','benchmark','terPct','replication','distribution','domicile','isin','hedged','return1Y','return3Y','return5Y','quoteStatus','note'];
   const cell=x=>'"'+String(x==null?'':x).replace(/"/g,'""')+'"';
-  const csv=[columns.map(cell).join(','),...etfFiltered().map(f=>columns.map(k=>cell(f[k])).join(','))].join('\r\n');
+  const csv=[columns.map(cell).join(','),...(typeof etfV5PickMain==='function'?etfV5PickMain().shown:etfFiltered()).map(f=>columns.map(k=>cell(f[k])).join(','))].join('\r\n');
   const blob=new Blob([csv],{type:'text/csv;charset=utf-8'}),url=URL.createObjectURL(blob),a=el('a');
   a.href=url;a.download='etf-trackers-'+(D.generatedAt||'snapshot').slice(0,10)+'.csv';document.body.append(a);a.click();a.remove();setTimeout(()=>URL.revokeObjectURL(url),250);
 }
