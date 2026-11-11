@@ -22,6 +22,8 @@ function r24VisibleSection(detail) {
 function r24SelectivePresentation(root=document) {
   // Only exceptions and technical audits are disclosures. Facts, sources and models stay direct.
   for(const detail of [...root.querySelectorAll('details')]){
+    // Restore the original ETF reference disclosure; selected fund details stay direct.
+    if(detail.closest('#etf-tracker-panel'))continue;
     const title=detail.querySelector(':scope > summary')?.textContent||'';
     const diagnostic=detail.closest('#view-quality')||/^(Source status|Failed requests|Technical diagnostics|Retrieval diagnostics)/i.test(title);
     if(diagnostic){

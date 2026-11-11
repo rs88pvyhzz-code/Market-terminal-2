@@ -170,6 +170,28 @@ def fetch_intraday(symbol, opts):
     except Exception as exc:
         return symbol,[],symbol+': '+str(exc)[:80]
 
+def is_market_close_quote(symbol, quote_time, timezone, meta):
+    """Identify a completed exchange session for a dated Yahoo regular quote.
+
+    Yahoo currentTradingPeriod can refer to today's *next* session while the
+    latest regularMarketTime is yesterday. On the LSE the closing auction
+    completes at roughly 16:35 London time. The narrow fallback only accepts
+    a London-listed security with a dated quote at or after 16:35 London time.
+    It is price-only, not a fabricated adjusted-close or audited NAV.
+    """
+    if not isinstance(quote_time,(int,float)) or quote_time<=0:
+        return False,'unverified'
+    session=(meta.get('currentTradingPeriod') or {}).get('regular') or {}
+    end=session.get('end')
+    if isinstance(end,(int,float)) and quote_time>=end and iso_date(quote_time,timezone)==iso_date(end,timezone):
+        return True,'Yahoo regular session'
+    if symbol.endswith('.L') and timezone=='Europe/London':
+        local=dt.datetime.fromtimestamp(quote_time,dt.timezone.utc).astimezone(ZoneInfo('Europe/London'))
+        if local.weekday()<5 and (local.hour,local.minute)>=(16,35):
+            return True,'LSE closing auction 16:35 London time'
+    return False,'unverified'
+
+
 def fetch_quote(info, opts):
     group, symbol, name, kind=info
     start=dt.datetime.now(dt.timezone.utc)-dt.timedelta(days=int(opts.years*365.25)+16)
@@ -199,6 +221,11 @@ def fetch_quote(info, opts):
         last_day=iso_date(quote_time,tz)
         raw=safe_float(m.get('regularMarketPrice'))
         price=raw if raw and raw>0 else pts[-1][1]
+        # A current Yahoo regularMarketPrice can be newer than the chart's
+        # completed daily candle. Expose the exchange-session boundary; ETF
+        # ingestion may use this quotation for *price-only* returns after close.
+        # Never call it an adjusted close or silently invent dividend history.
+        quote_after_close,quote_close_evidence=is_market_close_quote(symbol,quote_time,tz,m)
         prev=prior_close(pts,last_day,m)
         if not prev or prev<=0: raise RuntimeError('Invalid previous close')
         y0=last_day[:4]+'-01-01'
@@ -215,7 +242,11 @@ def fetch_quote(info, opts):
         q={
           'group':group,'symbol':symbol,'name':name,'kind':kind,
           'currency':m.get('currency') or ('%' if yield_quote else ''),
-          'price':rounded(price,5), 'changePct':None if yield_quote else pc(prev),
+          'price':rounded(price,5),
+          'tradingDay':last_day,
+          'quoteAfterRegularClose':quote_after_close,
+          'quoteCloseEvidence':quote_close_evidence,
+          'changePct':None if yield_quote else pc(prev),
           'changeBp':bp(prev) if yield_quote else None,
           'ytdPct':None if yield_quote or kind=='volatility' else pc(ref_ytd),
           'yearPct':None if yield_quote or kind=='volatility' else pc(ref_year),
@@ -681,8 +712,9 @@ def main():
         raise SystemExit('No data was retrieved. Check internet access; use --demo to preview the interface.')
     template=(ROOT/'terminal_template.html').read_text('utf-8')
     template=template.replace('/*__EQUITY_RESEARCH__*/', (ROOT/'equity_research.js').read_text('utf-8')+'\n'+(ROOT/'equity_research_r2.js').read_text('utf-8')+'\n'+(ROOT/'terminal_navigation.js').read_text('utf-8')+'\n'+(ROOT/'market_briefing.js').read_text('utf-8'))
-    template=template.replace('\ninit();\n', '\n'+(ROOT/'terminal_redesign.js').read_text('utf-8')+'\n'+(ROOT/'terminal_etf_presentation.js').read_text('utf-8')+'\ninit();\n')
+    template=template.replace('\ninit();\n', '\n'+(ROOT/'terminal_redesign.js').read_text('utf-8')+'\n'+(ROOT/'terminal_etf_presentation.js').read_text('utf-8')+'\n'+(ROOT/'etf_original_presentation.js').read_text('utf-8')+'\ninit();\n')
     template=template.replace('</head>', '<style id="release24-styles">'+(ROOT/'terminal_redesign.css').read_text('utf-8')+'</style></head>')
+    template=template.replace('</head>', '<style id="etf-original-styles">'+(ROOT/'etf_original_presentation.css').read_text('utf-8')+'</style></head>')
     # Links to the repository (e.g. 'edit watchlist') follow whichever repo builds the site.
     repo=__import__('os').environ.get('GITHUB_REPOSITORY')
     if repo and '/' in repo: template=template.replace('rs88pvyhzz-code/market-terminal',repo)

@@ -120,7 +120,7 @@ function etfDrawChart(){
     const values=new Map(source.points.map(p=>[p.date,p.v])),base=values.get(dates[0]);
     return {name:source.name,color:PALETTE[i%PALETTE.length],pts:dates.map(date=>({date,v:100*values.get(date)/base}))};
   });
-  chart('etf-chart',sets,{format:v=>fmt(v,1),aria:'ETF indexed performance starting at 100 on '+dates[0]});
+  chart('etf-chart',sets,{height:290,format:v=>fmt(v,1),aria:'ETF indexed performance starting at 100 on '+dates[0]});
   $('etf-chart-note').textContent='Rebased to 100 on '+datefmt(dates[0])+'. '+dates.length+' exact matched dates. '
     +(etfState.basis.startsWith('adjusted')?'Yahoo adjusted close is an unofficial total-return proxy. ':'PRICE returns exclude distributions. ')
     +(etfState.basis.endsWith('gbp')?'Dated spot FX conversion to GBP; missing FX omitted. ':'Quoted currencies may differ: cross-currency comparisons are invalid. ')

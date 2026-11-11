@@ -8,7 +8,7 @@ TER, replication, AUM, benchmarks, or other market dashboards.
 Price: exchange-traded close, excluding cash distributions.
 Adjusted: Yahoo's unofficial adjusted-close proxy (NOT certified fund NAV TR).
 Local: actual exchange quote currency. GBP: historic same-day FX to GBP.
-1Y/3Y/5Y values are annualised CAGRs, not cumulative 3Y/5Y gains.
+1Y is the actual trailing period return; 3Y/5Y values are annualised CAGRs.
 Missing adjusted history or same-day FX remains unavailable; never assume it.
 """
 import argparse
@@ -78,23 +78,33 @@ def gbp_conversion(value,currency,date,fx):
 
 
 def annualised(rows,years):
-    """Use nearest observation BEFORE the exact anniversary, max 20 days old."""
+    """Actual one-year return, or 3Y/5Y CAGR, at closest trading anniversary.
+
+    Do not use a stale Friday just because the anniversary is on Sunday.
+    Never interpolate missing prices or use observations more than 7 days
+    from the intended anniversary.
+    """
     if len(rows)<2:return None
     by_date={r[0]:r[1] for r in rows if isinstance(r[1],(int,float)) and math.isfinite(r[1]) and r[1]>0}
     if len(by_date)<2:return None
     dates=sorted(by_date)
     end=dt.date.fromisoformat(dates[-1])
-    cutoff=end-dt.timedelta(days=round(years*365.25))
-    eligible=[d for d in dates if dt.date.fromisoformat(d)<=cutoff]
+    try:
+        cutoff=end.replace(year=end.year-years)
+    except ValueError:
+        cutoff=end.replace(year=end.year-years,day=28)
+    eligible=[]
+    for date in dates[:-1]:
+        day=dt.date.fromisoformat(date)
+        distance=abs((cutoff-day).days)
+        if distance<=7:
+            eligible.append((distance,0 if day>=cutoff else 1,day,date))
     if not eligible:return None
-    begin=dt.date.fromisoformat(eligible[-1])
-    if (cutoff-begin).days>20:return None
+    _,_,begin,first_date=min(eligible,key=lambda r:(r[0],r[1]))
     span=(end-begin).days/365.25
     if span<years*.95 or span>years*1.07:return None
-    start_val=by_date[eligible[-1]];end_val=by_date[dates[-1]]
-    if start_val<=0 or end_val<=0:return None
-    return round(100*((end_val/start_val)**(1/span)-1),2)
-
+    growth=by_date[dates[-1]]/by_date[first_date]
+    return round(100*(growth-1 if years==1 else growth**(1/span)-1),2)
 
 def evaluate(data):
     track=data['etfTracker']
