@@ -19,7 +19,7 @@ with sync_playwright() as p:
         for id in ['ust-selected','ust-clean-input','ust-stats','ust-chart','ust-selected-date']:
             assert page.locator('#'+id).evaluate('(e)=>!e.closest("#ust-securities-scroll")')
         # The shared wrappers retain their existing policies.
-        assert page.locator('#gilts .gilt-table-scroll').evaluate('(e)=>Math.abs(parseFloat(getComputedStyle(e).maxHeight)-(document.documentElement.classList.contains("release210")?Math.min(innerHeight*.44,440):innerHeight*.65))<1')
+        assert page.locator('#gilts .gilt-table-scroll').evaluate('(e)=>Math.abs(parseFloat(getComputedStyle(e).maxHeight)-(document.documentElement.classList.contains("terminal1-design")?Math.min(innerHeight*.47,460):(document.documentElement.classList.contains("release210")?Math.min(innerHeight*.44,440):innerHeight*.65)))<1')
         # Release 2.8 standardises sticky headers on long constituent tables.
         const_count=page.locator('#const-rows tr').count()
         if const_count>=9:
