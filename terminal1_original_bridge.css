@@ -132,3 +132,6 @@ html.terminal1-restored #view-analytics .g2,html.terminal1-restored #view-analyt
  html.terminal1-restored #view-analytics .analytic-scroll,
  html.terminal1-restored #view-analytics .valuation-scroll{max-width:100%;overflow-x:auto}
 }
+
+html.terminal1-restored .t1-quote-summary{font:11px/1.5 var(--font)!important;color:#dbb878!important;margin:7px 0 3px!important}
+html.terminal1-restored .t1-quote-summary.t1-stale{color:#ffc479!important;background:#302318;border-left:3px solid #bc7d35;padding:6px 9px}
