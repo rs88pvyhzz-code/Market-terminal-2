@@ -45,7 +45,7 @@ with sync_playwright() as p:
  market=collections.Counter()
  for symbol in result:
   fund=catalogue[symbol]
-  assert not re.search(r'\\b(ESG|SRI|climate|low[ -]?carbon|carbon[ -]?transition|Paris[ -]?aligned|sustainable|sustainability|green[ -]?bond|net[ -]?zero|responsible[ -]?investment|SDG|PAB|CTB)\\b', ' '.join([fund.get('name',''),fund.get('benchmark',''),fund.get('market','')]),re.I),(symbol,fund['name'])
+  assert not re.search(r'\b(ESG|SRI|climate|low[ -]?carbon|carbon[ -]?transition|Paris[ -]?aligned|sustainable|sustainability|green[ -]?bond|net[ -]?zero|responsible[ -]?investment|SDG|PAB|CTB)\b', ' '.join([fund.get('name',''),fund.get('benchmark',''),fund.get('market','')]),re.I),(symbol,fund['name'])
   market[(fund.get('category','unknown'),fund.get('market','unknown'))]+=1
  assert market and max(market.values())<=2,market
  assert table.locator('.etf-geo-group').count()>2
