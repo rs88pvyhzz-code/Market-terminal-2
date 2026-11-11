@@ -59,7 +59,15 @@ with sync_playwright() as p:
   assert page.locator(selector).evaluate('(e)=>Math.abs(parseFloat(getComputedStyle(e).maxHeight)-Math.min(innerHeight*.44,440))<1')
   assert page.locator(selector+' thead th').first.evaluate('(e)=>getComputedStyle(e).position')=='sticky'
  assert page.locator('#gilts').evaluate('''e=>e.querySelector("#gilt-ladder").compareDocumentPosition(e.querySelector("#gilt-chart"))&Node.DOCUMENT_POSITION_PRECEDING'''),'Gilt chart must precede ladder'
- assert page.locator('#gilt-stats .r28-gilt-yields').count()==1
+ # Quote-specific gilt valuation cards appear after a valid security is selected.
+ candidates=page.locator('#gilt-rows tr[data-isin]')
+ if candidates.count():
+  ordinary=candidates.filter(has_text='Conventional')
+  (ordinary.first if ordinary.count() else candidates.first).click()
+  assert page.locator('#gilt-selected').inner_text()!='NO GILT DATA AVAILABLE'
+  assert page.locator('#gilt-stats').locator('.stat,.research-stat,.etf-stat,.r28-gilt-yields,.r28-gilt-single').count()>0
+ else:
+  assert 'NO GILT DATA' in page.locator('#gilt-selected').inner_text()
  assert page.locator('#gilt-chart').count()==1
  assert page.locator('#gilt-freshness').count()==1
  if not data.get('demo'):page.screenshot(path='/tmp/release210-gilts-ipad.png',full_page=True)
