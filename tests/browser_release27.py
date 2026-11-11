@@ -9,7 +9,29 @@ if not data.get('demo'):
     raw=next((x.get('points',[]) for x in data['etfTracker'].get('history',[]) if x.get('symbol')=='VWRP.L'),[])
     sel=[p for p in raw if p[0] in ('2025-11-10','2026-11-09','2026-11-10')]
     fx=[(h.get('symbol'),h.get('date'),h.get('close')) for h in data.get('history',[]) if h.get('symbol') in ('GBPUSD=X','USDGBP=X','GBPEUR=X','EURGBP=X') and h.get('date') in ('2025-11-10','2026-11-09','2026-11-10')]
-    print('VWRP_AUDIT '+json.dumps({'currency':(fund or {}).get('quote',{}).get('currency'),'quoted':(fund or {}).get('quote'),'return1Y':(fund or {}).get('return1Y'),'basis':(fund or {}).get('returnBasis'),'standardized':(fund or {}).get('standardisedReturns'),'sourcePrices':sel,'historyEnd':raw[-1:] if raw else [],'datedFx':fx},default=str),flush=True)
+    print('VWRP_AUDIT '+json.dumps({'currency':(fund or {}).get('quote',{}).get('currency'),'quoted':(fund or {}).get('quote'),'return1Y':(fund or {}).get('return1Y'),'returnPeriods':(fund or {}).get('returnPeriods'),'endSource':(fund or {}).get('returnEndSource'),'basis':(fund or {}).get('returnBasis'),'standardized':(fund or {}).get('standardisedReturns'),'sourcePrices':sel,'historyEnd':raw[-1:] if raw else [],'datedFx':fx},default=str),flush=True)
+    # Independently reconcile date and return basis for every observed ETF.
+    for f in data['etfTracker']['funds']:
+        observations=next((x['points'] for x in data['etfTracker'].get('history',[]) if x['symbol']==f['symbol']),[])
+        end_source=f.get('returnEndSource','')
+        if 'after-close quote' in end_source:
+            q=f.get('quote') or {}
+            assert observations and observations[-1][0]==q.get('tradingDay'),f['symbol']
+            assert observations[-1][1]==q.get('price') and observations[-1][2] is None,f['symbol']
+            assert q.get('quoteAfterRegularClose') and q.get('source')=='Yahoo Finance',f['symbol']
+        for y,p in (f.get('returnPeriods') or {}).items():
+            start=next((x for x in observations if x[0]==p['start']),None)
+            end=next((x for x in observations if x[0]==p['end']),None)
+            idx=2 if p['basis']=='Adjusted close proxy' else 1
+            assert start and end and p['startPrice']==start[idx] and p['endPrice']==end[idx],(f['symbol'],y)
+            duration=(datetime.date.fromisoformat(p['end'])-datetime.date.fromisoformat(p['start'])).days/365.25
+            growth=p['endPrice']/p['startPrice']
+            expected=round(100*(growth-1 if y=='1Y' else growth**(1/duration)-1),2)
+            assert math.isclose(f['return'+y],expected,abs_tol=.001),(f['symbol'],y,f['return'+y],expected)
+    # User-verified VWRP closing-price pair. Gate only the exact dated observation,
+    # never hard-code these 2026 prices into the collector.
+    if fund and raw and raw[-1][0]=='2026-11-10' and any(p[0]=='2025-11-10' and abs(p[1]-126.84)<.001 for p in raw) and abs(raw[-1][1]-140.36)<.001:
+        assert fund['return1Y']==10.66 and fund['returnBasis']=='Price only',fund
 # Closure access only for reconciliation; the market-data JSON is never changed.
 html=html.replace('function etfOriginalKey(f){','window.__etf={funds:ETF_FUNDS,state:etfState,key:etfOriginalKey,peers:etfOriginalPeers,performance:etfPerformance,rows:etfRows};\nfunction etfOriginalKey(f){')
 def choose(page,symbol):
