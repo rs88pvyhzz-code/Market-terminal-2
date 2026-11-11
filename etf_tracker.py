@@ -78,40 +78,100 @@ def compact_history(history):
     return out
 
 
+def include_completed_quote(points, quote):
+    """Include a later *after-close* Yahoo quote as price only, never NAV/adjClose.
+
+    Yahoo's regular-market quotation can update before its chart endpoint.
+    Require the same ticker, a dated post-session quotation and a history bar
+    no more than five calendar days behind. Intraday or unverified quotes never
+    enter the series. The adjusted close stays missing, not imputed.
+    """
+    if not points or not quote or not quote.get('quoteAfterRegularClose'):
+        return points, False
+    if quote.get('source') != 'Yahoo Finance':
+        return points, False
+    day=quote.get('tradingDay') or (quote.get('asOf') or '')[:10]
+    price=quote.get('price')
+    if not isinstance(price,(int,float)) or price<=0:
+        return points, False
+    try:
+        date=dt.date.fromisoformat(day)
+        old=dt.date.fromisoformat(points[-1][0])
+    except (TypeError,ValueError):
+        return points, False
+    if not 0 < (date-old).days <= 5:
+        return points, False
+    return points+[[day,price,None]],True
+
+
+def _annualised_detail(points, years):
+    """Use the closest actual trading date to the exact anniversary.
+
+    The final observation is one actual dated price. Do not interpolate a
+    market holiday, substitute missing FX or convert a quote into an adjusted
+    close. A seven-day maximum distance makes stale endpoints unavailable.
+    """
+    if len(points)<2 or years not in (1,3,5):
+        return None,'',None
+    rows=sorted(points,key=lambda p:p[0])
+    last=rows[-1]
+    # If the most recent close is only a verified market quote, there is no
+    # adjusted-close observation for that date: compare raw closes instead.
+    idx=2 if len(last)>2 and isinstance(last[2],(int,float)) and last[2]>0 else 1
+    label='Adjusted close proxy' if idx==2 else 'Price only'
+    if not isinstance(last[idx],(int,float)) or last[idx]<=0:
+        return None,'',None
+    end=dt.date.fromisoformat(last[0])
+    try:
+        target=end.replace(year=end.year-years)
+    except ValueError:  # 29 February -> 28 February
+        target=end.replace(year=end.year-years,day=28)
+    candidates=[]
+    for row in rows[:-1]:
+        if len(row)<=idx or not isinstance(row[idx],(int,float)) or row[idx]<=0:
+            continue
+        start=dt.date.fromisoformat(row[0])
+        distance=abs((start-target).days)
+        if distance<=7:
+            candidates.append((distance,0 if start>=target else 1,start,row))
+    if not candidates:
+        return None,'',None
+    _,_,start,first=min(candidates,key=lambda t:(t[0],t[1]))
+    span=(end-start).days/365.25
+    if span<years*.95 or span>years*1.07:
+        return None,'',None
+    value=round(100*((last[idx]/first[idx])**(1/span)-1),2)
+    return value,label,{'start':start.isoformat(),'end':end.isoformat(),
+                        'startPrice':first[idx],'endPrice':last[idx],
+                        'basis':label}
+
+
 def annualised_performance(points, years):
-    """Trailing annualised growth from documented daily prices or adjusted-close proxy."""
-    if len(points) < 2:
-        return None, ''
-    end = dt.date.fromisoformat(points[-1][0])
-    cutoff = (end - dt.timedelta(days=round(years * 365.25))).isoformat()
-    initial = next((p for p in reversed(points) if p[0] <= cutoff), points[0])
-    span = (end - dt.date.fromisoformat(initial[0])).days / 365.25
-    if span < years * 0.95:
-        return None, ''
-    adjusted = initial[2] is not None and points[-1][2] is not None
-    idx = 2 if adjusted else 1
-    first, last = initial[idx], points[-1][idx]
-    if not first or not last or first <= 0 or last <= 0:
-        return None, ''
-    return round(100 * ((last / first)**(1 / span) - 1), 2), ('Adjusted close proxy' if adjusted else 'Price only')
+    """Trailing CAGR using actual closes nearest the matching anniversary."""
+    value,basis,_=_annualised_detail(points,years)
+    return value,basis
 
 
-def attach(fund, quote, points):
+def attach(fund, quote, points, quote_as_history=False):
     if not quote:
         fund['quoteStatus'] = 'Unavailable'
         return
     fund['quote'] = {k: quote.get(k) for k in (
         'symbol', 'currency', 'price', 'changePct', 'asOf', 'source', 'cached',
-        'adjustedAvailable')}
+        'adjustedAvailable','tradingDay','quoteAfterRegularClose')}
     fund['quoteStatus'] = 'Quoted' if quote.get('price') is not None else 'Unavailable'
     bases = []
+    periods={}
     for years in (1, 3, 5):
-        result, basis = annualised_performance(points, years)
+        result,basis,period=_annualised_detail(points,years)
         fund['return' + str(years) + 'Y'] = result
         if basis:
             bases.append(basis)
+        if period:
+            periods[str(years)+'Y']=period
     fund['returnBasis'] = ', '.join(dict.fromkeys(bases))
-
+    fund['returnPeriods']=periods
+    fund['returnEndSource']='Yahoo after-close quote, price only' if quote_as_history else 'Yahoo dated historical chart'
 
 def demo(path):
     funds, warnings = read_catalog(path)
@@ -166,7 +226,11 @@ def collect(core, opts, path, main_quotes, main_history, watch_quotes, watch_his
             if quote:
                 cached += int(bool(quote.get('cached')))
         points = compact_history(raw)
-        attach(fund, quote, points)
+        # Never combine a current quote with an older chart end without saying
+        # which date and basis the return uses.
+        quote_for_symbol=quote if quote and quote.get('symbol')==sym else None
+        points,used_quote=include_completed_quote(points,quote_for_symbol)
+        attach(fund, quote, points, quote_as_history=used_quote)
         if points:
             history.append({'symbol': sym, 'points': points})
     quoted = sum(f['quoteStatus'] == 'Quoted' for f in funds)
