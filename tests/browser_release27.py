@@ -3,6 +3,13 @@ import base64,json,math,os,re,sys,urllib.request,hashlib,datetime
 from pathlib import Path
 from playwright.sync_api import sync_playwright
 html=Path(sys.argv[1]).read_text();m=re.search(r'window\.MT_DATA\s*=\s*',html);data=json.JSONDecoder().raw_decode(html[m.end():])[0]
+# Data-source audit: do not mistake internally consistent CAGR arithmetic for correct prices.
+if not data.get('demo'):
+    fund=next((f for f in data['etfTracker']['funds'] if f['symbol']=='VWRP.L'),None)
+    raw=next((x.get('points',[]) for x in data['etfTracker'].get('history',[]) if x.get('symbol')=='VWRP.L'),[])
+    sel=[p for p in raw if p[0] in ('2025-11-10','2026-11-09','2026-11-10')]
+    fx=[(h.get('symbol'),h.get('date'),h.get('close')) for h in data.get('history',[]) if h.get('symbol') in ('GBPUSD=X','USDGBP=X','GBPEUR=X','EURGBP=X') and h.get('date') in ('2025-11-10','2026-11-09','2026-11-10')]
+    print('VWRP_AUDIT '+json.dumps({'currency':(fund or {}).get('quote',{}).get('currency'),'quoted':(fund or {}).get('quote'),'return1Y':(fund or {}).get('return1Y'),'basis':(fund or {}).get('returnBasis'),'standardized':(fund or {}).get('standardisedReturns'),'sourcePrices':sel,'historyEnd':raw[-1:] if raw else [],'datedFx':fx},default=str),flush=True)
 # Closure access only for reconciliation; the market-data JSON is never changed.
 html=html.replace('function etfOriginalKey(f){','window.__etf={funds:ETF_FUNDS,state:etfState,key:etfOriginalKey,peers:etfOriginalPeers,performance:etfPerformance,rows:etfRows};\nfunction etfOriginalKey(f){')
 def choose(page,symbol):
