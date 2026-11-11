@@ -1,0 +1,137 @@
+/* Terminal 1 restoration: original 2026 shell aesthetics on modern data panels.
+   Exact original base stylesheet loaded immediately before this bridge.
+   Terminal 2 calculations, sources, dates and ETF logic are left intact. */
+html.terminal1-restored{
+ --bg:#09090b;--panel:#121215;--panel2:#17171b;--line:#2a2a30;
+ --amber:#ffa028;--fg:#ececef;--muted:#96969f;--up:#51d284;--down:#ff665e;
+ --font:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;
+ --r24-nav-height:115px;
+ scroll-padding-top:130px;
+}
+html.terminal1-restored body{font:14px/1.5 -apple-system,BlinkMacSystemFont,"Segoe UI",Arial,sans-serif!important;background:#060607!important;color:var(--fg)!important}
+html.terminal1-restored .wrap{max-width:1470px!important;padding:16px!important;gap:14px!important}
+html.terminal1-restored header{padding:13px 0!important;border-bottom:1px solid var(--amber)!important}
+html.terminal1-restored .brand{font:700 23px/1.2 var(--font)!important;letter-spacing:1px;color:var(--amber)!important}
+html.terminal1-restored .sub,html.terminal1-restored .stamp{font:11px/1.5 var(--font)!important}
+html.terminal1-restored .commandbar{background:#09090bef!important;border-bottom:1px solid #38322b!important;padding:10px 0 8px!important}
+html.terminal1-restored .workspace-nav{display:flex!important;position:static!important;flex-wrap:nowrap!important;overflow-x:auto!important;scrollbar-width:thin!important;gap:6px!important;background:transparent!important;border:0!important;padding:0 2px 2px!important}
+html.terminal1-restored .workspace-nav button{flex:none!important;font:11px/1.4 var(--font)!important;letter-spacing:.02em!important;color:#babac4!important;border:1px solid #34343a!important;border-radius:5px!important;background:#161619!important;min-height:34px!important;padding:8px 11px!important}
+html.terminal1-restored .workspace-nav button[aria-selected=true]{color:#130d04!important;border-color:var(--amber)!important;background:var(--amber)!important;font-weight:700!important}
+html.terminal1-restored .workspace-nav button:hover{border-color:#a67b41!important;color:#fff!important}
+html.terminal1-restored .workspace-title{border-bottom:1px solid #2d2921!important;padding:9px 3px 0!important}
+html.terminal1-restored .workspace-title h1{font:600 18px/1.4 var(--font)!important;color:var(--amber)!important}
+html.terminal1-restored .workspace-title span{font:11px var(--font)!important;color:var(--muted)!important}
+html.terminal1-restored .workspace-view{gap:14px!important;grid-template-columns:minmax(0,1fr)!important}
+html.terminal1-restored .panel,html.terminal1-restored .r24-support{
+ background:#121215!important;border:1px solid #2a2a30!important;border-radius:7px!important;
+ padding:14px!important;gap:10px!important;min-width:0!important;box-shadow:none!important;
+}
+html.terminal1-restored .panel h2,html.terminal1-restored .r24-support h2,html.terminal1-restored .r24-section h2{
+ font:600 15px/1.35 var(--font)!important;color:var(--amber)!important;letter-spacing:0!important;
+ border-bottom:1px solid #38343a!important;padding-bottom:7px!important;margin:0 0 6px!important;
+}
+html.terminal1-restored .panel h3,html.terminal1-restored .r24-support-heading{
+ font:500 13px/1.45 var(--font)!important;color:#d8d8dd!important;letter-spacing:0!important;
+}
+html.terminal1-restored .mini{font:11px/1.5 var(--font)!important;color:var(--muted)!important}
+html.terminal1-restored .note{font:12px/1.55 -apple-system,BlinkMacSystemFont,"Segoe UI",Arial,sans-serif!important;color:var(--muted)!important}
+html.terminal1-restored a{color:#e9b46b!important;text-decoration:none}
+html.terminal1-restored a:hover{text-decoration:underline}
+html.terminal1-restored .btn,html.terminal1-restored .terminal-subnav button,html.terminal1-restored .r25-section-links button{
+ font:12px/1.4 var(--font)!important;color:#d7d7de!important;background:#17171b!important;
+ border:1px solid #34343a!important;border-radius:5px!important;padding:7px 10px!important;min-height:31px!important
+}
+html.terminal1-restored .btn.active,html.terminal1-restored .r25-section-links button.active{
+ background:var(--amber)!important;color:#100b03!important;border-color:var(--amber)!important;font-weight:600!important}
+html.terminal1-restored .field{font:12px var(--font)!important;color:#ececef!important;background:#1b1b20!important;border-radius:5px!important;border:1px solid #36363e!important;padding:7px 9px!important}
+html.terminal1-restored .watch,html.terminal1-restored .r24-table,html.terminal1-restored .small-table{
+ font:12px/1.45 var(--font)!important;border-collapse:collapse!important;width:100%!important;
+ font-variant-numeric:tabular-nums!important}
+html.terminal1-restored .watch th,html.terminal1-restored .r24-table th,html.terminal1-restored .small-table th{
+ font:500 11px/1.4 var(--font)!important;color:var(--amber)!important;
+ background:#18181b!important;border-bottom:1px solid #38383e!important;
+ position:sticky!important;top:0!important;z-index:4!important;
+ padding:9px 9px!important;letter-spacing:0!important;
+}
+html.terminal1-restored .watch td,html.terminal1-restored .r24-table td,html.terminal1-restored .small-table td{
+ font:11px/1.45 var(--font)!important;padding:8px 9px!important;
+ color:#e0e0e6!important;border-bottom:1px solid #222227!important}
+html.terminal1-restored .watch td.n,html.terminal1-restored .watch th.n{text-align:right!important}
+html.terminal1-restored .watch tr.selected{background:#302313!important}
+html.terminal1-restored .watch tbody tr:hover{background:#242329!important}
+html.terminal1-restored .research-card,html.terminal1-restored .research-stat,html.terminal1-restored .credit-stat,html.terminal1-restored .etf-stat:not(#etf-tracker-panel .etf-stat){
+ border:1px solid #303036!important;border-radius:5px!important;background:#1a1a1d!important;padding:11px!important}
+html.terminal1-restored .research-card strong,html.terminal1-restored .research-stat .val{font:17px/1.35 var(--font)!important}
+html.terminal1-restored .research-card .mini,html.terminal1-restored .research-stat .lab{font:10px/1.4 var(--font)!important;color:var(--amber)!important}
+html.terminal1-restored .chart{min-height:220px!important;max-width:100%!important}
+html.terminal1-restored .chart svg{max-height:320px}
+html.terminal1-restored .company-ident{border-bottom:1px solid #303037!important}
+html.terminal1-restored .company-ident strong{font:600 20px/1.3 var(--font)!important}
+html.terminal1-restored #research-nav{background:#111115!important;border-bottom:1px solid #35343a!important;position:static!important}
+html.terminal1-restored #research-nav .btn{font:11px var(--font)!important}
+html.terminal1-restored #research-nav .btn[aria-selected=true]{background:var(--amber)!important;color:#130d04!important}
+html.terminal1-restored #research-tab-2,html.terminal1-restored #research-view-2{display:none!important}
+html.terminal1-restored #research-view-0 .research-executive-grid{gap:9px!important}
+html.terminal1-restored .research-executive-card{background:#17171c!important;border:1px solid #33333b!important;border-radius:5px!important;padding:10px!important}
+html.terminal1-restored .research-executive-card h4{color:var(--amber)!important}
+html.terminal1-restored .r25-section-links{position:static!important;background:#111115!important;border-bottom:1px solid #33333b!important}
+html.terminal1-restored #market-pulse .r24-snapshot-item{border:1px solid #2a2a30!important;background:#17171b!important;border-radius:4px!important;padding:10px 11px!important}
+html.terminal1-restored #market-pulse .r24-snapshot-item .lab{font:11px/1.4 var(--font)!important;color:var(--amber)!important}
+html.terminal1-restored #market-pulse .r24-snapshot-item strong{font:17px/1.45 var(--font)!important;color:var(--fg)!important}
+html.terminal1-restored #news-list{display:grid!important;grid-template-columns:repeat(3,minmax(0,1fr))!important;gap:9px!important}
+html.terminal1-restored #news-list .r29-news{border:1px solid #2d2d32!important;border-radius:5px!important;background:#18181d!important;padding:11px!important;display:grid!important;gap:7px!important}
+html.terminal1-restored #news-list .r29-news-title{font:500 13px/1.45 -apple-system,BlinkMacSystemFont,"Segoe UI",Arial,sans-serif!important;color:#f2f2f5!important}
+html.terminal1-restored #news-list .r29-news-meta{font:10px/1.4 var(--font)!important;color:var(--muted)!important}
+html.terminal1-restored .gilt-table-scroll,html.terminal1-restored #ust-securities-scroll,html.terminal1-restored .r28-table-scroll{
+ max-height:min(56vh,580px)!important;overflow-y:auto!important;overflow-x:auto!important;
+ border:1px solid #29292f!important;border-radius:4px!important;overscroll-behavior:contain;
+}
+html.terminal1-restored #etf-tracker-panel .etf-table-scroll{max-height:min(60vh,600px)!important;overscroll-behavior:contain}
+html.terminal1-restored .constituents-scroll{max-height:min(56vh,580px)!important;overflow-y:auto!important}
+html.terminal1-restored #view-quality .t1-source-ledger{margin-bottom:14px!important}
+html.terminal1-restored #t1-source-ledger{display:grid;gap:10px}
+html.terminal1-restored #t1-source-ledger>.t1-ledger-section{background:#17171b;border:1px solid #33333a;padding:12px;border-radius:5px;display:grid;gap:9px;min-width:0}
+html.terminal1-restored #t1-source-ledger .t1-ledger-section>h3{font:600 12px var(--font)!important;color:var(--amber)!important;border-bottom:1px solid #37343b;padding-bottom:7px}
+html.terminal1-restored .t1-quality-link{margin:5px 0}
+html.terminal1-restored .t1-quality-link .btn{font-size:10px!important}
+html.terminal1-restored #t1-valuation-facts{margin:14px 0}
+html.terminal1-restored .t1-ratio-grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:1px;background:#303036;border:1px solid #303036}
+html.terminal1-restored .t1-ratio-tile{display:grid;gap:5px;background:#1a1a1d;padding:11px;min-width:0}
+html.terminal1-restored .t1-ratio-tile>span{color:var(--amber)!important;font:10px var(--font)!important}
+html.terminal1-restored .t1-ratio-tile strong{font:17px/1.4 var(--font)!important;overflow-wrap:anywhere}
+html.terminal1-restored .t1-ratio-tile .note{font:10px/1.4 var(--font)!important}
+html.terminal1-restored #research-view-0 #r29-coverage,html.terminal1-restored #research-view-0 #company-coverage{display:none!important}
+html.terminal1-restored #research-valuation input,html.terminal1-restored #research-valuation .r29-full-model,html.terminal1-restored #research-valuation .r29-return{display:none!important}
+html.terminal1-restored .r29-source-warning{display:none!important}
+html.terminal1-restored #t1-source-ledger .r29-source-warning{display:block!important}
+@media(max-width:1150px){
+ html.terminal1-restored .workspace-nav{flex-wrap:wrap!important;overflow-x:visible!important}
+ html.terminal1-restored #news-list{grid-template-columns:repeat(2,minmax(0,1fr))!important}
+ html.terminal1-restored .t1-ratio-grid{grid-template-columns:repeat(2,minmax(0,1fr))}
+}
+@media(max-width:700px){
+ html.terminal1-restored .wrap{padding:8px!important;gap:9px!important}
+ html.terminal1-restored .panel{padding:10px!important}
+ html.terminal1-restored #news-list{grid-template-columns:1fr!important}
+ html.terminal1-restored .workspace-nav button{font:10px var(--font)!important;padding:7px 8px!important}
+ html.terminal1-restored .t1-ratio-grid{grid-template-columns:1fr}
+ html.terminal1-restored .company-main{grid-template-columns:1fr!important}
+}
+
+/* Original compact tablet/mobile analytical layout: prevent wide comparison
+   inputs and indexed tables from increasing the whole page width. */
+html.terminal1-restored #view-analytics{width:100%;min-width:0}
+html.terminal1-restored #view-analytics .panel{min-width:0;max-width:100%;overflow-x:auto}
+html.terminal1-restored #view-analytics .compare-pickers{grid-template-columns:repeat(4,minmax(0,1fr));min-width:0}
+html.terminal1-restored #view-analytics .compare-pickers select{width:100%;min-width:0;max-width:100%}
+html.terminal1-restored #view-analytics .g2,html.terminal1-restored #view-analytics .g3{min-width:0}
+@media(max-width:760px){
+ html.terminal1-restored #view-analytics .compare-pickers{grid-template-columns:repeat(2,minmax(0,1fr))}
+ html.terminal1-restored #view-analytics .g2,html.terminal1-restored #view-analytics .g3{grid-template-columns:minmax(0,1fr)}
+ html.terminal1-restored #view-analytics .analytics-scroll,
+ html.terminal1-restored #view-analytics .analytic-scroll,
+ html.terminal1-restored #view-analytics .valuation-scroll{max-width:100%;overflow-x:auto}
+}
+
+html.terminal1-restored .t1-quote-summary{font:11px/1.5 var(--font)!important;color:#dbb878!important;margin:7px 0 3px!important}
+html.terminal1-restored .t1-quote-summary.t1-stale{color:#ffc479!important;background:#302318;border-left:3px solid #bc7d35;padding:6px 9px}
