@@ -59,6 +59,9 @@ with sync_playwright() as p:
                 assert page.evaluate('document.body.scrollWidth<=innerWidth+1'),(symbol,width,i)
         page.locator('#research-tab-5').click()
         assert page.locator('#forensic-symbol').inner_text()==symbol
+    # The previous profile loop ends on HSBA.L. Select Shell before saving a
+    # Shell-specific research note; notebooks are deliberately symbol-scoped.
+    page.locator('#company-pick').select_option('SHEL.L')
     page.locator('#research-tab-3').click()
     page.locator('#research-business .research-notebook').evaluate('(d)=>d.open=true')
     page.get_by_label('Competitive advantages & supporting evidence',exact=True).fill('Dated evidence test')
