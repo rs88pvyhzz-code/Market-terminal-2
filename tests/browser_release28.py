@@ -58,8 +58,8 @@ with sync_playwright() as p:
         page.screenshot(path='/tmp/release28-economics-ipad.png',full_page=True)
     page.locator('#tab-bonds').click()
     page.wait_for_timeout(130)
-    if page.locator('#gilt-rows tr').count():
-        page.locator('#gilt-rows tr').first.click()
+    if page.locator('#gilt-rows tr[data-isin]').count():
+        page.locator('#gilt-rows tr[data-isin]').first.click()
         page.wait_for_timeout(130)
         assert page.locator('#gilt-stats .r28-gilt-single').count()==1
         assert page.locator('#gilt-stats .r28-gilt-yield').count()==2
