@@ -49,7 +49,7 @@ function positionQuality(){
  qualityMove('gilt-retrieval','DMO RETRIEVAL AND DEFINITIONS','parent');
  qualityMove('r29-coverage','COMPANY RESEARCH SOURCE COVERAGE');
  qualityMove('company-coverage','COMPANY SOURCE REGISTERS');
- qualityMove('company-alert','COMPANY PROFILE RETRIEVAL WARNINGS');
+ // Interactive company selection errors stay beside the search field.
  for(const warning of document.querySelectorAll('.r29-source-warning')){
    qualityMove(warning.id||assign(warning,'t1-source-warning'),'DMO SOURCE REVIEW');
  }
@@ -145,6 +145,28 @@ setupResearchViews=function(){
 };
 const originalShow=showResearchView;
 showResearchView=function(i){originalShow(i===2?0:i);};
+function giltDateReference(){
+ const parent=elBy('gilts'),source=elBy('gilt-freshness');if(!parent||!source)return;
+ let note=elBy('t1-gilt-quote-summary');
+ if(!note){
+   note=el('p','mini t1-quote-summary');note.id='t1-gilt-quote-summary';
+   const toolbar=parent.querySelector('.r29-bond-toolbar')||parent.querySelector(':scope > .inputs');
+   if(toolbar)toolbar.after(note);else parent.prepend(note);
+ }
+ const refresh=()=>{
+   const latest=source.textContent||'';
+   const date=(latest.match(/(?:quotation|quote date)[: ]+([0-9]{4}-[0-9]{2}-[0-9]{2})/i)||[])[1];
+   const stale=/\bSTALE\b/i.test(latest);
+   note.textContent=(date?'DMO quotation '+date:'DMO quotation date unavailable')+
+     (stale?' · STALE—verify before relying on yields':'')+' · Full source and freshness checks in Data Quality';
+   note.classList.toggle('t1-stale',stale);
+ };
+ refresh();
+ if(!source.dataset.t1Observed){
+   new MutationObserver(refresh).observe(source,{childList:true,characterData:true,subtree:true});
+   source.dataset.t1Observed='true';
+ }
+}
 function scopeNavigation(){
  document.documentElement.classList.add('terminal1-restored');
  const keys=['overview','fx','equities','companies','bonds','analytics','etfs','economics','watchlist','quality'];
@@ -166,7 +188,7 @@ function scopeNavigation(){
  if(doc)doc.querySelector('.workspace-title h1').textContent='COMPANY RESEARCH';
  const quick=elBy('view-analytics');
  if(quick)quick.querySelector('.workspace-title h1').textContent='ANALYTICS';
- positionQuality();
+ positionQuality();giltDateReference();
 }
 document.addEventListener('DOMContentLoaded',scopeNavigation);
 })();
