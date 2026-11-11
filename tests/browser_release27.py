@@ -41,7 +41,7 @@ with sync_playwright() as p:
     page=browser.new_page(viewport={'width':1024,'height':768});errors=[];page.on('pageerror',lambda e:errors.append(str(e)))
     page.route('http://localhost:8765/**',lambda r:r.fulfill(body=html,content_type='text/html'))
     page.goto('http://localhost:8765/',wait_until='domcontentloaded',timeout=120000);page.locator('#tab-etfs').click();page.wait_for_timeout(100)
-    assert page.locator('#workspace-tabs [role=tab]').count()==8
+    assert page.locator('#workspace-tabs [role=tab]').count()==(10 if page.evaluate("document.documentElement.classList.contains('terminal1-restored')") else 8)
     assert len(data['etfTracker']['funds'])==132
     assert page.locator('.etf-table thead th').all_text_contents()==['Fund / ticker','TER','P/S','Fund AUM','1Y','3Y','5Y','Cmp']
     assert page.locator('#etf-r26-pick,#etf-selected-comparisons').count()==0
