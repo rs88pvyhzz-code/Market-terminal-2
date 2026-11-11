@@ -13,7 +13,7 @@ with sync_playwright() as p:
         viewport=page.locator('#ust-securities-scroll');rows=page.locator('#ust-rows tr')
         securities=data.get('us_treasuries',[])
         assert rows.count()==(len(securities) or 1)
-        assert viewport.evaluate('(e)=>Math.abs(parseFloat(getComputedStyle(e).maxHeight)-(document.documentElement.classList.contains("release210")?Math.min(innerHeight*.44,440):Math.min(innerHeight*.6,600)))<1')
+        assert viewport.evaluate('(e)=>Math.abs(parseFloat(getComputedStyle(e).maxHeight)-(document.documentElement.classList.contains("terminal1-design")?Math.min(innerHeight*.47,460):(document.documentElement.classList.contains("release210")?Math.min(innerHeight*.44,440):Math.min(innerHeight*.6,600))))<1')
         assert viewport.evaluate('(e)=>getComputedStyle(e).overflowY')=='auto'
         assert page.locator('#ust-securities-scroll thead th').evaluate_all('(els)=>els.every(e=>getComputedStyle(e).position==="sticky"&&getComputedStyle(e).top==="0px")')
         for id in ['ust-selected','ust-clean-input','ust-stats','ust-chart','ust-selected-date']:
