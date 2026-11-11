@@ -101,6 +101,31 @@
 .terminal1-design #view-companies .r29-source-warning{display:none!important}
 .terminal1-design #view-quality #gilt-retrieval,
 .terminal1-design #view-quality .r29-source-warning{display:block!important}
+/* Mobile analytics layout: each original-design panel owns its overflow.
+   Do not clip analytical observations or create horizontal page scrolling. */
+.terminal1-design #view-analytics,
+.terminal1-design #view-analytics .panel,
+.terminal1-design #view-analytics .panel > *,
+.terminal1-design #view-analytics .g2 > *,
+.terminal1-design #view-analytics .g3 > *{
+ min-width:0;max-width:100%;
+}
+.terminal1-design #view-analytics .g2{grid-template-columns:repeat(2,minmax(0,1fr))}
+.terminal1-design #view-analytics .g3{grid-template-columns:repeat(3,minmax(0,1fr))}
+.terminal1-design #view-analytics :is(.small-scroll,.analytic-scroll,.valuation-scroll,.constituents-scroll){
+ min-width:0;max-width:100%;overflow-x:auto;overflow-y:auto;
+}
+.terminal1-design #view-analytics .row > *,
+.terminal1-design #view-analytics .research-controls > *,
+.terminal1-design #view-analytics .compare-pickers > *{min-width:0;max-width:100%}
+.terminal1-design #view-analytics .chart,
+.terminal1-design #view-analytics .chart svg{max-width:100%;min-width:0}
+@media(max-width:760px){
+ .terminal1-design #view-analytics .g2,.terminal1-design #view-analytics .g3{grid-template-columns:minmax(0,1fr)}
+ .terminal1-design #view-analytics .research-controls{max-width:100%;flex-wrap:wrap}
+ .terminal1-design #view-analytics .research-controls .field{flex:1 1 150px;min-width:0}
+ .terminal1-design #view-analytics .compare-pickers{grid-template-columns:repeat(2,minmax(0,1fr))}
+}
 @media(max-width:1120px){.terminal1-design #market-pulse{grid-template-columns:repeat(4,minmax(0,1fr))!important}}
 @media(max-width:760px){
  .terminal1-design .wrap{padding:8px;gap:9px}
