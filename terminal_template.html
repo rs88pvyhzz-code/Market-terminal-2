@@ -596,6 +596,10 @@ h2{font:600 15px/1.35 var(--font);color:var(--amber);margin:0}h3{font:500 13px v
   </section>
 </section>
 
+<section class="panel t1-source-ledger" id="t1-source-ledger">
+  <h2>SOURCE QUALITY BY AREA</h2>
+  <p class="note">Detailed source freshness, missing-data issues, ETF and company coverage, and retrieval evidence. The market and research screens retain only quotation dates and material caveats.</p>
+</section>
 <section class="panel" id="etf-audit-panel">
       <div class="row"><h2>ETF DATA ACCURACY &amp; SOURCE COVERAGE</h2><span class="mini" id="etf-audit-visible"></span></div>
       <p class="note">Source provenance and data completeness, NOT an independent audit of market-data accuracy. Missing values are never treated as zero. An issuer-confirmed TER does not validate a price, benchmark or ticker.</p>
@@ -2100,7 +2104,7 @@ function reorderSections(){
     ['etfs','ETF TRACKERS','Funds · comparisons · tracking quality',['etf-tracker-panel']],
     ['economics','ECONOMICS','Inflation · GDP · unemployment · calendar',['macro','macro-surprise','calendar']],
     ['watchlist','MY WATCHLIST','Selected securities · news · risk analytics',['personal-watchlist-panel']],
-    ['quality','DATA QUALITY','Source coverage · retrieval status · missing values · diagnostics',['etf-audit-panel','quality-panel','sources']]
+    ['quality','DATA QUALITY','Source coverage · retrieval status · missing values · diagnostics',['t1-source-ledger','etf-audit-panel','quality-panel','sources']]
   ];
   for(const [key,title,desc,ids] of config){
     const view=el('div','workspace-view');view.id='view-'+key;view.dataset.workspace=key;view.setAttribute('role','tabpanel');view.setAttribute('aria-labelledby','tab-'+key);view.hidden=key!=='overview';
