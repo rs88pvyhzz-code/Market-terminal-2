@@ -29,7 +29,9 @@ with sync_playwright() as p:
     page.locator('#tab-equities').click();page.locator('#sub-equities-research').click();assert page.locator('#research-nav [role=tab]').count()==6
     page.locator('#research-tab-0').click();page.wait_for_timeout(80)
     order=page.locator('#research-view-0 > [id]').evaluate_all('(els)=>els.map(e=>e.id)')
-    expected=['company-price-block','company-benchmark-block','research-overview','company-risk-panel','research-executive','company-advanced']
+    expected=(['research-overview','r29-coverage','company-price-block','company-benchmark-block','company-risk-panel','research-executive','company-advanced']
+              if page.evaluate("document.documentElement.classList.contains('release29')") else
+              ['company-price-block','company-benchmark-block','research-overview','company-risk-panel','research-executive','company-advanced'])
     assert [order.index(x) for x in expected]==sorted(order.index(x) for x in expected),order
     for id in ['company-chart','company-benchmark-chart','company-risk-kpis','company-technical-kpis']:assert page.locator('#'+id).count()==1
     assert 'RSI' not in page.locator('#company-risk-kpis').inner_text()
