@@ -196,7 +196,7 @@ r25SectionLinks=function(){
  previousSectionLinks();
  const host=$r('research-view-4');if(!host)return;
  const nav=host.querySelector(':scope > .r25-section-links');if(!nav)return;
- const headings=[...host.querySelectorAll('h3.r24-support-heading')].filter(h=>h.getClientRects().length);
+ const headings=[...host.querySelectorAll('h3.r24-support-heading')];
  if(!headings.length)return;
  nav.replaceChildren();nav.hidden=false;
  nav.setAttribute('aria-label','Company research sections');
