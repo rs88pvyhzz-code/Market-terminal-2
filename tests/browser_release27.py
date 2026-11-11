@@ -33,7 +33,7 @@ if not data.get('demo'):
     if fund and raw and raw[-1][0]=='2026-11-10' and any(p[0]=='2025-11-10' and abs(p[1]-126.84)<.001 for p in raw) and abs(raw[-1][1]-140.36)<.001:
         assert fund['return1Y']==10.66 and fund['returnBasis']=='Price only',fund
 # Closure access only for reconciliation; the market-data JSON is never changed.
-html=html.replace('function etfOriginalKey(f){','window.__etf={funds:ETF_FUNDS,state:etfState,key:etfOriginalKey,peers:etfOriginalPeers,performance:(...a)=>etfPerformance(...a),rows:(...a)=>etfRows(...a)};\nfunction etfOriginalKey(f){')
+html=html.replace('function etfOriginalKey(f){','window.__etf={funds:ETF_FUNDS,state:etfState,key:etfOriginalKey,peers:etfOriginalPeers,conventional:etfIsConventional,marketGroup:etfMarketGroup,performance:(...a)=>etfPerformance(...a),rows:(...a)=>etfRows(...a)};\nfunction etfOriginalKey(f){')
 def choose(page,symbol):
     page.locator('#etf-search').fill(symbol);page.locator('#etf-rows [data-etf-symbol="'+symbol+'"]').click();page.locator('#etf-search').fill('');page.wait_for_timeout(70)
 with sync_playwright() as p:
@@ -52,7 +52,7 @@ with sync_playwright() as p:
     assert page.locator('#etf-rows [data-etf-symbol]').evaluate_all('''rows=>{const counts={};for(const r of rows){const f=__etf.funds.find(f=>f.symbol===r.dataset.etfSymbol),key=__etf.key(f);counts[key]=(counts[key]||0)+1;}return Object.values(counts).every(n=>n<=2)&&new Set(rows.map(r=>r.dataset.etfSymbol)).size===rows.length;}''')
     # All original region headers remain, in the existing geographic order.
     groups=page.locator('#etf-rows .etf-geo-group').all_text_contents();assert groups[0]=='Global' and 'United States' in groups and 'United Kingdom' in groups,groups
-    omitted=page.evaluate('''()=>__etf.funds.find(f=>!document.querySelector('[data-etf-symbol="'+f.symbol+'"]'))?.symbol''')
+    omitted=page.evaluate('''()=>__etf.funds.find(f=>__etf.conventional(f)&&!document.querySelector('[data-etf-symbol="'+f.symbol+'"]'))?.symbol''')
     if omitted:choose(page,omitted);assert omitted in page.locator('#etf-selected').inner_text()
     sample=['VWRP.L','VUAG.L','EQQQ.L','VAGP.L','FRIN.L']
     for symbol in sample:
@@ -64,7 +64,7 @@ with sync_playwright() as p:
         assert page.locator('#etf-same-index [data-etf-alternative]').count()<=3
         assert page.evaluate('''()=>{const f=__etf.funds.find(f=>f.symbol===__etf.state.selected),p=__etf.peers(f);return p.every(x=>x.symbol!==f.symbol&&__etf.key(x)===__etf.key(f))&&new Set(p.map(x=>x.isin||x.symbol)).size===p.length;}''')
     # A benchmark with at least three valid alternatives must genuinely display three.
-    primary=page.evaluate('''()=>__etf.funds.find(f=>__etf.peers(f).length===3)?.symbol''')
+    primary=page.evaluate('''()=>__etf.funds.find(f=>__etf.conventional(f)&&__etf.peers(f).length===3)?.symbol''')
     assert primary
     choose(page,primary);assert page.locator('#etf-same-index [data-etf-alternative]').count()==3
     assert page.locator('#etf-same-index .etf-compare-card').count()==3
