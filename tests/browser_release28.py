@@ -68,8 +68,7 @@ with sync_playwright() as p:
             assert selected.count()==0,'Selected gilt must appear only in summary'
         if not data.get('demo'):
             page.screenshot(path='/tmp/release28-gilts-ipad.png',full_page=True)
-    page.locator('#tab-equities').click()
-    page.locator('#sub-equities-research').click()
+    page.locator('#tab-companies').click()
     page.wait_for_timeout(150)
     if page.locator('#company-pick option').count():
         page.locator('#company-pick').select_option(index=0)
