@@ -23,7 +23,8 @@
 .release29 .r29-full-model,.release29 .r29-return{margin:7px 0;font-weight:600}
 /* US Treasuries retain the previously approved 60vh / 600px viewport. */
 .release29 #ust-securities-scroll{max-height:min(60vh,600px)!important;overflow-y:auto!important;overflow-x:auto!important;position:relative;overscroll-behavior:contain}
-.release29 #gilts .gilt-table-scroll{max-height:min(52vh,520px)!important;overflow-y:auto!important;overflow-x:auto!important;position:relative;overscroll-behavior:contain}
+/* Preserve the existing gilt table 65vh viewport and sticky headings. */
+.release29 #gilts .gilt-table-scroll{max-height:65vh!important;overflow-y:auto!important;overflow-x:auto!important;position:relative;overscroll-behavior:contain}
 .release29 #us-treasuries .r29-bond-toolbar,.release29 #gilts .r29-bond-toolbar{position:relative;z-index:5;display:flex;gap:8px;align-items:center;flex-wrap:wrap;margin:9px 0 14px}
 .release29 #ust-securities-scroll table thead th,.release29 #gilts .gilt-table-scroll table thead th{position:sticky!important;top:0!important;z-index:3!important;background:#17212b!important}
 .release29 #gilts .r29-bond-diagnostics{display:none!important}
