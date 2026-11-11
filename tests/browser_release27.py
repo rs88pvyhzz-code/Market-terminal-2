@@ -15,7 +15,8 @@ with sync_playwright() as p:
     assert page.locator('#workspace-tabs [role=tab]').count()==8
     assert len(data['etfTracker']['funds'])==132
     assert page.locator('.etf-table thead th').all_text_contents()==['Fund / ticker','TER','P/S','Fund AUM','1Y','3Y','5Y','Cmp']
-    assert page.locator('#etf-r26-pick,#etf-selected-comparisons,.etf-compare-card').count()==0
+    assert page.locator('#etf-r26-pick,#etf-selected-comparisons').count()==0
+    assert page.locator('#etf-same-index .etf-compare-card').count()<=3
     reference_disclosure=page.locator('#etf-tracker-panel [aria-label="US domiciled bond ETF references"] details')
     assert reference_disclosure.count()==1 and reference_disclosure.get_attribute('open') is None
     assert page.locator('.etf-table-scroll').evaluate('(e)=>e.clientHeight<=600&&e.scrollHeight>e.clientHeight&&getComputedStyle(e).overflowY==="auto"')
@@ -37,9 +38,20 @@ with sync_playwright() as p:
     primary=page.evaluate('''()=>__etf.funds.find(f=>__etf.peers(f).length===3)?.symbol''')
     assert primary
     choose(page,primary);assert page.locator('#etf-same-index [data-etf-alternative]').count()==3
+    assert page.locator('#etf-same-index .etf-compare-card').count()==3
+    assert page.locator('#etf-same-index .etf-card-source').count()==3
+    assert page.locator('#etf-same-index .etf-card-facts').count()==3
+    assert page.locator('#etf-same-index .etf-card-actions button').count()==3
+    assert page.locator('#etf-same-index .etf-card-actions input[type=checkbox]').count()==3
+    assert page.locator('#etf-same-index .etf-card-facts').evaluate_all('cards=>cards.every(c=>c.children.length===9)')
     for index in range(3):page.locator('#etf-same-index input').nth(index).check()
     assert page.evaluate('__etf.state.selected')==primary and page.evaluate('__etf.state.compared.size')==3
     if page.locator('#etf-chart svg').count():assert page.locator('#etf-chart svg path[fill=none]').count()<=4
+    first_peer=page.locator('#etf-same-index [data-etf-alternative]').first.get_attribute('data-etf-alternative')
+    page.locator('#etf-same-index [data-etf-alternative]').first.locator('button').first.click()
+    assert page.evaluate('__etf.state.selected')==first_peer
+    assert first_peer in page.locator('#etf-selected').inner_text()
+    choose(page,primary)
     for basis in ['adjusted_gbp','price_gbp','adjusted_local','price_local']:
         page.locator('#etf-basis').select_option(basis)
         for period in ['1Y','3Y','5Y']:
@@ -54,7 +66,8 @@ with sync_playwright() as p:
         assert page.evaluate('document.body.scrollWidth<=innerWidth'),width
         if width>=1024:assert page.locator('.etf-table-scroll').evaluate('(e)=>e.scrollWidth<=e.clientWidth+1'),width
         assert page.locator('#etf-rows').evaluate('(e)=>e.children.length<145')
-        assert page.locator('#etf-same-index table').count()<=1
+        assert page.locator('#etf-same-index table').count()==0
+        assert page.locator('#etf-same-index .etf-compare-card').count()<=3
     assert not errors,errors
     # Same representative funds and viewport for visual reference comparison.
     if not data.get('demo'):
