@@ -83,6 +83,21 @@ class CatalogTests(unittest.TestCase):
             self.assertFalse(used)
             self.assertEqual(p,history)
 
+    def test_london_after_close_quote_when_yahoo_period_has_advanced(self):
+        # Yahoo can publish a dated 16:35 London close while reporting the
+        # *next* day's regular-trading window in currentTradingPeriod.
+        import build_terminal
+        stamp=int(dt.datetime(2026,11,10,16,35,tzinfo=dt.timezone.utc).timestamp())
+        next_day=int(dt.datetime(2026,11,11,16,30,tzinfo=dt.timezone.utc).timestamp())
+        meta={'currentTradingPeriod':{'regular':{'end':next_day}}}
+        eligible,evidence=build_terminal.is_market_close_quote('VWRP.L',stamp,'Europe/London',meta)
+        self.assertTrue(eligible)
+        self.assertIn('LSE',evidence)
+        intraday=stamp-60
+        self.assertFalse(build_terminal.is_market_close_quote('VWRP.L',intraday,'Europe/London',meta)[0])
+        self.assertFalse(build_terminal.is_market_close_quote('VWRP.NY',stamp,'America/New_York',meta)[0])
+        self.assertFalse(build_terminal.is_market_close_quote('VWRP.L',stamp,'UTC',meta)[0])
+
     def test_missing_anniversary_is_not_imputed(self):
         points=[['2024-10-01',80,80],['2026-11-10',140,140]]
         self.assertEqual(etf_tracker.annualised_performance(points,1),(None,''))
