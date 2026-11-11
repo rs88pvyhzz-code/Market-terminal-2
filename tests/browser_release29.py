@@ -62,7 +62,7 @@ with sync_playwright() as p:
     page.wait_for_timeout(100)
     for selector in ["#ust-securities-scroll","#gilts .gilt-table-scroll"]:
         height=page.locator(selector).evaluate("(x)=>parseFloat(getComputedStyle(x).maxHeight)")
-        expected=page.evaluate("Math.min(innerHeight*.6,600)") if selector=="#ust-securities-scroll" else page.evaluate("innerHeight*.65")
+        expected=page.evaluate("Math.min(innerHeight*.44,440)") if page.evaluate("document.documentElement.classList.contains('release210')") else (page.evaluate("Math.min(innerHeight*.6,600)") if selector=="#ust-securities-scroll" else page.evaluate("innerHeight*.65"))
         assert abs(height-expected)<1,(selector,height,expected)
         assert page.locator(selector+" thead th").first.evaluate("(e)=>getComputedStyle(e).position")=="sticky",selector
     assert page.locator("#gilt-freshness").count()==1
