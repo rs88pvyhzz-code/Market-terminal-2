@@ -1,0 +1,113 @@
+/* Release 2.11 adapter: exact original theme is loaded immediately before this.
+   Only styles absent from Terminal 1 (new derived analyses) are adapted here.
+   Source & return calculation modules are untouched. */
+.terminal1-design body{background:#060607;color:#ececef}
+.terminal1-design .wrap{max-width:1470px;margin:auto;padding:16px;gap:14px}
+.terminal1-design .panel{background:#121215;border:1px solid #2a2a30;border-radius:7px;padding:14px;margin:0;display:grid;gap:10px;min-width:0}
+.terminal1-design .workspace-view{gap:14px}
+.terminal1-design .panel h2,.terminal1-design .panel>h2,
+.terminal1-design .r24-support h3{font:600 15px/1.35 var(--font);letter-spacing:0;color:#ffa028;border:0;padding:0;margin:0}
+.terminal1-design .panel h3{font:500 13px/1.4 var(--font);letter-spacing:0;color:#d8d8dd;margin:4px 0}
+.terminal1-design .note{font:12px/1.55 -apple-system,BlinkMacSystemFont,"Segoe UI",Arial,sans-serif;color:#96969f}
+.terminal1-design .mini{font:11px/1.5 var(--font);color:#96969f}
+.terminal1-design .workspace-title{padding:9px 3px 6px;border-bottom:1px solid #2d2921;display:flex;align-items:center;gap:8px;flex-wrap:wrap}
+.terminal1-design .workspace-title h1{font:600 18px/1.4 var(--font);color:#ffa028;letter-spacing:0}
+.terminal1-design .workspace-title span{font:11px/1.5 var(--font);color:#96969f}
+.terminal1-design .commandbar{background:#09090bef;border-bottom:1px solid #38322b;padding:10px 0 8px;backdrop-filter:blur(16px)}
+.terminal1-design .workspace-nav{display:flex;gap:6px;flex-wrap:wrap;padding:0 2px 2px;position:static;background:transparent;border:0}
+.terminal1-design .workspace-nav button,
+.terminal1-design .btn,.terminal1-design .terminal-subnav button{font:11px/1.4 var(--font)!important;letter-spacing:.02em;border:1px solid #34343a;background:#161619;color:#babac4;border-radius:5px;min-height:34px;padding:8px 11px!important}
+.terminal1-design .workspace-nav button[aria-selected="true"],.terminal1-design .btn.active,
+.terminal1-design .terminal-subnav button[aria-selected="true"]{background:#ffa028!important;border-color:#ffa028!important;color:#130d04!important;font-weight:700!important}
+.terminal1-design .workspace-nav button:hover,.terminal1-design .btn:hover{border-color:#a67b41;color:#fff}
+.terminal1-design .terminal-subnav{padding:6px 0 9px;border-bottom:1px solid #27272e;position:static;display:flex;gap:7px;flex-wrap:wrap}
+.terminal1-design .terminal-subview{display:grid;gap:12px}
+.terminal1-design .terminal-subview[hidden]{display:none!important}
+.terminal1-design .field{background:#1b1b20;color:#ececef;border:1px solid #36363e;border-radius:5px;padding:7px 9px;font:12px var(--font);min-width:0}
+.terminal1-design .research-card,.terminal1-design .research-stat,.terminal1-design .etf-stat,
+.terminal1-design .credit-stat,.terminal1-design .research-executive-card{background:#1a1a1d;border:1px solid #303036;border-radius:3px;padding:11px 12px;min-width:0}
+.terminal1-design .research-card>span,.terminal1-design .research-stat .lab,
+.terminal1-design .etf-stat .lab{font:10px/1.5 var(--font);color:#ffa028}
+.terminal1-design .research-card strong,.terminal1-design .research-stat .val{font:16px/1.5 var(--font);color:#ececef}
+.terminal1-design .watch,.terminal1-design .r24-table{border-collapse:collapse;width:100%;font:12px/1.45 var(--font);font-variant-numeric:tabular-nums}
+.terminal1-design .watch th,.terminal1-design .r24-table th{
+ color:#ffa028;background:#18181b;border-bottom:1px solid #38383e;
+ padding:9px 10px!important;font:500 11px/1.5 var(--font)!important;text-align:left;
+}
+.terminal1-design .watch td,.terminal1-design .r24-table td{
+ border-bottom:1px solid #222227;padding:7px 10px!important;font:11px/1.5 var(--font)!important;color:#d8d8dc
+}
+.terminal1-design .watch .n,.terminal1-design .r24-table .n{text-align:right}
+.terminal1-design .watch tbody tr:hover{background:#242329}
+.terminal1-design .watch tbody tr.selected{background:#302313}
+.terminal1-design #market-pulse{display:grid!important;grid-template-columns:repeat(7,minmax(0,1fr))!important;gap:1px!important;background:#2a2a30;border:1px solid #2a2a30}
+.terminal1-design #market-pulse .r24-snapshot-item{
+ background:#121215;border:0;border-radius:0;border-bottom:0!important;min-height:102px;
+ padding:12px;display:grid;align-content:start;gap:3px;color:#ececef
+}
+.terminal1-design #market-pulse .r24-snapshot-item .lab{font:11px/1.45 var(--font)!important;color:#ffa028}
+.terminal1-design #market-pulse .r24-snapshot-item strong{font:17px/1.5 var(--font)!important;color:#ececef}
+.terminal1-design #market-pulse .r24-snapshot-item .mini{font:10px/1.45 var(--font)!important}
+.terminal1-design #market-pulse .r24-snapshot-item:hover{background:#302313}
+.terminal1-design #r24-developments .r24-item{padding:9px 2px;border-bottom:1px solid #303036}
+.terminal1-design #r24-developments .r24-item>a{color:#ececef;font:12px/1.5 -apple-system,BlinkMacSystemFont,"Segoe UI",Arial,sans-serif}
+.terminal1-design #news-list .r29-news{padding:10px 0;border-bottom:1px solid #303036}
+.terminal1-design #news-list .r29-news-title{color:#ececef;font:500 13px/1.45 -apple-system,BlinkMacSystemFont,"Segoe UI",Arial,sans-serif}
+.terminal1-design #news-list .r29-news-meta{font:10px/1.5 var(--font);color:#96969f}
+.terminal1-design #research-nav{display:flex;flex-wrap:wrap;gap:6px;padding:8px 0;border-bottom:1px solid #34343a;position:static;background:#121215}
+.terminal1-design #research-nav .btn{font:11px/1.4 var(--font)!important}
+.terminal1-design .research-view .r29-valuation-grid,.terminal1-design .t11-ratios{
+ display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:1px;background:#303036;border:1px solid #303036
+}
+.terminal1-design .t11-metric{display:grid;gap:5px;background:#18181c;padding:12px;min-width:0}
+.terminal1-design .t11-metric .lab{color:#ffa028;font:11px var(--font)}
+.terminal1-design .t11-metric strong{color:#ececef;font:18px var(--font)}
+.terminal1-design .t11-metric small{font:10px var(--font);line-height:1.4}
+.terminal1-design .scroll,.terminal1-design .constituents-scroll,
+.terminal1-design #etf-tracker-panel .etf-table-scroll,
+.terminal1-design #ust-securities-scroll,.terminal1-design #gilts .gilt-table-scroll,
+.terminal1-design #company-events-panel .r210-company-events-scroll,
+.terminal1-design .r28-table-scroll{
+ max-height:min(47vh,460px)!important;overflow-y:auto!important;overflow-x:auto!important;
+ overscroll-behavior:contain;position:relative;scrollbar-width:thin;
+ border:1px solid #2a2a30;border-radius:4px
+}
+.terminal1-design .constituents-scroll table thead th,
+.terminal1-design #etf-tracker-panel .etf-table-scroll table thead th,
+.terminal1-design #ust-securities-scroll table thead th,
+.terminal1-design #gilts .gilt-table-scroll table thead th,
+.terminal1-design #company-events-panel .r210-company-events-scroll table thead th,
+.terminal1-design .r28-table-scroll table thead th{
+ position:sticky!important;top:0!important;z-index:3!important;background:#18181b!important
+}
+.terminal1-design #gilts .gilt-table-scroll{max-height:min(47vh,460px)!important}
+.terminal1-design .r25-section-links{background:#121215;border-bottom:1px solid #303036;position:sticky;top:var(--r24-nav-height)}
+.terminal1-design #view-companies .r25-section-links a,.terminal1-design #view-companies .r25-section-links button{
+ color:#e9b46b;font:11px/1.45 var(--font)!important;border:1px solid #34343a;border-radius:4px;padding:7px 9px
+}
+.terminal1-design #view-companies .r25-section-links .active{background:#ffa028;color:#130d04}
+.terminal1-design #view-quality .t11-source-register{margin-top:14px}
+.terminal1-design #view-quality .t11-quality-section{margin-top:12px}
+.terminal1-design #view-quality .t11-quality-row{margin:6px 0;padding:8px 10px;border:1px solid #303036;border-radius:4px}
+.terminal1-design #view-quality .t11-quality-row summary{color:#e9b46b;font:12px/1.5 var(--font);cursor:pointer}
+.terminal1-design #view-quality .t11-quality-row p{padding:9px 0 0;white-space:pre-wrap;overflow-wrap:anywhere}
+.terminal1-design .t11-quality-shortcut{margin-left:auto;min-height:27px!important;font-size:10px!important;padding:5px 8px!important;color:#e9b46b!important;background:transparent!important}
+/* Full technical disclaimers and retrieval diagnostics belong in Data Quality. Source
+   dates, core quote provenance and mandatory stale indicators remain visible. */
+.terminal1-design #view-bonds #gilt-retrieval,
+.terminal1-design #view-bonds .r29-source-warning,
+.terminal1-design #view-etfs #etf-tracker-panel>.row .note,
+.terminal1-design #view-companies .research-provenance,
+.terminal1-design #view-companies .r29-source-warning{display:none!important}
+.terminal1-design #view-quality #gilt-retrieval,
+.terminal1-design #view-quality .r29-source-warning{display:block!important}
+@media(max-width:1120px){.terminal1-design #market-pulse{grid-template-columns:repeat(4,minmax(0,1fr))!important}}
+@media(max-width:760px){
+ .terminal1-design .wrap{padding:8px;gap:9px}
+ .terminal1-design #market-pulse{grid-template-columns:repeat(2,minmax(0,1fr))!important}
+ .terminal1-design .workspace-nav{gap:5px}
+ .terminal1-design .workspace-nav button{font-size:10px!important;padding:6px 8px!important;min-height:28px!important}
+ .terminal1-design .t11-ratios{grid-template-columns:repeat(2,minmax(0,1fr))}
+ .terminal1-design .r25-section-links{position:static;top:auto}
+}
+@media(max-width:420px){.terminal1-design .t11-ratios{grid-template-columns:1fr}}
