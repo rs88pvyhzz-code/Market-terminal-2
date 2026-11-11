@@ -52,6 +52,12 @@ etfDetails=function(){
  const f=ETF_BY_SYMBOL.get(etfState.selected);if(!f)return;
  // Keep the newer unique quote/source information inside the original text areas.
  const q=f.quote;if(q?.price!=null)$('etf-selected-meta').append(document.createTextNode(' · Last quote '+fmt(q.price,Math.abs(q.price)<2?4:2)+' '+(q.currency||'')+' · '+(q.asOf||'Quote date unavailable')+' · '+(q.source||'Source unavailable')));
+ const one=f.returnPeriods?.['1Y'];
+ if(one)$('etf-selected-meta').append(document.createTextNode(' · Table 1Y '+one.basis+' '+one.start+' to '+one.end+' ('+(f.returnEndSource||'historical chart')+')'));
+ if(f.returnEndSource?.includes('after-close')){
+   const chartNote=$('etf-chart-note');
+   if(chartNote&&etfState.basis.startsWith('adjusted'))chartNote.append(document.createTextNode(' Latest after-close quote has no matching adjusted-close candle: the table uses a dated price-only return; the adjusted-close chart may end on the prior trading day.'));
+ }
  const host=$('etf-issuer-snapshot');if(host){const sources=el('p','note'),seen=new Set([$('etf-facts-link')?.href,$('etf-quote-link')?.href]);
   for(const [label,url] of [['Issuer',f.issuerVerifiedUrl||f.officialFactsUrl],['TER source',f.terUrl],['Structure',f.structureSource],['Lending policy',f.lendingPolicySource]])if(url?.startsWith('https://')&&!seen.has(url)){seen.add(url);const a=el('a','',label);a.href=url;a.target='_blank';a.rel='noopener noreferrer';sources.append(a,document.createTextNode(' · '));}
   sources.append(document.createTextNode('Issuer checked '+(f.issuerCheckedAt||'not recorded')+' · snapshot '+(f.snapshotCapturedAt||'not recorded')));host.append(sources);
@@ -101,7 +107,12 @@ renderEtfTracker=function(){
     const fee=etfCell(row,etfFee(f),'n');fee.title=(f.terSource||f.terStatus||'Unverified')+(f.terCheckedAt?' · '+f.terCheckedAt:'');
     const [code,label]=etfV5Kind(f);const codecell=etfCell(row,code,'etf-compact-code');codecell.title=label+' · '+(f.replicationStatus||'unverified');
     const aum=etfCell(row,etfFundSize(f),'n');aum.title=(f.fundSizeSource||'Fund AUM unverified')+(f.fundSizeAsOf?' · '+f.fundSizeAsOf:'');
-    etfCell(row,etfPct(f.return1Y),'n');etfCell(row,etfPct(f.return3Y),'n');etfCell(row,etfPct(f.return5Y),'n');
+    for(const y of ['1Y','3Y','5Y']){
+      const cell=etfCell(row,etfPct(f['return'+y]),'n'),period=f.returnPeriods?.[y];
+      cell.title=period ? y+' '+period.basis+': '+period.start+' to '+period.end+
+          ' · '+(f.returnEndSource||'Yahoo historical prices') :
+          y+' return unavailable: no sufficiently close dated anniversary observations';
+    }
     const cell=etfCell(row,'','etf-compact-compare');
     const check=el('input');check.type='checkbox';check.checked=f.symbol===etfState.selected||etfState.compared.has(f.symbol);check.disabled=f.symbol===etfState.selected||!etfOriginalPeers(ETF_BY_SYMBOL.get(etfState.selected)).some(p=>p.symbol===f.symbol);
     check.setAttribute('aria-label','Compare '+f.symbol);check.onchange=()=>{if(!etfV5ChangeCompare(f.symbol,check.checked))check.checked=false;};cell.append(check);
@@ -109,7 +120,7 @@ renderEtfTracker=function(){
     frag.append(row);
   }
   tbody.replaceChildren(frag);etfViewport.scrollTop=savedTop;
-  const label=$('etf-result-count');if(label)label.textContent=shown.length+' funds · '+suppressed+' same-index alternatives · 1Y/3Y/5Y annualised';
+  const label=$('etf-result-count');if(label)label.textContent=shown.length+' funds · '+suppressed+' same-index alternatives · 1Y period return / 3Y & 5Y annualised';
   // Older wrappers used a seven-column layout; these eight match the headers.
   // Duplicate checked-fund cards are deliberately not restored.
   renderSameIndexETFs();
