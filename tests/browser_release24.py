@@ -37,7 +37,14 @@ with sync_playwright() as p:
                 assert not page.locator('#mt-full-audit .mt-audit-content').is_visible()
                 page.locator('#mt-full-audit > summary').click();assert page.locator('#mt-full-audit .mt-audit-content').is_visible()
                 page.locator('#mt-full-audit > summary').click()
-            assert page.evaluate('document.body.scrollWidth<=innerWidth'),(name,width,'page overflow')
+            within=page.evaluate('document.body.scrollWidth<=innerWidth')
+            if not within:
+                offenders=page.evaluate("""() => [...document.querySelectorAll('body *')]
+                  .filter(e=>{let r=e.getBoundingClientRect();return r.width>0&&r.height>0&&(r.right>innerWidth+1||r.left< -1)})
+                  .slice(0,12).map(e=>({tag:e.tagName,id:e.id,cls:String(e.className).slice(0,100),
+                    right:Math.round(e.getBoundingClientRect().right),width:Math.round(e.getBoundingClientRect().width)}))""")
+                assert within,(name,width,'page overflow',offenders)
+
             if width>=1024 and name in ['overview','markets','economics','research','bonds']:page.evaluate('scrollTo(0,0)');page.wait_for_timeout(50);page.screenshot(path=f'/tmp/release24-{name}-{width}.png',full_page=True)
         page.locator('#tab-companies').click();page.locator('#research-tab-1').click();page.wait_for_timeout(100)
         assert page.locator('#research-statements details').count()==0
