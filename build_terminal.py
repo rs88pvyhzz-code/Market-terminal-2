@@ -199,6 +199,15 @@ def fetch_quote(info, opts):
         last_day=iso_date(quote_time,tz)
         raw=safe_float(m.get('regularMarketPrice'))
         price=raw if raw and raw>0 else pts[-1][1]
+        # A current Yahoo regularMarketPrice can be newer than the chart's
+        # completed daily candle. Expose the exchange-session boundary; ETF
+        # ingestion may use this quotation for *price-only* returns after close.
+        # Never call it an adjusted close or silently invent dividend history.
+        session=(m.get('currentTradingPeriod') or {}).get('regular') or {}
+        session_end=session.get('end')
+        quote_after_close=(isinstance(session_end,(int,float)) and
+            quote_time>=session_end and
+            iso_date(quote_time,tz)==iso_date(session_end,tz))
         prev=prior_close(pts,last_day,m)
         if not prev or prev<=0: raise RuntimeError('Invalid previous close')
         y0=last_day[:4]+'-01-01'
@@ -215,7 +224,9 @@ def fetch_quote(info, opts):
         q={
           'group':group,'symbol':symbol,'name':name,'kind':kind,
           'currency':m.get('currency') or ('%' if yield_quote else ''),
-          'price':rounded(price,5), 'changePct':None if yield_quote else pc(prev),
+          'price':rounded(price,5),
+          'tradingDay':last_day,
+          'quoteAfterRegularClose':quote_after_close, 'changePct':None if yield_quote else pc(prev),
           'changeBp':bp(prev) if yield_quote else None,
           'ytdPct':None if yield_quote or kind=='volatility' else pc(ref_ytd),
           'yearPct':None if yield_quote or kind=='volatility' else pc(ref_year),
