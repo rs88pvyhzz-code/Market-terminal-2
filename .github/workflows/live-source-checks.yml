@@ -54,6 +54,8 @@ jobs:
       - run: python verify_market_briefing.py terminal.html
       - name: Audit actual Shell, Microsoft and HSBC research
         run: python verify_live_research.py terminal.html
+      - name: Run source-backed Release 2.8 unit tests
+        run: python -m unittest test_release28.py
       - name: Install browser runner
         run: |
           python -m pip install playwright
@@ -65,6 +67,7 @@ jobs:
           python tests/browser_release24.py terminal.html
           python tests/browser_release25.py terminal.html
           python tests/browser_release27.py terminal.html
+          python tests/browser_release28.py terminal.html
           python tests/browser_treasury_scroll.py terminal.html
       - name: Upload actual terminal and source diagnostics for review
         if: always()
