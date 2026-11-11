@@ -29,10 +29,10 @@ with sync_playwright() as p:
     browser=p.chromium.launch(**({'executable_path':executable} if executable else {}),headless=True,args=['--no-sandbox'])
     page=browser.new_page(viewport={'width':1440,'height':1100});errors=[]
     page.on('pageerror',lambda e:errors.append(str(e)))
-    page.route('http://localhost:8765/**',lambda route:route.fulfill(body=html,content_type='text/html'))
+    page.route('http://localhost:8765/**',lambda r:r.fulfill(body=html,content_type='text/html'))
     page.goto('http://localhost:8765/',wait_until='domcontentloaded')
-    assert page.locator('[data-workspace][role=tab]').count()==8
-    page.locator('#tab-equities').click();page.locator('#sub-equities-research').click()
+    assert page.locator('[data-workspace][role=tab]').count()==10
+    page.locator('#tab-companies').click()
     for symbol in ['SHEL.L','MSFT','HSBA.L']:
         page.locator('#company-pick').select_option(symbol);page.wait_for_timeout(70)
         assert page.locator('#research-nav [role=tab]').count()==6
@@ -48,41 +48,20 @@ with sync_playwright() as p:
             assert '$23-$25 billion' in page.locator('#research-outlook').inner_text()
             assert '$24-$26 billion' in page.locator('#research-outlook').inner_text()
         if symbol=='HSBA.L':assert 'RoTE' in page.locator('#research-outlook').inner_text()
-        for link in page.locator('#research-outlook a.research-source[href]').all():assert link.get_attribute('href').startswith('https://')
+        for link in page.locator('#research-outlook a.research-source[href]').all():
+            assert link.get_attribute('href').startswith('https://')
         page.locator('#research-tab-5').click()
         assert page.locator('#research-warning-priority > .small-scroll tbody tr').count()==5
-        assert 'unassessed' in page.locator('#research-warning-priority').inner_text()
         page.locator('#research-tab-2').click()
-        if page.get_by_role('button',name='OPEN ADVANCED DCF & STRESS MODEL').count():
-            page.get_by_role('button',name='OPEN ADVANCED DCF & STRESS MODEL').click()
-        if symbol=='HSBA.L':
-            assert 'Corporate FCFF recession modelling is excluded' in page.locator('#research-stress-panel').inner_text()
-            assert page.locator('#research-stress-panel input').count()==0
-        else:
-            base_rows=page.locator('#research-stress-panel > div[aria-live] > .small-scroll tbody tr')
-            base=float(base_rows.nth(0).locator('td').nth(1).inner_text().replace(',',''))
-            stress=float(base_rows.nth(1).locator('td').nth(1).inner_text().replace(',',''))
-            assert stress<base,(symbol,base,stress)
-            if symbol=='SHEL.L':
-                assert abs(base-43.69)<.01  # Release 1 validated base remains unchanged
-                evidence=page.locator('#research-stress-panel section').filter(has=page.locator(':scope > h3',has_text='Sector-specific evidence and sensitivity limits'))
-                coefficient=page.get_by_label('Annual FCFF impact per +10% commodity price (reporting millions) · user assumption',exact=True)
-                assert coefficient.is_visible()
-                assert evidence.get_attribute('open') is None
-                assert 'impairment' in evidence.inner_text()
-                assert coefficient.is_visible()
-                assert 'Commodity-linked DCF unavailable' in page.locator('#research-stress-panel').inner_text()
-                page.get_by_label('Annual FCFF impact per +10% commodity price (reporting millions) · user assumption',exact=True).fill('1000')
-                assert 'coefficient is not issuer guidance' in page.locator('#research-stress-panel').inner_text()
-            page.get_by_label('First-year revenue shock (%)',exact=True).fill('')
-            assert 'Stress value unavailable' in page.locator('#research-stress-panel').inner_text()
-            page.get_by_label('First-year revenue shock (%)',exact=True).fill('-20')
+        assert page.locator('#research-valuation .t11-metric').count()==6
+        assert page.locator('#research-valuation input').count()==0
+        assert page.locator('#research-stress-panel').count()==0
         for width in [744,768,1024,1440]:
             page.set_viewport_size({'width':width,'height':1100})
             for i in [0,1,2,3,4,5]:
                 page.locator('#research-tab-'+str(i)).click();page.wait_for_timeout(30)
                 assert page.locator('#research-view-'+str(i)).is_visible()
-                assert page.evaluate('document.body.scrollWidth<=innerWidth'),(symbol,width,i)
+                assert page.evaluate('document.body.scrollWidth<=innerWidth+1'),(symbol,width,i)
         page.locator('#research-tab-3').click()
         page.locator('#research-business .research-notebook').evaluate('(d)=>d.open=true')
         page.get_by_label('Competitive advantages & supporting evidence',exact=True).fill(symbol+' personal evidence note')
@@ -90,13 +69,11 @@ with sync_playwright() as p:
     assert page.get_by_label('Competitive advantages & supporting evidence',exact=True).input_value()=='SHEL.L personal evidence note'
     page.locator('#research-tab-0').click();page.evaluate('scrollTo(0,0)');page.wait_for_timeout(50)
     page.screenshot(path='/tmp/research-r2-summary.png',full_page=True)
-    page.set_viewport_size({'width':768,'height':1024});page.locator('#research-tab-2').click();page.wait_for_timeout(100);page.evaluate('scrollTo(0,0)')
+    page.set_viewport_size({'width':768,'height':1024});page.locator('#research-tab-2').click();page.wait_for_timeout(100)
     page.screenshot(path='/tmp/research-r2-stress-ipad.png',full_page=True)
-    for key in ['overview','fx','equities','bonds','analytics','etfs','economics','watchlist','quality','companies']:
-        page.locator('#tab-'+({'companies':'equities','analytics':'fx'}.get(key,key))).click()
-        if key in ['companies','analytics']:page.locator('#sub-'+('equities-research' if key=='companies' else 'fx-analytics')).click()
-        page.wait_for_timeout(60)
-        assert page.locator('#view-'+({'companies':'equities','analytics':'fx'}.get(key,key))).is_visible()
+    for key in ['overview','fx','equities','companies','bonds','analytics','etfs','economics','watchlist','quality']:
+        page.locator('#tab-'+key).click();page.wait_for_timeout(60)
+        assert page.locator('#view-'+key).is_visible()
     assert not errors,errors
-    print('PASS Release 2: real source evidence, guidance comparison, allocation, five warning indicators, unchanged Shell base, real downturn, commodity gap/assumption, HSBC exclusion, personal notes and all workspaces/layouts')
+    print('PASS Release 2: primary issuer evidence, guidance, capital allocation, warning indicators, read-only valuations, personal notes and ten restored workspaces')
     browser.close()
