@@ -33,7 +33,7 @@ if not data.get('demo'):
     if fund and raw and raw[-1][0]=='2026-11-10' and any(p[0]=='2025-11-10' and abs(p[1]-126.84)<.001 for p in raw) and abs(raw[-1][1]-140.36)<.001:
         assert fund['return1Y']==10.66 and fund['returnBasis']=='Price only',fund
 # Closure access only for reconciliation; the market-data JSON is never changed.
-html=html.replace('function etfOriginalKey(f){','window.__etf={funds:ETF_FUNDS,state:etfState,key:etfOriginalKey,peers:etfOriginalPeers,performance:etfPerformance,rows:etfRows};\nfunction etfOriginalKey(f){')
+html=html.replace('function etfOriginalKey(f){','window.__etf={funds:ETF_FUNDS,state:etfState,key:etfOriginalKey,peers:etfOriginalPeers,performance:(...a)=>etfPerformance(...a),rows:(...a)=>etfRows(...a)};\nfunction etfOriginalKey(f){')
 def choose(page,symbol):
     page.locator('#etf-search').fill(symbol);page.locator('#etf-rows [data-etf-symbol="'+symbol+'"]').click();page.locator('#etf-search').fill('');page.wait_for_timeout(70)
 with sync_playwright() as p:
@@ -85,10 +85,21 @@ with sync_playwright() as p:
         page.locator('#etf-basis').select_option(basis)
         for period in ['1Y','3Y','5Y']:
             page.locator('#etf-period').select_option(period)
-            actual=page.evaluate('''([s,y])=>{const f=__etf.funds.find(f=>f.symbol===s);return {rows:__etf.rows(f,y),value:__etf.performance(f,y)};}''',[primary,period])
+            actual=page.evaluate('''([s,y])=>{const f=__etf.funds.find(f=>f.symbol===s);return {rows:__etf.rows(f,'MAX'),value:__etf.performance(f,y)};}''',[primary,period])
             if actual['value'] is not None:
-                a,b=actual['rows'][0],actual['rows'][-1];years=(datetime.date.fromisoformat(b['date'])-datetime.date.fromisoformat(a['date'])).days/365.25
-                expected=100*((b['v']/a['v'])**(1/max(years,1/365.25))-1);assert math.isclose(actual['value'],expected,abs_tol=1e-9)
+                rows=actual['rows'];last=rows[-1]
+                end=datetime.date.fromisoformat(last['date']);years=int(period[0])
+                try:cutoff=end.replace(year=end.year-years)
+                except ValueError:cutoff=end.replace(year=end.year-years,day=28)
+                candidates=[(abs((datetime.date.fromisoformat(q['date'])-cutoff).days),
+                             0 if datetime.date.fromisoformat(q['date'])>=cutoff else 1,q)
+                            for q in rows[:-1] if abs((datetime.date.fromisoformat(q['date'])-cutoff).days)<=7]
+                assert candidates,(basis,period,primary)
+                start=min(candidates,key=lambda p:(p[0],p[1]))[2]
+                duration=(end-datetime.date.fromisoformat(start['date'])).days/365.25
+                growth=last['v']/start['v']
+                expected=100*(growth-1 if years==1 else growth**(1/duration)-1)
+                assert math.isclose(actual['value'],expected,abs_tol=1e-9),(basis,period,actual['value'],expected)
     page.locator('#etf-basis').select_option('adjusted_gbp');page.locator('#etf-period').select_option('5Y')
     for width,height in [(1440,1000),(1024,768),(390,844)]:
         page.set_viewport_size({'width':width,'height':height});page.locator('#tab-etfs').click();page.wait_for_timeout(80)
