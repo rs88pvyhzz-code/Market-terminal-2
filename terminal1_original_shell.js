@@ -27,6 +27,7 @@ function qualityMove(id,title,mode='node'){
  if(mode==='parent'&&node.parentElement&&!node.parentElement.closest('#view-quality')){
    const parent=node.parentElement;
    if(parent.matches('details,section')||parent.classList.contains('r29-coverage')){
+    parent.hidden=false;parent.classList.remove('r29-bond-diagnostics');
     box.append(parent);return;
    }
  }
