@@ -1,0 +1,30 @@
+/* Release 2.9: news/research/bond density only. No ETF selector or style rules. */
+.release29 #news-list{display:block!important;max-width:100%}
+.release29 #news-list .r29-news{padding:10px 4px;border-bottom:1px solid #303842}
+.release29 #news-list .r29-news-title{font:600 12px/1.46 Arial,sans-serif;color:#dde6ee;text-decoration:none;overflow-wrap:anywhere}
+.release29 #news-list .r29-news-title:hover{color:#f4ba75}
+.release29 #news-list .r29-news-meta{font:10px/1.45 Arial,sans-serif;color:#9eaebe;margin-top:4px}
+.release29 .r29-news-footer{display:flex;gap:10px;align-items:center;flex-wrap:wrap;padding:11px 5px;color:#b1becc;font:11px Arial,sans-serif}
+.release29 #company-news-list .company-story:nth-child(n+4){display:none}
+.release29 #research-view-0 .r29-market-cap{border-color:#5b4a31;background:#202020}
+.release29 #research-view-0 .r29-coverage{margin:8px 0 14px;padding:11px 12px;border:1px solid #36414d;background:#11171e}
+.release29 #research-view-0 .r29-coverage h3{font:600 12px Arial,sans-serif;margin:0 0 10px;color:#dbe3ed}
+.release29 .r29-coverage-grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:8px}
+.release29 .r29-coverage-cell{min-width:0;border-top:1px solid #2f3a48;padding:8px 3px 4px}
+.release29 .r29-coverage-cell .mini{display:block;font-size:10px;color:#a7b9ca}
+.release29 .r29-coverage-cell strong{display:block;font:600 12px/1.48 Arial,sans-serif;margin-top:3px;overflow-wrap:anywhere;color:#dfe5ec}
+.release29 #research-view-0 #company-coverage{display:none!important}
+.release29 #research-view-0 #research-executive{margin-top:13px}
+.release29 .r29-valuation-grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:8px;margin:10px 0 13px}
+.release29 .r29-valuation-metric{min-width:0;background:#171d23;border:1px solid #354150;padding:11px 12px;display:grid;gap:5px}
+.release29 .r29-valuation-metric .mini{color:#abb8c6;font-size:10px}
+.release29 .r29-valuation-metric strong{font:600 19px/1.35 Arial,sans-serif;color:#e1e8f1;overflow-wrap:anywhere}
+.release29 .r29-valuation-metric .note{font-size:10px;color:#a4afbb}
+.release29 .r29-full-model,.release29 .r29-return{margin:7px 0;font-weight:600}
+.release29 #ust-securities-scroll{max-height:min(52vh,520px)!important;overflow-y:auto!important;overflow-x:auto!important;position:relative;overscroll-behavior:contain}
+.release29 #gilts .gilt-table-scroll{max-height:min(52vh,520px)!important;overflow-y:auto!important;overflow-x:auto!important;position:relative;overscroll-behavior:contain}
+.release29 #us-treasuries .r29-bond-toolbar,.release29 #gilts .r29-bond-toolbar{position:relative;z-index:5;display:flex;gap:8px;align-items:center;flex-wrap:wrap;margin:9px 0 14px}
+.release29 #ust-securities-scroll table thead th,.release29 #gilts .gilt-table-scroll table thead th{position:sticky!important;top:0!important;z-index:3!important;background:#17212b!important}
+.release29 #gilts .r29-bond-diagnostics{display:none!important}
+@media(max-width:820px){.release29 .r29-coverage-grid,.release29 .r29-valuation-grid{grid-template-columns:repeat(2,minmax(0,1fr))}}
+@media(max-width:450px){.release29 .r29-coverage-grid,.release29 .r29-valuation-grid{grid-template-columns:1fr}}
