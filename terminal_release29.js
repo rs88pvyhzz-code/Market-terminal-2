@@ -83,8 +83,8 @@ renderIntelligenceNews=function(){
   const button=el('button','btn','Show next '+Math.min(MAX_NEWS,distinct.length-visibleNews));
   button.type='button';button.onclick=()=>{visibleNews+=MAX_NEWS;renderIntelligenceNews();};count.append(button);
  }
+ for(const old of host.parentElement.querySelectorAll('.r29-news-footer'))old.remove();
  host.after(count);
- for(const old of [...document.querySelectorAll('#news-list + .r29-news-footer')].slice(0,-1))old.remove();
  const stamp=$id('news-stamp');if(stamp)stamp.textContent='Snapshot '+(D.generatedAt||'unavailable')+' · published date shown for each story';
  const title=$id('news')?.querySelector('h2');if(title)title.textContent='MARKET NEWS · RANKED HEADLINES';
 };
