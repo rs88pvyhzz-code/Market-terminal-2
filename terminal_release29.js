@@ -71,7 +71,7 @@ renderIntelligenceNews=function(){
  ).sort((a,b)=>itemRank(b)-itemRank(a)||lc(b.published).localeCompare(lc(a.published)));
  const distinct=clusteredNews(relevant);
  for(const x of distinct.slice(0,visibleNews)){
-  const a=el('article','r29-news');
+  const a=el('article','r29-news');a.dataset.eventId=val(x.id||x.url);
   const heading=el('a','r29-news-title',val(x.title));heading.href=x.url;heading.target='_blank';heading.rel='noopener noreferrer';
   a.append(heading,el('div','r29-news-meta',val(x.source)+' · '+val(x.published)+
    (x.official?' · official':'')+(x.developmentStatus==='commentary_preview'?' · commentary':'') ));
