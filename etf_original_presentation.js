@@ -10,6 +10,31 @@ function etfOriginalPeers(f){
   const seen=new Set([f.isin||f.symbol]);
   return ETF_FUNDS.filter(p=>p.symbol!==f.symbol&&etfOriginalKey(p)===etfOriginalKey(f)).sort((a,b)=>(a.terPct??Infinity)-(b.terPct??Infinity)||a.symbol.localeCompare(b.symbol)).filter(p=>{const id=p.isin||p.symbol;if(seen.has(id))return false;seen.add(id);return true;}).slice(0,3);
 }
+// All fund detail returns use the same actual anniversary-date convention as
+// the main ETF table. Price and adjusted-price chart bases remain distinct.
+const etfPreviousPerformance=etfPerformance;
+etfPerformance=function(f,range='1Y',basis=etfState.basis){
+ const years={'1Y':1,'3Y':3,'5Y':5,'10Y':10}[range];
+ if(!years)return etfPreviousPerformance(f,range,basis);
+ const rows=etfRows(f,'MAX',basis);
+ if(rows.length<2)return null;
+ const last=rows[rows.length-1],end=new Date(last.date+'T12:00:00Z');
+ const cutoff=new Date(end.valueOf()),oldMonth=cutoff.getUTCMonth(),oldDay=cutoff.getUTCDate();
+ cutoff.setUTCFullYear(cutoff.getUTCFullYear()-years);
+ if(oldMonth===1&&oldDay===29&&cutoff.getUTCMonth()!==1)cutoff.setUTCDate(0);
+ const periodDays=86400000;
+ let best=null,bestDistance=Infinity;
+ for(const row of rows.slice(0,-1)){
+  const date=new Date(row.date+'T12:00:00Z'),distance=Math.abs((date-cutoff)/periodDays);
+  if(distance>7)continue;
+  if(distance<bestDistance||(distance===bestDistance&&date>=cutoff)){best=row;bestDistance=distance;}
+ }
+ if(!best)return null;
+ const span=(end-new Date(best.date+'T12:00:00Z'))/periodDays/365.25;
+ if(span<years*.95||span>years*1.07)return null;
+ const growth=last.v/best.v;
+ return 100*(years===1?growth-1:Math.pow(growth,1/span)-1);
+};
 etfV5Choose=function(symbol){
  const f=ETF_BY_SYMBOL.get(symbol);if(!f)return;
  etfState.selected=symbol;etfCompareBenchmark=f.benchmark||'';
@@ -54,6 +79,11 @@ etfDetails=function(){
  const q=f.quote;if(q?.price!=null)$('etf-selected-meta').append(document.createTextNode(' · Last quote '+fmt(q.price,Math.abs(q.price)<2?4:2)+' '+(q.currency||'')+' · '+(q.asOf||'Quote date unavailable')+' · '+(q.source||'Source unavailable')));
  const one=f.returnPeriods?.['1Y'];
  if(one)$('etf-selected-meta').append(document.createTextNode(' · Table 1Y '+one.basis+' '+one.start+' to '+one.end+' ('+(f.returnEndSource||'historical chart')+')'));
+ const riskHost=$('etf-risk-stats');
+ if(riskHost)for(const tile of riskHost.querySelectorAll('.etf-stat')){
+  const label=tile.querySelector('.k');
+  if(label&&label.textContent.trim()==='1Y annualised')label.textContent='1Y period return';
+ }
  if(f.returnEndSource?.includes('after-close')){
    const chartNote=$('etf-chart-note');
    if(chartNote&&etfState.basis.startsWith('adjusted'))chartNote.append(document.createTextNode(' Latest after-close quote has no matching adjusted-close candle: the table uses a dated price-only return; the adjusted-close chart may end on the prior trading day.'));
