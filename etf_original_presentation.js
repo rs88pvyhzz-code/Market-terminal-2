@@ -22,19 +22,27 @@ etfV5ChangeCompare=function(symbol,yes){
  renderEtfTracker();return true;
 };
 renderSameIndexETFs=function(){
- const target=$('etf-same-index'),selector=$('etf-same-index-benchmark'),f=ETF_BY_SYMBOL.get(etfState.selected);if(!target||!selector||!f)return;
- const names=[...new Set(ETF_FUNDS.map(p=>p.benchmark).filter(Boolean))].sort();selector.replaceChildren(...names.map(s=>new Option(s,s)));selector.value=f.benchmark;
+ const target=$('etf-same-index'),selector=$('etf-same-index-benchmark'),f=ETF_BY_SYMBOL.get(etfState.selected);
+ if(!target||!selector||!f)return;
+ const names=[...new Set(ETF_FUNDS.map(p=>p.benchmark).filter(Boolean))].sort();
+ selector.replaceChildren(...names.map(s=>new Option(s,s)));
+ selector.value=f.benchmark;
  const peers=etfOriginalPeers(f);target.replaceChildren();
- if(!peers.length){target.append(el('p','note','No other exact-benchmark and hedge-label alternatives are available.'));}
- else{
-  const table=el('table','watch etf-index-table'),head=el('thead'),line=el('tr');
-  for(const label of ['ETF','TER','P/S','Fund AUM','1Y','3Y','5Y','Cmp'])line.append(el('th','',label));head.append(line);table.append(head);const body=el('tbody');
-  for(const p of peers){const row=el('tr');row.dataset.etfAlternative=p.symbol;const first=etfCell(row,'');const button=el('button','btn',p.symbol+' · '+p.name);button.onclick=()=>etfV5Choose(p.symbol);first.append(button,el('span','secondary',(p.hedged?'Hedged '+p.hedged:'Hedge label unspecified')+' · '+(p.quote?.currency||'Quote currency unavailable')+' · '+(p.distribution||'Income unspecified')));
-   etfCell(row,etfFee(p),'n');const method=etfCell(row,etfV5Kind(p)[0]);method.title=etfV5Kind(p)[1];etfCell(row,etfFundSize(p),'n');for(const y of ['1Y','3Y','5Y'])etfCell(row,etfPct(etfPerformance(p,y)),'n');
-   const cell=etfCell(row,'');const check=el('input');check.type='checkbox';check.checked=etfState.compared.has(p.symbol);check.setAttribute('aria-label','Compare alternative '+p.symbol);check.onchange=()=>{if(!etfV5ChangeCompare(p.symbol,check.checked))check.checked=false;};cell.append(check);body.append(row);
-  }table.append(body);target.append(table);
+ if(!peers.length){
+  target.append(el('p','note','No other exact-benchmark and hedge-label alternatives are available.'));
+ }else{
+  // Restore the original nine-fact ETF cards, Details, Compare and issuer links.
+  // One set only: three distinct compatible alternatives, no duplicate card
+  // list or checked-comparison section. The complete catalogue stays searchable.
+  const grid=el('div','etf-compare-grid');
+  for(const p of peers){
+   const card=etfV5Card(p,'Not in the selected fund details',true);
+   card.dataset.etfAlternative=p.symbol;
+   grid.append(card);
+  }
+  target.append(grid);
  }
- $('etf-same-index-note').textContent='Exact catalogue benchmark and hedge labels; unspecified issuer return variants require verification. Up to three alternatives. Returns use the selected chart basis; local currencies can differ. Main-table returns retain their recorded basis.';
+ $('etf-same-index-note').textContent='Exact catalogue benchmark and hedge labels; unspecified issuer return variants require verification. Up to three alternatives. Returns in these cards use each fund’s recorded return basis; chart comparisons use the selected period and basis. Local currencies can differ.';
  etfV5PeerLabels();
 };
 initEtfSameIndex=function(){const selector=$('etf-same-index-benchmark');if(selector)selector.onchange=()=>{const f=ETF_FUNDS.find(f=>f.benchmark===selector.value);if(f)etfV5Choose(f.symbol);};};
