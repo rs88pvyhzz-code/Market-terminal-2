@@ -143,8 +143,8 @@ function r24Overview(){
   if(!watch.length)host.append(el('p','note','No current important watchlist development is verified. Detailed news and individual risk statistics remain in My Watchlist.'));
   host=r24Section('r24-upcoming','UPCOMING ECONOMIC EVENTS',parent);r24CalendarTable(host,r24CalendarEvents().filter(r24MajorEvent).slice(0,3),true);
   for(const id of ['overview-board','r24-developments','r24-conditions','r24-watch','r24-upcoming'])if($(id))parent.append($(id));
-  const markets=$('subview-fx-prices');if(markets){for(const id of ['monitor','r23-moves','movers','r23-market-conditions','r23-alerts','r23-watch','headline'])if($(id))markets.append($(id));}
-  const newsView=$('subview-fx-news');if(newsView&&$('news'))newsView.append($('news'));
+  const markets=$('view-fx');if(markets){for(const id of ['monitor','r23-moves','movers','r23-market-conditions','r23-alerts','r23-watch','headline'])if($(id))markets.append($(id));}
+  const newsView=$('view-fx');if(newsView&&$('news'))newsView.append($('news'));
   // The duplicate tile snapshot contains exactly the quote values in Markets' price table.
   if($('headline'))$('headline').replaceChildren();
   $('r23-snapshot-detail')?.remove();$('r23-conditions')?.remove();$('r23-calendar')?.remove();
