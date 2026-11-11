@@ -8,7 +8,7 @@ with sync_playwright() as p:
     page=browser.new_page(viewport={'width':1440,'height':1100});errors=[];page.on('pageerror',lambda e:errors.append(str(e)))
     page.route('http://localhost:8765/**',lambda r:r.fulfill(body=html,content_type='text/html'))
     page.goto('http://localhost:8765/',wait_until='domcontentloaded')
-    page.locator('#tab-overview').click();assert page.locator('#workspace-tabs [role=tab]').count()==8
+    page.locator('#tab-overview').click();assert page.locator('#workspace-tabs [role=tab]').count()==10
     if any(q.get('symbol')=='^VIX' for q in data['quotes']):assert 'Index points' in page.get_by_role('button',name='Open VIX',exact=True).inner_text()
     page.locator('#tab-fx').click();page.locator('#sub-fx-news').click()
     assert page.locator('#news-pills > button').count()==7
@@ -25,7 +25,7 @@ with sync_playwright() as p:
             assert page.evaluate('document.body.scrollWidth<=innerWidth'),width
         page.locator('.r23-regions button').filter(has_text='UK').click();assert page.evaluate('document.body.scrollWidth<=innerWidth')
         page.locator('#news-pills > button').first.click();page.screenshot(path=f'/tmp/release24-news-{width}.png',full_page=True)
-    page.locator('#tab-equities').click();page.locator('#sub-equities-research').click()
+    page.locator('#tab-companies').click()
     for symbol in ['SHEL.L','MSFT','HSBA.L']:
         if not any(c['symbol']==symbol for c in data['companies']):continue
         page.locator('#company-pick').select_option(symbol);page.locator('#research-tab-0').click();assert page.locator('.r23-company-changes').count()==1
