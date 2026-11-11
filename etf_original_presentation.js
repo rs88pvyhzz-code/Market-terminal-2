@@ -1,6 +1,17 @@
 /* Original Market Terminal ETF presentation, source ced3f6a, terminal_template.html
    and etf_consolidation.py. Adaptations: exact peers capped at three, no repeated
    cards, full-current-catalogue search. No return/risk/FX calculations changed. */
+// Release 2.10: hide specialist ESG/climate strategies from the presented
+// candidate universe. All sourced catalogue records remain in the data layer.
+function etfIsConventional(f){
+ const text=[f.name,f.benchmark,f.market].join(' ');
+ return !/\b(?:ESG|SRI|climate|low[ -]?carbon|carbon[ -]?transition|Paris[ -]?aligned|sustainable|sustainability|green[ -]?bond|net[ -]?zero|responsible[ -]?investment|SDG|PAB|CTB)\b/i.test(text);
+}
+function etfMarketGroup(f){
+ // Equity "Europe", "Eurozone", Germany DAX, France etc remain distinct.
+ // Bonds and equities are never combined merely because both say Global.
+ return [f.category||'unknown',f.market||'unknown'].join('|').toLowerCase();
+}
 function etfOriginalKey(f){
   const explicit=[f.name,f.benchmark,f.market].join(' ').match(/\b(?:GBP|USD|EUR|JPY|CHF)\s*[- ]?hedged\b/i)?.[0]||'';
   return etfV5Key(f)+'|'+explicit.toLowerCase().replace(/[- ]+/g,' ');
@@ -8,7 +19,7 @@ function etfOriginalKey(f){
 function etfOriginalPeers(f){
   if(!f?.benchmark)return [];
   const seen=new Set([f.isin||f.symbol]);
-  return ETF_FUNDS.filter(p=>p.symbol!==f.symbol&&etfOriginalKey(p)===etfOriginalKey(f)).sort((a,b)=>(a.terPct??Infinity)-(b.terPct??Infinity)||a.symbol.localeCompare(b.symbol)).filter(p=>{const id=p.isin||p.symbol;if(seen.has(id))return false;seen.add(id);return true;}).slice(0,3);
+  return ETF_FUNDS.filter(p=>etfIsConventional(p)&&p.symbol!==f.symbol&&etfOriginalKey(p)===etfOriginalKey(f)).sort((a,b)=>(a.terPct??Infinity)-(b.terPct??Infinity)||a.symbol.localeCompare(b.symbol)).filter(p=>{const id=p.isin||p.symbol;if(seen.has(id))return false;seen.add(id);return true;}).slice(0,3);
 }
 // All fund detail returns use the same actual anniversary-date convention as
 // the main ETF table. Price and adjusted-price chart bases remain distinct.
@@ -49,7 +60,7 @@ etfV5ChangeCompare=function(symbol,yes){
 renderSameIndexETFs=function(){
  const target=$('etf-same-index'),selector=$('etf-same-index-benchmark'),f=ETF_BY_SYMBOL.get(etfState.selected);
  if(!target||!selector||!f)return;
- const names=[...new Set(ETF_FUNDS.map(p=>p.benchmark).filter(Boolean))].sort();
+ const names=[...new Set(ETF_FUNDS.filter(etfIsConventional).map(p=>p.benchmark).filter(Boolean))].sort();
  selector.replaceChildren(...names.map(s=>new Option(s,s)));
  selector.value=f.benchmark;
  const peers=etfOriginalPeers(f);target.replaceChildren();
@@ -94,18 +105,24 @@ etfDetails=function(){
  }
 };
 function etfV5PickMain(){
-  const all=etfFiltered();
+  const all=etfFiltered().filter(etfIsConventional);
   const groups=new Map();
-  for(const f of all){const key=etfOriginalKey(f);if(!groups.has(key))groups.set(key,[]);groups.get(key).push(f);}
+  for(const f of all){
+    const key=etfMarketGroup(f);
+    if(!groups.has(key))groups.set(key,[]);
+    groups.get(key).push(f);
+  }
   const keep=new Set();
   for(const funds of groups.values()){
-    funds.sort((a,b)=> (a.terPct??Infinity)-(b.terPct??Infinity) ||
-       (etfAumUSD(b)??0)-(etfAumUSD(a)??0) || a.symbol.localeCompare(b.symbol));
-    // The selected ETF is always visible after choosing it in the comparison area.
+    const ranked=funds.slice().sort((a,b)=>
+      (a.terPct??Infinity)-(b.terPct??Infinity)||
+      (etfAumUSD(b)??0)-(etfAumUSD(a)??0)||
+      a.name.localeCompare(b.name));
+    const top=ranked.slice(0,2);
+    // Preserve selected candidate context if its market is filtered.
     const selected=funds.find(f=>f.symbol===etfState.selected);
-    const first=funds.slice(0,2);
-    if(selected && !first.includes(selected))first[1]=selected;
-    for(const f of first)keep.add(f.symbol);
+    if(selected&&!top.includes(selected))top[top.length===2?1:0]=selected;
+    for(const f of top)keep.add(f.symbol);
   }
   return {all,shown:all.filter(f=>keep.has(f.symbol)),suppressed:all.length-keep.size};
 }
@@ -150,7 +167,7 @@ renderEtfTracker=function(){
     frag.append(row);
   }
   tbody.replaceChildren(frag);etfViewport.scrollTop=savedTop;
-  const label=$('etf-result-count');if(label)label.textContent=shown.length+' funds · '+suppressed+' same-index alternatives · 1Y period return / 3Y & 5Y annualised';
+  const label=$('etf-result-count');if(label)label.textContent=shown.length+' mainstream funds · '+suppressed+' other funds in these markets · maximum two per market · ESG/climate funds excluded · 1Y period / 3Y & 5Y annualised';
   // Older wrappers used a seven-column layout; these eight match the headers.
   // Duplicate checked-fund cards are deliberately not restored.
   renderSameIndexETFs();
