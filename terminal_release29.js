@@ -180,7 +180,16 @@ function compactBonds(){
  const panel=source?.closest('section.r24-support,details');
  if(panel){
   panel.classList.add('r29-bond-diagnostics');
-  // Freshness warning remains visible above the securities table.
+  // Preserve significant integrity warnings even when verbose diagnostics
+  // are removed from the reading path. DMO freshness remains visible.
+  const raw=val(source.textContent);
+  const warnings=['too few rows','stale','retrieval failed','unverified','missing quotes'];
+  const found=warnings.filter(w=>raw.toLowerCase().includes(w));
+  if(found.length){
+   const note=el('p','research-warning r29-source-warning',
+     'DMO source review: '+found.join(', ')+'. Check Data Quality and the official report before using the yields.');
+   panel.before(note);
+  }
   panel.hidden=true;
  }
  const gilt=$id('gilts'),treasury=$id('us-treasuries');
