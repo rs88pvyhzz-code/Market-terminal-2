@@ -19,6 +19,8 @@ with sync_playwright() as p:
         page.locator('#company-pick').select_option(symbol);page.wait_for_timeout(100)
         assert page.locator('#research-nav [role=tab]').count()==6
         page.locator('#research-tab-2').click()
+        if page.get_by_role('button',name='OPEN ADVANCED DCF & STRESS MODEL').count():
+            page.get_by_role('button',name='OPEN ADVANCED DCF & STRESS MODEL').click()
         if symbol=='SHEL.L':
             assert page.get_by_label('Shares outstanding (absolute count)',exact=True).input_value()!=''
             if next(c for c in d['companies'] if c['symbol']==symbol).get('valuationIntegrity',{}).get('issues'):
