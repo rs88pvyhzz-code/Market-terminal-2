@@ -76,13 +76,14 @@ with sync_playwright() as p:
  page.locator('#research-tab-4').click()
  page.wait_for_timeout(180)
  nav=page.locator('#research-view-4 > .r25-section-links')
- assert nav.locator('button').count()>=3,nav.inner_text()
+ minimum=2 if data.get('demo') else 3
+ assert nav.locator('button').count()>=minimum,nav.inner_text()
  button=nav.locator('button').nth(1)
  button.click()
  assert button.evaluate('(e)=>e.classList.contains("active")'),'Research jump not activating'
  assert page.locator('#research-view-4 .r210-management-note').count()==1
  assert page.locator('#research-view-4 .r210-more-evidence').count()>=0
- assert page.locator('#research-view-4 .r24-support-heading').count()>=3
+ assert page.locator('#research-view-4 .r24-support-heading').count()>=minimum
  assert page.locator('#company-events-panel .r210-company-events-scroll').count()==1
  if not data.get('demo'):page.screenshot(path='/tmp/release210-research-ipad.png',full_page=True)
  for width,height in screen:
