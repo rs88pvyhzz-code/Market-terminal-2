@@ -140,7 +140,8 @@ def _annualised_detail(points, years):
     span=(end-start).days/365.25
     if span<years*.95 or span>years*1.07:
         return None,'',None
-    value=round(100*((last[idx]/first[idx])**(1/span)-1),2)
+    growth=last[idx]/first[idx]
+    value=round(100*(growth-1 if years==1 else growth**(1/span)-1),2)
     return value,label,{'start':start.isoformat(),'end':end.isoformat(),
                         'startPrice':first[idx],'endPrice':last[idx],
                         'basis':label}
