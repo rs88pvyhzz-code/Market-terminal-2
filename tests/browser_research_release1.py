@@ -42,12 +42,16 @@ with sync_playwright() as p:
         page.locator('#company-pick').select_option(symbol)
         page.wait_for_timeout(80)
         page.locator('#research-tab-0').click()
-        assert page.locator('#research-overview .research-card').count()==6
+        expected_cards=7 if page.evaluate("document.documentElement.classList.contains('release29')") else 6
+        assert page.locator('#research-overview .research-card').count()==expected_cards
         page.locator('#research-tab-1').click();page.wait_for_timeout(80)
         assert '5 of 5 annual periods sourced' in page.locator('#research-statements').inner_text()
         assert page.locator('#research-statements button',has_text='10Y').is_disabled()
         assert page.locator('#research-financial-chart svg').count()==1
         page.locator('#research-tab-2').click()
+        if page.evaluate("document.documentElement.classList.contains('release29')"):
+            assert page.locator('#research-valuation .r29-valuation-metric').count()==6
+            page.get_by_role('button',name='OPEN ADVANCED DCF & STRESS MODEL').click()
         if symbol=='HSBA.L':
             assert 'Standard FCFF DCF excluded' in page.locator('#research-valuation').inner_text()
             assert page.locator('#research-valuation input').count()==0
@@ -74,6 +78,8 @@ with sync_playwright() as p:
     # Explicit old-balance review; dates cannot be silently treated as current.
     page.evaluate("window.MT_DATA.companies.find(c=>c.symbol==='SHEL.L').researchBalance.period='2024-12-31'")
     page.locator('#company-pick').select_option('SHEL.L');page.locator('#research-tab-2').click()
+    if page.get_by_role('button',name='OPEN ADVANCED DCF & STRESS MODEL').count():
+        page.get_by_role('button',name='OPEN ADVANCED DCF & STRESS MODEL').click()
     assert 'Valuation paused' in page.locator('#research-valuation').inner_text()
     page.get_by_label('Use dated balances after review',exact=True).check()
     assert 'BASE' in page.locator('#research-valuation').inner_text()

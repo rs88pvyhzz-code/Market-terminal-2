@@ -56,10 +56,24 @@ jobs:
         run: python verify_live_research.py terminal.html
       - name: Run source-backed Release 2.8 unit tests
         run: python -m unittest test_release28.py
+      - run: node --check terminal_release29.js
       - name: Install browser runner
         run: |
           python -m pip install playwright
-          python -m playwright install --with-deps chromium
+          # Ubuntu hosted runners already include Google Chrome. Avoid apt
+          # dependency downloads: the November runner's Azure Ubuntu mirror
+          # failed DNS resolution and stopped the tests before browser startup.
+          if command -v google-chrome >/dev/null 2>&1; then
+            echo "CHROMIUM_EXECUTABLE=$(command -v google-chrome)" >> "$GITHUB_ENV"
+          elif command -v google-chrome-stable >/dev/null 2>&1; then
+            echo "CHROMIUM_EXECUTABLE=$(command -v google-chrome-stable)" >> "$GITHUB_ENV"
+          elif command -v chromium >/dev/null 2>&1; then
+            echo "CHROMIUM_EXECUTABLE=$(command -v chromium)" >> "$GITHUB_ENV"
+          else
+            # Download only Playwright Chromium; do not invoke apt on the
+            # transiently unavailable mirror.
+            python -m playwright install chromium
+          fi
       - name: Browser verification of actual live payload
         run: |
           python tests/browser_research_live.py terminal.html
@@ -68,6 +82,7 @@ jobs:
           python tests/browser_release25.py terminal.html
           python tests/browser_release27.py terminal.html
           python tests/browser_release28.py terminal.html
+          python tests/browser_release29.py terminal.html
           python tests/browser_treasury_scroll.py terminal.html
       - name: Upload actual terminal and source diagnostics for review
         if: always()
@@ -85,6 +100,7 @@ jobs:
             /tmp/release26-*.png
             /tmp/release27-*.png
             /tmp/release27-visual-verification.json
+            /tmp/release29-*.png
             .terminal_sources/requests.jsonl
             .terminal_sources/fresh_sec_verification.json
             /tmp/research-live-*.png
