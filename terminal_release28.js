@@ -259,11 +259,11 @@ function r28AnalystPanel(c){
  }
  // Target upside is only valid when the source's quoted units match today's quote.
  const q=(c.priceCurrency||'').replace('GBX','GBp'),u=(a.quoteCurrency||'').replace('GBX','GBp');
- if(r28Finite(a.targetMean)&&r28Finite(c.price)&&c.price>0&&q&&q===u){
+ if(r28Finite(a.targetMean)&&r28Finite(c.price)&&c.price>0&&q&&q===u&&a.targetMean/c.price>=0.2&&a.targetMean/c.price<=5){
   const upside=100*(a.targetMean/c.price-1);
   const t=el('div','r28-analyst-kpi');t.append(el('span','mini','Implied price-only upside'),el('strong',upside>=0?'r28-positive':'r28-negative',(upside>=0?'+':'')+fmt(upside,1)+'%'));facts.append(t);
  }else{
-  const t=el('div','r28-analyst-kpi');t.append(el('span','mini','Implied price-only upside'),el('strong','','Unavailable — currency / price units not verified'));facts.append(t);
+  const t=el('div','r28-analyst-kpi');t.append(el('span','mini','Implied price-only upside'),el('strong','','Unavailable — quote/target units or scale not verified'));facts.append(t);
  }
  box.append(facts);
  const source=el('a','', 'Yahoo Finance analyst data');source.href='https://finance.yahoo.com/quote/'+encodeURIComponent(c.symbol)+'/analysis/';source.target='_blank';source.rel='noopener noreferrer';
