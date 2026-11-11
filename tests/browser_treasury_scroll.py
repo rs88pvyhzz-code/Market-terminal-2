@@ -13,13 +13,13 @@ with sync_playwright() as p:
         viewport=page.locator('#ust-securities-scroll');rows=page.locator('#ust-rows tr')
         securities=data.get('us_treasuries',[])
         assert rows.count()==(len(securities) or 1)
-        assert viewport.evaluate('(e)=>Math.abs(parseFloat(getComputedStyle(e).maxHeight)-Math.min(innerHeight*.6,600))<1')
+        assert viewport.evaluate('(e)=>Math.abs(parseFloat(getComputedStyle(e).maxHeight)-(Math.min(innerHeight*.44,440) if document.documentElement.classList.contains("release210") else Math.min(innerHeight*.6,600)))<1')
         assert viewport.evaluate('(e)=>getComputedStyle(e).overflowY')=='auto'
         assert page.locator('#ust-securities-scroll thead th').evaluate_all('(els)=>els.every(e=>getComputedStyle(e).position==="sticky"&&getComputedStyle(e).top==="0px")')
         for id in ['ust-selected','ust-clean-input','ust-stats','ust-chart','ust-selected-date']:
             assert page.locator('#'+id).evaluate('(e)=>!e.closest("#ust-securities-scroll")')
         # The shared wrappers retain their existing policies.
-        assert page.locator('#gilts .gilt-table-scroll').evaluate('(e)=>parseFloat(getComputedStyle(e).maxHeight)>.6*innerHeight')
+        assert page.locator('#gilts .gilt-table-scroll').evaluate('(e)=>Math.abs(parseFloat(getComputedStyle(e).maxHeight)-(Math.min(innerHeight*.44,440) if document.documentElement.classList.contains("release210") else innerHeight*.65))<1')
         # Release 2.8 standardises sticky headers on long constituent tables.
         const_count=page.locator('#const-rows tr').count()
         if const_count>=9:
