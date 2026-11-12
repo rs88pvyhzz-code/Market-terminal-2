@@ -245,7 +245,7 @@ function r28GiltPairs(host,statRows,b,v,clean,manual){
     advanced.append(el('span','',label+': '+metric));
  }
  group.append(advanced);
- const text=review?'Gross yield and cash profit withheld: bond requires independent cash-flow review.':
+ const text=review?'Review required — gross yield and cash profit withheld until the bond cash-flow schedule is independently validated.':
   b.indexLinked?'No fixed nominal hold-to-maturity return is shown for index-linked gilts.':
   !usable?'Not enough validated purchase/cash-flow data to calculate redemption return.':
   'Gross cash figures are undiscounted and include redemption plus scheduled coupons, less initial dirty cost. Annualised YTM is the cash-flow internal rate of return. Tax, broker fees and reinvestment of coupons are excluded. DMO reference quotes are not executable broker prices.';
