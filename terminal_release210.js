@@ -99,7 +99,7 @@ function r210NewsOverview(){
  const host=$r('r24-developments')?.querySelector('.r24-content');if(!host)return;
  host.replaceChildren();overviewHeadlines=distinctNews(sortedNews()).filter(x=>eventWeight(x)>=23).slice(0,5);
  if(!overviewHeadlines.length){
-  host.append(el('p','note','No major sourced market development in this snapshot. Full dated market news remains available in Markets.'));
+  host.append(el('p','note','No major sourced market development in this snapshot. Further dated headlines are listed below.'));
   return;
  }
  for(const x of overviewHeadlines){
@@ -135,15 +135,15 @@ renderIntelligenceNews=function(){
   article.append(title,el('div','r29-news-meta',x.source+' · '+x.published+(x.official?' · official':'')));
   host.append(article);
  }
- if(!distinct.length)host.append(el('p','note','No additional distinct publisher stories for the selected filters. The most important sourced events appear in Overview.'));
+ if(!distinct.length)host.append(el('p','note','No further dated headlines for the selected filters; the top stories are under Key market news.'));
  for(const old of host.parentElement.querySelectorAll('.r29-news-footer'))old.remove();
- const foot=el('div','r29-news-footer','Showing '+Math.min(newsLimit,distinct.length)+' of '+distinct.length+' additional distinct headlines');
+ const foot=el('div','r29-news-footer','Showing '+Math.min(newsLimit,distinct.length)+' of '+distinct.length+' further headlines');
  if(distinct.length>newsLimit){
   const more=el('button','btn','Show 6 more');more.type='button';more.onclick=()=>{newsLimit+=6;renderIntelligenceNews();};foot.append(more);
  }
  host.after(foot);
- const stamp=$r('news-stamp');if(stamp)stamp.textContent='Publisher dates retained · priority stories are in Overview';
- const heading=$r('news')?.querySelector('h2');if(heading)heading.textContent='ADDITIONAL MARKET NEWS';
+ const stamp=$r('news-stamp');if(stamp)stamp.textContent='Publisher dates retained';
+ const heading=$r('news')?.querySelector('h2');if(heading)heading.textContent='MORE MARKET HEADLINES';
 };
 function reframeGilts(){
  const panel=$r('gilts'),ladder=$r('gilt-ladder');

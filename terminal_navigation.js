@@ -19,7 +19,9 @@ function terminalResolveRoute(route){
  if(key==='equities'&&subview==='research')return {key:'companies'};
  if(key==='equities'&&subview==='analytics')return {key:'analytics'};
  if(key==='fx'&&subview==='analytics')return {key:'analytics'};
- const researchSection={'peer-panel':3,'company-events-panel':4,'forensic-panel':5};
+ // Peer comparison and accounting checks are analytics (terminal_layout.js).
+ if(key==='peer-panel'||key==='forensic-panel')return {key:'analytics'};
+ const researchSection={'company-events-panel':4};
  if(Object.hasOwn(researchSection,key))return {key:'companies',researchView:researchSection[key]};
  if(key==='companies'||key==='analytics')return {key};
  if(key==='markets')return {key:'fx',subview:subview||'prices'};

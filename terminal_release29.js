@@ -127,7 +127,9 @@ function coverage(c){
 researchArrangeOverview=function(){
  const view=$id('research-view-0');if(!view)return;
  const c=ensureCompany(state.companySymbol);if(c)coverage(c);
- for(const id of ['research-overview','r29-coverage','company-price-block','company-benchmark-block','company-risk-panel','research-executive','company-news-panel','company-advanced','company-coverage']){
+ // Only panels that live on Company Research; terminal_layout.js places the analytics
+ // and coverage panels elsewhere and must not be fought on every company render.
+ for(const id of ['research-overview','company-price-block','company-news-panel']){
   const node=$id(id);if(node)view.append(node);
  }
 };

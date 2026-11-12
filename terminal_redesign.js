@@ -133,7 +133,7 @@ function r24Overview(){
   for(const story of D.news||[]){if(!r24Fresh(story)||seen.has(story.id)||!story.significanceEvidence?.length)continue;
     if(story.official||story.significanceEvidence.some(s=>s.includes('>=1 billion'))){choices.push(story);seen.add(story.id);}}
   choices.slice(0,3).forEach(x=>r24Item(host,x,x.classification==='observed_market_movement'?'Observed major-market movement':(x.official||x.classification==='confirmed_event')?'Official announcement':'Reported material development'));
-  if(!choices.length)host.append(el('p','note','No material macro or major-market development is verified by this snapshot. Individual share moves remain in Markets.'));
+  if(!choices.length)host.append(el('p','note','No material macro or major-market development is verified by this snapshot. Individual share moves are in Equities.'));
   host=r24Section('r24-conditions','MARKET CONDITIONS',parent);r24Conditions(host);
   host=r24Section('r24-watch','MY WATCHLIST',parent);
   const names=(D.personalWatchlist||[]).map(w=>w.name.replace(/\b(plc|inc|corporation|corp|limited|ltd|holdings|ag|se)\b.*$/i,'').trim().toLowerCase());

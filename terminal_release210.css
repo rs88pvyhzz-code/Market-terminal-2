@@ -30,7 +30,7 @@
 .release210 #gilts #gilt-ladder{margin-top:18px!important;border-top:1px solid #313b48;padding-top:12px}
 .release210 #gilts #gilt-ladder .constituents-scroll{max-height:min(40vh,400px)!important;overflow-y:auto!important}
 .release210 #view-bonds .research-stats>.etf-stat{min-width:0}
-.release210 #research-view-4>.r25-section-links{display:flex!important;position:sticky;top:var(--r24-nav-height);z-index:40;gap:5px;flex-wrap:wrap;padding:8px;background:#10151b;border-bottom:1px solid #3b4652}
+.release210 #research-view-4>.r25-section-links{position:sticky;top:var(--r24-nav-height);z-index:40;gap:5px;flex-wrap:wrap;padding:8px;background:#10151b;border-bottom:1px solid #3b4652}
 .release210 #research-view-4>.r25-section-links button{font-size:10px!important;white-space:normal;max-width:240px;text-align:left}
 .release210 #research-view-4>.r25-section-links button.active{background:#aa742d;color:#fff}
 .release210 #research-view-4 .r24-support-heading{scroll-margin-top:175px}

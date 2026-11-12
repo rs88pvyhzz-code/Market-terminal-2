@@ -92,7 +92,7 @@ function r28UpdateMoverList(){
  }
  panel.hidden=!best.length;
  if(best.length){
-  const foot=el('p','mini r28-more','Top '+best.length+' major-market observations ranked by move versus asset-class threshold. Full constituent risers/fallers remain in Markets.');
+  const foot=el('p','mini r28-more','Top '+best.length+' major-market observations ranked by move versus asset-class threshold. Full constituent risers/fallers are in Equities.');
   body.append(foot);
  }
 }

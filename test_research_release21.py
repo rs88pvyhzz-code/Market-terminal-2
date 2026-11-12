@@ -149,6 +149,8 @@ class SourceIntegrityTests(unittest.TestCase):
         self.assertIn('rows.length>=12',js);self.assertIn('>=90',js)
         self.assertIn('history.length<12||span<years*365.25',js)
         workflow=(ROOT/'.github/workflows/live-source-checks.yml').read_text()
-        self.assertIn('verify_live_research.py terminal.html',workflow);self.assertNotIn('--demo',workflow);self.assertNotIn('deploy-pages',workflow)
+        # Live checks build through build_site.py --verify, which runs verify_live_research.py on the result.
+        self.assertIn('build_site.py --output terminal.html --verify',workflow);self.assertNotIn('--demo',workflow);self.assertNotIn('deploy-pages',workflow)
+        self.assertIn("['verify_live_research.py', html]",(ROOT/'build_site.py').read_text())
 
 if __name__=='__main__':unittest.main()

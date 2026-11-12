@@ -675,6 +675,51 @@ def build(opts):
        'warnings':warnings,'sources':['Yahoo Finance (unofficial)','Bank of England','FRED graph CSV (unofficial download)','Office for National Statistics','Eurostat','European Central Bank','UK Debt Management Office D10B purchase/sale service prices (dated)','US Treasury FedInvest rates/prices (dated)','FRED / ICE BofA corporate OAS (third-party licensed)', 'Yahoo Finance / yfinance calendar (indicative issuer dates)','Personal watchlist: source tickers only; no holdings or valuations'],
        'yearsRequested':opts.years,'cachedSeries':cached_count}
 
+# ---------------------------------------------------------------------------
+# Front-end assembly: one ordered manifest instead of chained string replaces.
+# Order matters: later stylesheets and scripts override earlier ones.
+# Each insertion point must exist exactly once or the build stops; previously a
+# missing marker silently dropped a whole layer from the published page.
+# terminal_layout.css/js are deliberately NOT listed: build_site.py injects them
+# last, after the post-build processors, so the layout has the final word.
+# ---------------------------------------------------------------------------
+FRONTEND_EARLY_JS = ['equity_research.js', 'equity_research_r2.js', 'terminal_navigation.js', 'market_briefing.js']
+FRONTEND_LATE_JS = ['terminal_redesign.js', 'terminal_etf_presentation.js', 'etf_original_presentation.js',
+                    'terminal_release28.js', 'terminal_release29.js', 'terminal_release210.js',
+                    'terminal11_restoration.js', 'terminal12_design.js']
+FRONTEND_CSS = [('release24-styles', 'terminal_redesign.css'),
+                ('etf-original-styles', 'etf_original_presentation.css'),
+                ('release28-styles', 'terminal_release28.css'),
+                ('release29-styles', 'terminal_release29.css'),
+                ('release210-styles', 'terminal_release210.css'),
+                ('terminal1-original-theme', 'terminal1_original_theme.css'),  # original Terminal 1 visual specification
+                ('terminal11-layout-adapter', 'terminal11_adapter.css'),
+                ('terminal12-styles', 'terminal12_design.css')]
+
+
+def _asset(name):
+    path = ROOT / name
+    if not path.is_file():
+        raise SystemExit(f'Front-end asset missing: {name}')
+    return path.read_text('utf-8')
+
+
+def _inject_once(template, marker, text, label):
+    n = template.count(marker)
+    if n != 1:
+        raise SystemExit(f'Template insertion point for {label} found {n} times (expected exactly 1): {marker!r}')
+    return template.replace(marker, text)
+
+
+def assemble_frontend(template):
+    template = _inject_once(template, '/*__EQUITY_RESEARCH__*/',
+                            '\n'.join(_asset(f) for f in FRONTEND_EARLY_JS), 'early scripts')
+    template = _inject_once(template, '\ninit();\n',
+                            '\n' + '\n'.join(_asset(f) for f in FRONTEND_LATE_JS) + '\ninit();\n', 'late scripts')
+    styles = ''.join(f'<style id="{sid}">{_asset(f)}</style>' for sid, f in FRONTEND_CSS)
+    return _inject_once(template, '</head>', styles + '</head>', 'stylesheets')
+
+
 def main():
     p=argparse.ArgumentParser(description=__doc__,formatter_class=argparse.RawDescriptionHelpFormatter)
     p.add_argument('--years',type=int,default=20,help='historical years requested (1–25, default 20)')
@@ -711,17 +756,7 @@ def main():
     if not payload['quotes'] and not payload['uk_rates'] and not payload['macro'] and not payload['us_rates']:
         raise SystemExit('No data was retrieved. Check internet access; use --demo to preview the interface.')
     template=(ROOT/'terminal_template.html').read_text('utf-8')
-    template=template.replace('/*__EQUITY_RESEARCH__*/', (ROOT/'equity_research.js').read_text('utf-8')+'\n'+(ROOT/'equity_research_r2.js').read_text('utf-8')+'\n'+(ROOT/'terminal_navigation.js').read_text('utf-8')+'\n'+(ROOT/'market_briefing.js').read_text('utf-8'))
-    template=template.replace('\ninit();\n', '\n'+(ROOT/'terminal_redesign.js').read_text('utf-8')+'\n'+(ROOT/'terminal_etf_presentation.js').read_text('utf-8')+'\n'+(ROOT/'etf_original_presentation.js').read_text('utf-8')+'\n'+(ROOT/'terminal_release28.js').read_text('utf-8')+'\n'+(ROOT/'terminal_release29.js').read_text('utf-8')+'\n'+(ROOT/'terminal_release210.js').read_text('utf-8')+'\n'+(ROOT/'terminal11_restoration.js').read_text('utf-8')+'\n'+(ROOT/'terminal12_design.js').read_text('utf-8')+'\ninit();\n')
-    template=template.replace('</head>', '<style id="release24-styles">'+(ROOT/'terminal_redesign.css').read_text('utf-8')+'</style></head>')
-    template=template.replace('</head>', '<style id="etf-original-styles">'+(ROOT/'etf_original_presentation.css').read_text('utf-8')+'</style></head>')
-    template=template.replace('</head>', '<style id="release28-styles">'+(ROOT/'terminal_release28.css').read_text('utf-8')+'</style></head>')
-    template=template.replace('</head>', '<style id="release29-styles">'+(ROOT/'terminal_release29.css').read_text('utf-8')+'</style></head>')
-    template=template.replace('</head>', '<style id="release210-styles">'+(ROOT/'terminal_release210.css').read_text('utf-8')+'</style></head>')
-    # Original Market Terminal 1 visual specification, imported verbatim from its repository.
-    template=template.replace('</head>', '<style id="terminal1-original-theme">'+(ROOT/'terminal1_original_theme.css').read_text('utf-8')+'</style></head>')
-    template=template.replace('</head>', '<style id="terminal11-layout-adapter">'+(ROOT/'terminal11_adapter.css').read_text('utf-8')+'</style></head>')
-    template=template.replace('</head>', '<style id="terminal12-styles">'+(ROOT/'terminal12_design.css').read_text('utf-8')+'</style></head>')
+    template=assemble_frontend(template)
     # Links to the repository (e.g. 'edit watchlist') follow whichever repo builds the site.
     repo=__import__('os').environ.get('GITHUB_REPOSITORY')
     if repo and '/' in repo: template=template.replace('rs88pvyhzz-code/market-terminal',repo)

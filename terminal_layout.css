@@ -1,0 +1,45 @@
+/* Terminal layout — Analytics grouping, on the original Terminal 1 tokens. */
+#layout-retired{display:none!important}
+.workspace-view{display:grid;gap:14px}
+.workspace-view[hidden]{display:none}
+.layout-group{display:grid;gap:14px;padding-top:6px}
+.layout-group[hidden]{display:none}
+.layout-group+.layout-group{margin-top:10px}
+.layout-group-head{display:flex;align-items:baseline;flex-wrap:wrap;gap:6px 12px;padding:6px 3px 7px;border-bottom:1px solid var(--amber,#ffa028)}
+.layout-group-head h2{margin:0;font:600 15px/1.4 var(--font,ui-monospace,Menlo,monospace);color:var(--amber,#ffa028);letter-spacing:.5px}
+.layout-context{margin:0;flex:1 1 220px;font:12px/1.5 var(--font,ui-monospace,Menlo,monospace);color:var(--fg,#ececef)}
+.layout-source{margin-left:auto;font:11px var(--font,ui-monospace,Menlo,monospace)}
+/* Panels that were sub-blocks of a parent panel get panel framing once they stand alone. */
+#view-analytics .watchlist-risk,
+#view-analytics .research-benchmark,
+#view-analytics .research-r2,
+#view-analytics .research-detail,
+#view-analytics .layout-subpanel,
+#view-analytics .etf-peer-box,
+#view-analytics #mt-gilt-tax,
+#view-analytics #gilt-ladder,
+#view-analytics #r23-market-conditions,
+#view-analytics #r23-alerts{background:var(--panel,#121215);border:1px solid var(--line,#2a2a30);border-radius:6px;padding:13px;margin:0;min-width:0}
+#view-analytics .layout-subpanel h3{margin-top:0}
+#view-analytics .chart{min-height:220px}
+/* Wide tables scroll inside their panel; the page never scrolls sideways. */
+#view-analytics table{min-width:100%}
+#view-analytics .small-scroll,#view-analytics .layout-group>section{overflow-x:auto}
+@media (max-width:600px){
+  .layout-group-head{padding:6px 2px}
+  .layout-source{margin-left:0}
+}
+/* Data tables: one value per line and horizontal scroll, as in Terminal 1.
+   An earlier layer set overflow-wrap:anywhere on cells, which broke headers and
+   numbers into one character per line on phones. */
+.workspace-view table.watch,.workspace-view table.mt-return-table{width:max-content;min-width:100%;table-layout:auto}
+.workspace-view table.watch th,.workspace-view table.watch td,
+.workspace-view table.mt-return-table th,.workspace-view table.mt-return-table td{overflow-wrap:normal;word-break:normal;white-space:nowrap}
+.workspace-view table.watch td:first-child{white-space:normal;min-width:12ch;max-width:30ch}
+.workspace-view :has(> table.watch),.workspace-view :has(> table.mt-return-table){overflow-x:auto;-webkit-overflow-scrolling:touch;max-width:100%}
+/* Jump-link chip bars, sub-tab strips and per-panel "data checks" buttons are
+   retired. Some are recreated when a view re-renders, so hide them by class too. */
+.terminal-subnav,.r25-section-links,#mt-bond-nav,.r210-research-jump,.t11-quality-shortcut,.mt-quality-link{display:none!important}
+.layout-group-body{display:grid;gap:14px;min-width:0}
+/* Scope stand-ins must not inherit the framing of the panels they stand in for. */
+.layout-group.scope-panel{background:none;border:0;padding:0;box-shadow:none}

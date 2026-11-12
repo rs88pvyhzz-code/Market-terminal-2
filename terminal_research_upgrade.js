@@ -38,7 +38,7 @@ function panelForRisk(){
  const view=document.getElementById('subview-fx-analytics')||document.getElementById('view-analytics');if(!view)return;
  const panel=make('section','panel mt-risk-panel');panel.id='mt-risk-comparison';
  panel.innerHTML='<div class="row"><div><h2>COMPARABLE MARKET RISK & RETURNS</h2><p class="note">Price-only index performance; excludes dividends. Returns are annualised, volatility uses daily log returns. No figures are filled when price history is too short.</p></div><label class="mini" for="mt-risk-period">PERIOD <select class="field" id="mt-risk-period"><option>1Y</option><option>3Y</option><option>5Y</option></select></label></div><div class="small-scroll"><table class="watch mt-risk-table"><thead><tr><th>Market</th><th class="n">Ann. price return</th><th class="n">Volatility</th><th class="n">Max drawdown</th><th class="n">Observations</th></tr></thead><tbody id="mt-risk-rows"></tbody></table></div><p class="note" id="mt-risk-note">Indexes are in native currencies; not FX-converted, not total returns. Historical index-membership breadth elsewhere is subject to survivorship bias.</p>';
- const first=view.querySelector('#analytics-rolling')||view.querySelector('#analytics-breadth');first?view.insertBefore(panel,first):view.append(panel);
+ const first=view.querySelector('#analytics-rolling')||view.querySelector('#analytics-breadth');first?first.before(panel):view.append(panel);
  const selected=new Set(['^FTSE','^FTMC','^GSPC','^IXIC','^STOXX50E','^GDAXI','^N225','^NSEI']);
  const quotes=new Map((D.quotes||[]).filter(q=>selected.has(q.symbol)).map(q=>[q.symbol,q]));
  const prices=new Map([...selected].map(sym=>[sym,[]]));
