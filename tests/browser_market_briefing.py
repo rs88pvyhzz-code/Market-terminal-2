@@ -15,7 +15,7 @@ with sync_playwright() as p:
     assert page.locator('.r23-regions button').count()==5
     ids=page.locator('#r23-alerts [data-alert-id]').evaluate_all('(els)=>els.map(e=>e.dataset.alertId)');assert len(ids)==len(set(ids))
     assert page.locator('#r23-alerts [data-briefing-id]').count()<=5
-    expected=['overview-board','r24-developments','r24-conditions','r24-watch','r24-upcoming']
+    expected=['r24-developments','overview-board','r24-conditions','r24-watch','r24-upcoming']
     order=page.locator('#view-overview > [id]').evaluate_all('(els)=>els.map(e=>e.id)')
     assert [order.index(x) for x in expected]==sorted(order.index(x) for x in expected)
     for width in [1440,1024,768]:
