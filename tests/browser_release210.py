@@ -29,12 +29,11 @@ with sync_playwright() as p:
  assert page.locator('#r24-developments article').count()<=5
  overview_names=page.locator('#r24-developments article a').all_text_contents()
  assert len(overview_names)==len(set(overview_names))
- page.locator('#tab-fx').click()
- page.locator('#sub-fx-news').click()
+ page.locator('#tab-overview').click()  # further headlines sit below Key market news
  assert page.locator('#news-list article').count()<=6
  names=page.locator('#news-list article a').all_text_contents()
- assert not set(overview_names)&set(names),'Overview headlines repeated in Markets'
- assert len(names)==len(set(names)),'Repeated Markets headlines'
+ assert not set(overview_names)&set(names),'Key market news repeated in further headlines'
+ assert len(names)==len(set(names)),'Repeated further headlines'
  assert page.locator('.r29-news-footer').count()==1
  if not data.get('demo'):page.screenshot(path='/tmp/release210-news-ipad.png',full_page=True)
  page.locator('#tab-etfs').click()
@@ -58,7 +57,8 @@ with sync_playwright() as p:
  for selector in ['#ust-securities-scroll','#gilts .gilt-table-scroll']:
   assert page.locator(selector).evaluate('(e)=>Math.abs(parseFloat(getComputedStyle(e).maxHeight)-Math.min(innerHeight*.47,460))<1')
   assert page.locator(selector+' thead th').first.evaluate('(e)=>getComputedStyle(e).position')=='sticky'
- assert page.locator('#gilts').evaluate('''e=>e.querySelector("#gilt-ladder").compareDocumentPosition(e.querySelector("#gilt-chart"))&Node.DOCUMENT_POSITION_PRECEDING'''),'Gilt chart must precede ladder'
+ # The ladder builder is a calculator, so it lives in Analytics (terminal_layout.js).
+ assert page.locator('#gilts #gilt-chart').count()==1 and page.locator('#view-analytics #gilt-ladder').count()==1
  # Quote-specific gilt valuation cards appear after a valid security is selected.
  candidates=page.locator('#gilt-rows tr[data-isin]')
  if candidates.count():
@@ -74,12 +74,9 @@ with sync_playwright() as p:
  page.locator('#tab-companies').click()
  page.locator('#research-tab-4').click()
  page.wait_for_timeout(180)
- nav=page.locator('#research-view-4 > .r25-section-links')
+ # Jump-link bars are retired (terminal_layout.js); sections are read in order.
  minimum=2 if data.get('demo') else 3
- assert nav.locator('button').count()>=minimum,nav.inner_text()
- button=nav.locator('button').nth(1)
- button.click()
- assert button.evaluate('(e)=>e.classList.contains("active")'),'Research jump not activating'
+ assert page.locator('#research-view-4 .r25-section-links:visible').count()==0
  assert page.locator('#research-view-4 .r210-management-note').count()==1
  assert page.locator('#research-view-4 .r210-more-evidence').count()>=0
  assert page.locator('#research-view-4 .r24-support-heading').count()>=minimum
