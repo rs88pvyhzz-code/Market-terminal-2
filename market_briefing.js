@@ -43,7 +43,7 @@ function renderMarketBriefing(){
  const buildAge=Date.now()-Date.parse(String(D.generatedAt).replace(' UTC','Z').replace(' ','T')),recent=buildAge<=(briefing.thresholds?.criticalMaxAgeDays||5)*86400000;
  const leading=recent?(briefing.leadingItems||[]):[],leadingAlertIds=new Set(leading.map(x=>x.alertId).filter(Boolean));
  for(const item of leading){const row=el('div','r23-observation');row.dataset.briefingId=item.id;if(item.alertId)row.dataset.alertId=item.alertId;
- row.append(item.url?intelligenceLink(item):el('strong','',item.title),el('div','mini',({confirmed_event:'Confirmed event',observed_market_movement:'Observed market movement',general_news:'General news'})[item.classification]+' · '+item.published+' · '+(item.source||'Source unavailable')));
+ row.append(item.url?intelligenceLink(item):el('strong','',item.title),el('div','mini',({confirmed_event:'Confirmed event',reported_development:'Reported development',observed_market_movement:'Observed market movement',general_news:'General news'})[item.classification]+' · '+item.published+' · '+(item.source||'Source unavailable')));
  row.append(el('div','mini',item.selectionReasons.join(' · ')));for(const article of item.relatedArticles||[])row.append(intelligenceLink({...article,title:'Related coverage: '+article.title}));if(item.researchUrl&&!item.relatedArticles?.length)row.append(intelligenceLink({title:'Related news search — not a source article',url:item.researchUrl}));body.append(row);}
  if(!recent)body.append(el('div','mini','Market snapshot is stale; historical briefing items are suppressed.'));
  else if(!briefing.verifiedSignificantCount)body.append(el('div','mini','No significant event verified in the available snapshot. General coverage is not labelled Market Moving.'));

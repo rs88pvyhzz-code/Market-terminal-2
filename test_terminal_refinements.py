@@ -19,6 +19,7 @@ class RefinementTests(unittest.TestCase):
         article={'title':'Dr. Martens issues profit warning','url':'https://example.test/article','source':'Publisher','published':now,'retrievedAt':now}
         p=enrich({'generatedAt':now,'company_news':[{'symbol':'DOCS.L','articles':[article]}]})
         self.assertEqual(p['news'][0]['url'],article['url'])
+        self.assertEqual(p['marketBriefing']['leadingItems'][0]['classification'],'reported_development')
     def test_price_alert_links_matching_current_article_only(self):
         now='2026-11-12T16:00:00+00:00'
         article={'title':'Dr. Martens issues profit warning','url':'https://example.test/article','source':'Publisher','published':now,'retrievedAt':now}
