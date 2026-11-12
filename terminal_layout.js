@@ -159,13 +159,36 @@ function analyticsGroup(view,g){
 // hidden from the merged grid, not deleted. Re-run after every company render,
 // because that render rebuilds the overview and its snapshot section.
 const SNAPSHOT_DUPLICATES=/^(day move|market capitali[sz]ation)$/i;
+// One grid read in a fixed order: price & valuation, size & growth, profitability,
+// then cash & balance sheet. Tiles stay inside their own grids (renderers rebuild
+// them); the shared wrapper orders them with CSS order, so nothing is copied.
+const METRIC_GROUPS=[
+  ['Price & valuation',[/^price$/,/^market capitali[sz]ation$/,/^valuation$/,/^trailing p\/e/,/^forward p\/e/,/^price \/ book/,/^ev \/ ebitda/,/^eps/,/^dividend yield/]],
+  ['Size & growth',[/^revenue · ttm/,/^revenue · fy/,/^revenue growth/,/^ebitda/,/^operating profit/,/^net profit · ttm/,/^net profit · fy/]],
+  ['Profitability',[/^profit margin/,/^profitability/,/^return on equity/,/^return on/]],
+  ['Cash & balance sheet',[/^cash generation/,/^free cash flow/,/^total debt/,/^financial strength/,/^net debt/]]
+];
+function metricOrder(label){
+  const l=label.trim().toLowerCase();let n=0;
+  for(let g=0;g<METRIC_GROUPS.length;g++){
+    for(let i=0;i<METRIC_GROUPS[g][1].length;i++)if(METRIC_GROUPS[g][1][i].test(l))return (g+1)*100+i+1;
+  }
+  return 900;
+}
 function mergeSnapshot(park){
   const kpis=$L('company-kpis'),dash=document.querySelector('#research-overview .research-dashboard');
   if(!kpis||!dash)return;
   const holder=kpis.closest('.research-detail');
-  if(dash.nextElementSibling!==kpis)dash.after(kpis);
+  let wrap=dash.parentElement.classList.contains('layout-metrics')?dash.parentElement:null;
+  if(!wrap){
+    wrap=document.createElement('div');wrap.className='layout-metrics';
+    METRIC_GROUPS.forEach(([title],g)=>{const h=document.createElement('div');h.className='layout-metrics-head';h.textContent=title;h.style.order=String((g+1)*100);wrap.append(h);});
+    dash.before(wrap);wrap.append(dash);
+  }
+  if(kpis.parentElement!==wrap)wrap.append(kpis);
   kpis.classList.add('layout-merged-kpis');
   for(const tile of kpis.children){const label=(tile.firstElementChild&&tile.firstElementChild.textContent||'').trim();tile.hidden=SNAPSHOT_DUPLICATES.test(label);}
+  for(const tile of [...dash.children,...kpis.children]){const label=tile.firstElementChild&&tile.firstElementChild.textContent||'';tile.style.order=String(metricOrder(label));}
   if(holder&&!holder.contains(kpis)&&!park.contains(holder)){
     const rest=[...holder.children].filter(c=>!c.matches('h3,h4,summary,.r24-support-heading'));
     if(!rest.length)park.append(holder);
@@ -221,6 +244,61 @@ paintWorkspace=function(key){
   try{basePaint(key);if(key==='analytics')runAnalyticsPaint();}
   finally{applyLayout();}
 };
+
+// UK government bond yields in Global prices, next to the US Treasury yields:
+// Bank of England nominal zero-coupon spot yields (5/10/20Y) and the DMO-quoted
+// 0 1/8% Treasury Gilt 2028 (TN28), whose yield uses the same model as Bonds & Rates.
+// Rows are added to the snapshot once; their history feeds the price chart.
+function ukYieldQuote(symbol,name,points,source,note){
+  const pts=points.filter(p=>Number.isFinite(p.v)).sort((a,b)=>a.date.localeCompare(b.date));if(!pts.length)return null;
+  const last=pts.at(-1),prev=pts.at(-2),lastDate=new Date(last.date+'T00:00:00Z');
+  const yearStart=last.date.slice(0,4)+'-01-01';const ytdBase=[...pts].reverse().find(p=>p.date<yearStart);
+  const yearAgo=new Date(lastDate.getTime()-365*864e5).toISOString().slice(0,10);
+  const yearBase=[...pts].reverse().find(p=>p.date<=yearAgo);
+  const window=pts.filter(p=>p.date>yearAgo).map(p=>p.v);
+  const bpChange=base=>base?Math.round((last.v-base.v)*1000)/10:null;
+  return {group:'Rates',symbol,name,kind:'yield',currency:'GBP',price:Math.round(last.v*1000)/1000,changePct:null,
+    changeBp:bpChange(prev),ytdPct:null,yearPct:null,ytdBp:bpChange(ytdBase),yearBp:bpChange(yearBase),
+    low52:window.length>20?Math.min(...window):null,high52:window.length>20?Math.max(...window):null,
+    asOf:last.date,delayedMin:null,cached:false,cacheDetail:note,source,history:pts};
+}
+function addUkYieldQuotes(){
+  if(!Array.isArray(D.quotes)||D.quotes.some(q=>q.symbol==='UK10Y.BOE'))return;
+  const added=[];
+  for(const [field,label] of [['gilt5y','5Y'],['gilt10y','10Y'],['gilt20y','20Y']]){
+    const pts=(D.uk_rates||[]).map(r=>({date:r.date,v:Number(r[field])}));
+    const q=ukYieldQuote('UK'+label+'.BOE','UK '+label+' gilt yield (BoE spot)',pts,'Bank of England','BoE nominal zero-coupon spot curve');
+    if(q)added.push(q);
+  }
+  try{
+    const b=(D.gilts||[]).find(g=>g.shortTicker==='TN28'&&g.quoted&&!g.indexLinked);
+    if(b&&typeof giltValuation==='function'){
+      const pts=(D.gilt_history||[]).filter(p=>p.ticker===b.ticker).map(p=>({date:p.date,v:giltValuation(b,p.close,p.date)?.ytm}));
+      // Changes compare like with like (every point valued the same way, clean + modelled
+      // accrued); the level shown uses the DMO's own dirty price, as Bonds & Rates does.
+      const modelLatest=giltValuation(b,b.askClean,b.asOf)?.ytm;
+      if(Number.isFinite(modelLatest)&&!pts.some(p=>p.date===b.asOf))pts.push({date:b.asOf,v:modelLatest});
+      const q=ukYieldQuote('TN28.DMO','0 1/8% Treasury Gilt 2028 (TN28) gross YTM',pts,'UK DMO','Model yield from DMO dated offer price');
+      const official=giltValuation(b,b.askClean,b.asOf,b.askDirty)?.ytm;
+      if(q&&Number.isFinite(official))q.price=Math.round(official*1000)/1000;
+      if(q)added.push(q);
+    }
+  }catch(e){console.warn('TN28 yield skipped:',e&&e.message);}
+  if(!added.length)return;
+  const at=D.quotes.findIndex(q=>q.group==='Rates');
+  D.quotes.splice(at<0?D.quotes.length:at,0,...added.map(({history,...q})=>q));
+  if(Array.isArray(D.history))for(const q of added)for(const p of q.history)D.history.push({symbol:q.symbol,date:p.date,close:Math.round(p.v*1000)/1000});
+  // The page indexed quotes and histories at start-up; register the new rows there too.
+  const pick=$L('main-pick');
+  for(const q of added){
+    const {history,...row}=q;
+    try{qMap.set(q.symbol,D.quotes.find(x=>x.symbol===q.symbol)||row);}catch(e){}
+    try{histMap.set(q.symbol,history.map(p=>({date:p.date,v:Math.round(p.v*1000)/1000,adj:null})));}catch(e){}
+    if(pick&&![...pick.options].some(o=>o.value===q.symbol)){const o=document.createElement('option');o.value=q.symbol;o.textContent=q.name+' ['+q.symbol+']';pick.append(o);}
+  }
+  try{if(typeof renderWatch==='function')renderWatch();}catch(e){}
+}
+addUkYieldQuotes();
 
 window.terminalLayout={TABS,RESEARCH,ANALYTICS,QUALITY,RETIRED_IDS,apply:applyLayout};
 applyLayout();

@@ -56,6 +56,11 @@ def significance_evidence(item, text):
             evidence.append('Explicit reported profit-warning announcement')
         if not re.search(r'\b(analysts?|brokers?|price target|consensus)\b',text) and re.search(r'\b(cuts?|lowers?|lowered|slashes?|raises?|raised|upgrades?|downgrades?|withdraws?|withdrawn)\b.{0,35}\b(?:(?:profit|earnings|revenue|sales|cash|margin|annual|full-year)\s+){0,3}guidance\b',text):
             evidence.append('Explicit reported issuer guidance revision; no consensus surprise inferred')
+        # Leadership change: a reported departure of a chief executive or chair. Rumour,
+        # speculation and 'could/may' wording are already excluded above.
+        if re.search(r'\b(ceo|chief executive|chairman|chairwoman|chair)\b.{0,60}\b(steps? down|stepping down|resigns?|resigned|resignation|ousted|fired|quits?|departs?|departure|exits?|to leave|leaves)\b',text) or re.search(r'\b(steps? down|resigns?|resigned|ousted|quits?)\b.{0,30}\b(as )?(ceo|chief executive|chairman|chair)\b',text):
+            if not re.search(r'\b(talks|rumou?r|considers?|considering|mulls?|reportedly weighing)\b',text):
+                evidence.append('Reported chief-executive or chair departure (leadership change); no price causation inferred')
         # No claim that every acquisition/buyback is material: require a confirmed
         # transaction and a stated >=1 billion headline value; currency is not converted.
         transaction = re.search(r'\b(agrees?|agreed|announces?|announced|completes?|completed|signs?|signed)\b.{0,70}\b(acquisition|merger|takeover|buyout|buyback|acquire|buy)\b',text)

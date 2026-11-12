@@ -171,4 +171,15 @@ class BriefingTests(unittest.TestCase):
                     _,warnings,_=news.collect_news(None,SimpleNamespace(offline=False))
                     self.assertIn('could not be saved',warnings[-1])
     def test_timezones(self):self.assertEqual(timestamp('2026-11-10T13:00:00+01:00'),NOW)
+class LeadershipChange(unittest.TestCase):
+    """A reported CEO departure at a large company is market-moving news."""
+    def test_ceo_departure_is_significant(self):
+        r=classify(story('Nvidia CEO Jensen Huang steps down in body blow to AI boom'),NOW)
+        self.assertIn('market_moving',r['categories'])
+        self.assertTrue(any('departure' in e for e in r['significanceEvidence']))
+    def test_speculation_is_not(self):
+        for title in ['Could Nvidia CEO step down?','Board considers whether CEO should resign']:
+            self.assertNotIn('market_moving',classify(story(title),NOW)['categories'])
+
+
 if __name__=='__main__':unittest.main()

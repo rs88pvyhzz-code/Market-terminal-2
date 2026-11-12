@@ -85,8 +85,10 @@ function r24Value(x){return x===null||x===undefined||x===''?'Unavailable':typeof
 // estimated. Consensus forecasts are proprietary (wire-service polls), so the
 // table does not show a forecast column, and an "actual" cannot exist before release.
 const R24_PRINT_SERIES=[
+  [/retail sales|retail trade/i,{UK:/^UK retail sales volume \(m\/m\)/i,US:/^US retail sales \(m\/m\)/i,EU:/^Euro-area retail sales volume \(m\/m\)/i}],
   [/consumer price|inflation|\bcpi\b|\bhicp\b/i,{UK:/^UK CPI/i,US:/^US CPI/i,EU:/HICP/i}],
-  [/labour market|unemployment|employment situation|jobs report|payroll/i,{UK:/^UK unemployment/i,US:/^US unemployment/i,EU:/^Euro-area unemployment/i}],
+  [/employment situation|jobs report|payroll/i,{US:/^US nonfarm payrolls/i}],
+  [/labour market|unemployment/i,{UK:/^UK unemployment/i,US:/^US unemployment/i,EU:/^Euro-area unemployment/i}],
   [/\bgdp\b|gross domestic/i,{UK:/^UK real GDP \(q\/q\)/i,US:/^US real GDP/i,EU:/^Euro-area real GDP/i}],
   [/bank rate|monetary policy|interest rate|policy decision|fomc/i,{UK:/Bank Rate/i,US:/Fed funds/i,EU:/ECB|deposit facility/i}]
 ];
@@ -96,7 +98,7 @@ function r24LatestPrint(e){
   const rule=R24_PRINT_SERIES.find(([re])=>re.test(e.title||''));if(!rule)return null;
   const nameRe=rule[1][e.region];if(!nameRe)return null;
   const series=(D.macro||[]).find(m=>nameRe.test(m.name||'')&&Number.isFinite(Number(m.value)));if(!series)return null;
-  const unit=series.unit==='%'||/%/.test(series.unit||'')?'%':(series.unit?' '+series.unit:'');
+  const unit=series.unit==='%'||/%/.test(series.unit||'')?'%':series.unit==='k'?'k jobs':(series.unit?' '+series.unit:'');
   const period=String(series.period||series.date||'').slice(0,7);
   return {text:fmt(Number(series.value),2)+unit+(period?' · '+period:''),title:series.name+(series.source?' · '+series.source:'')};
 }

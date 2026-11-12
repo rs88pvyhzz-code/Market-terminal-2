@@ -27,6 +27,11 @@ NEWS_QUERIES = {
     'EUROPE': 'ECB euro zone European markets bonds stocks when:3d',
     'RATES': 'bond yields US treasury UK gilts ECB Fed rates when:3d',
     'COMPANIES': 'Shell BP AstraZeneca HSBC corporate earnings stocks when:3d',
+    # US mega-caps move global indices; a fixed UK company list missed them.
+    'US': 'Wall Street stocks Nvidia Apple Microsoft Amazon Alphabet Meta Tesla when:2d',
+    # Leadership changes at large companies (e.g. a CEO stepping down) are market-moving
+    # but rarely use the market vocabulary the other queries search for.
+    'LEADERSHIP': 'CEO "steps down" OR resigns OR ousted OR "chief executive" shares when:2d',
 }
 
 def _parse_rss_date(s):
@@ -63,6 +68,9 @@ NEWS_FALLBACK_FEEDS = {
     'EUROPE': [('BBC Business', 'https://feeds.bbci.co.uk/news/business/rss.xml')],
     'RATES': [('CNBC', 'https://www.cnbc.com/id/10000664/device/rss/rss.html')],
     'COMPANIES': [('BBC Business', 'https://feeds.bbci.co.uk/news/business/rss.xml')],
+    'US': [('CNBC', 'https://www.cnbc.com/id/10001147/device/rss/rss.html')],
+    'LEADERSHIP': [('BBC Business', 'https://feeds.bbci.co.uk/news/business/rss.xml'),
+                   ('CNBC', 'https://www.cnbc.com/id/10001147/device/rss/rss.html')],
 }
 
 
@@ -127,6 +135,8 @@ def _editorial_topic_matches(category, article):
       'EUROPE':r'\b(europe|eurozone|euro area|eu|ecb|germany|france|italy|spain|dax|euro)\b',
       'RATES':r'\b(bonds?|yields?|treasur(?:y|ies)|interest rates?|central banks?|fed(?:eral reserve)?|ecb|gilts?)\b',
       'COMPANIES':r'\b(shares?|stocks?|corporat(?:e|ion)|companies|profits?|earnings|results|dividends|revenue|merger|takeover)\b',
+      'US':r'\b(wall street|s&p|nasdaq|dow|nvidia|apple|microsoft|amazon|alphabet|google|meta|tesla|fed)\b',
+      'LEADERSHIP':r'\b(ceo|chief executive|chairman|chair|steps? down|resign\w*|ousted|succession|successor)\b',
     }
     return bool(re.search(words.get(category,r'$^'),text))
 

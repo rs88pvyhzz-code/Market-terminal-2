@@ -1196,7 +1196,7 @@ const WATCH_SECTIONS=[
   ['UK equity indices',q=>q.group==='Equities'&&/^\^(FTSE|FTMC|FTAS|FTLC)/.test(q.symbol)],
   ['European equity indices',q=>q.group==='Equities'&&/^(\^(STOXX|GDAXI|FCHI|IBEX|AEX|SSMI|FTMIB|OMX|BFX|ATX)|FTSEMIB)/.test(q.symbol)],
   ['Americas equity indices',q=>q.group==='Equities'&&/^\^(GSPC|IXIC|NDX|DJI|RUT|GSPTSE|MXX|BVSP|MERV|IPSA|VIX)/.test(q.symbol)],
-  ['Asia-Pacific equity indices',q=>q.group==='Equities'&&/^(\^(N225|HSI|KS11|AXJO|NSEI|BSESN|TWII|JKSE|STI|KLSE|SET|NZ50|HSCE)|000001\.SS|000300\.SS)/.test(q.symbol)],
+  ['Asia-Pacific equity indices',q=>q.group==='Equities'&&/^(\^(N225|HSI|KS11|AXJO|NSEI|BSESN|TWII|JKSE|STI|KLSE|SET|NZ50|HSCE|TOPX|TOPIX)|000001\.SS|000300\.SS)/.test(q.symbol)],
   ['Other equity indices',q=>q.group==='Equities'],
   ['ETFs',q=>q.group==='ETFs'],
   ['Currencies',q=>q.group==='FX'],
@@ -2590,12 +2590,15 @@ function renderWatchlist(){
    riskMeasures[1],riskMeasures[2],['DISCOUNT TO NAV','—','Not available from this free feed; cannot infer from P/E'],
    riskMeasures[3],riskMeasures[4],['TRUST MARKET CAPITALISATION',companyAmount(c.marketCap,c.marketCapCurrency||''),'Trust market cap, not your holding']];
  }else{
-  data=[...core,['DIVIDEND YIELD',c.dividendYieldPct==null?'—':fmt(c.dividendYieldPct,2)+'%','Cash distribution yield where sourced; accumulation ETFs may not distribute'],...riskMeasures,w.assetType==='fund'?
-   ['FUND NAV','—','A platform code is not an exchange ticker; use provider NAV']:
-   ['FUND FEES & HOLDINGS','CHECK ISSUER','Fund-level fees and holdings need a verified factsheet']];
+  // ETFs and funds: every figure sits in the key grid, 52-week high and low together.
+  // No placeholder tiles; fund fees and holdings are on the ETF Trackers tab where sourced.
+  data=[...core,['DIVIDEND YIELD',c.dividendYieldPct==null?'—':fmt(c.dividendYieldPct,2)+'%','Cash distribution yield where sourced; accumulation ETFs may not distribute'],...riskMeasures];
+  if(w.assetType==='fund')data.push(['FUND NAV','—','A platform code is not an exchange ticker; use provider NAV']);
  }
- for(const [label,value,info] of data.slice(0,9))kpis.append(watchValTile(label,value,info));
- const extra=$('watchlist-extra-kpis');extra.replaceChildren();for(const [label,value,info] of data.slice(9))extra.append(watchValTile(label,value,info));
+ const keyCount=w.assetType==='stock'?9:data.length;
+ for(const [label,value,info] of data.slice(0,keyCount))kpis.append(watchValTile(label,value,info));
+ const extra=$('watchlist-extra-kpis');extra.replaceChildren();for(const [label,value,info] of data.slice(keyCount))extra.append(watchValTile(label,value,info));
+ $('watchlist-advanced').hidden=!extra.children.length;
  const btn=$('watchlist-open-company');const research=w.assetType!=='fund'&&(companyMap.has(w.symbol)||indexedStocks.has(w.symbol));
  btn.textContent=research?'OPEN COMPANY RESEARCH':w.assetType==='fund'?'OPEN VANGUARD FUNDS':'OPEN SOURCE QUOTE';
  btn.onclick=()=>research?openConstituent(w.symbol):window.open(w.assetType==='fund'?'https://www.vanguardinvestor.co.uk/investments':'https://finance.yahoo.com/quote/'+encodeURIComponent(w.symbol)+'/','_blank','noopener,noreferrer');

@@ -165,14 +165,24 @@ function renderScore(){
  for(const b of controls.querySelectorAll('button'))b.classList.toggle('active',b.dataset.mtPeriod===mtMovePeriod);
  const heading=parent?.querySelector('h2');if(heading)heading.textContent='PRICE MOVES BY PERIOD';
  const note=parent?.querySelector('p.note');if(note)note.textContent='Local-currency price changes, excluding income; 3Y and 5Y figures are annualised. Futures and currencies are not directly comparable investment returns.';
- const list=(D.quotes||[]).filter(q=>(!state.group||q.group===state.group)&&q.kind!=='yield'&&q.kind!=='volatility')
-  .map(q=>({q,value:mtMoveReturn(q,mtMovePeriod)})).filter(r=>Number.isFinite(r.value))
-  .sort((a,b)=>b.value-a.value);
+ // Read by asset class (the Global prices sections: equity indices by region, ETFs,
+ // currencies, commodities, crypto), best to worst within each section.
+ const sectionOf=q=>typeof watchSection==='function'?watchSection(q):q.group;
+ const sectionRank=new Map((typeof WATCH_SECTIONS!=='undefined'?WATCH_SECTIONS:[]).map(([n],i)=>[n,i]));
+ // ETFs that track a market whose index is already listed (S&P 500, Nasdaq 100, Europe,
+ // Japan, UK, India, Brazil, Taiwan) repeat that index in dollars; they stay in Global
+ // prices and ETF Trackers but are left out here. Sector, bond and world ETFs stay.
+ const indexDuplicates=new Set(['SPY','QQQ','IEUR','EWJ','EWU','INDA','EWZ','EWT']);
+ const list=(D.quotes||[]).filter(q=>(!state.group||q.group===state.group)&&q.kind!=='yield'&&q.kind!=='volatility'&&!indexDuplicates.has(q.symbol))
+  .map(q=>({q,value:mtMoveReturn(q,mtMovePeriod),section:sectionOf(q)})).filter(r=>Number.isFinite(r.value))
+  .sort((a,b)=>(sectionRank.get(a.section)??99)-(sectionRank.get(b.section)??99)||b.value-a.value);
  host.replaceChildren();
  if(!list.length){host.append(el('div','empty','No sufficient historical prices for this period.'));return;}
- const selected=list.length>12?[...list.slice(0,6),...list.slice(-6)]:list;
+ const selected=list;
  const scale=Math.max(1,...selected.map(r=>Math.abs(r.value)));
- for(const {q,value} of selected){
+ let currentSection=null;
+ for(const {q,value,section} of selected){
+  if(section!==currentSection){currentSection=section;host.append(el('div','mt-mover-section',section));}
   const row=el('div','mt-mover-row');const name=el('span','mt-mover-name',q.name);name.title=q.symbol;
   const track=el('div','mt-mover-track');const neg=el('div','mt-mover-half mt-mover-negative');const pos=el('div','mt-mover-half mt-mover-positive');
   const bar=el('span',value<0?'mt-mover-loss':'mt-mover-gain');bar.style.width=Math.max(.6,Math.abs(value)/scale*100).toFixed(2)+'%';
@@ -187,7 +197,10 @@ function renderScore(){
   table.append(thead);const tbody=el('tbody');tbody.id='mt-movers-matrix';table.append(tbody);div.append(table);details.append(div);host.after(details);
  }
  const tbody=$('mt-movers-matrix');tbody.replaceChildren();
- for(const {q} of selected){const tr=el('tr');tr.append(el('td','',q.name));
+ let tableSection=null;
+ for(const {q,section} of selected){
+  if(section!==tableSection){tableSection=section;const hr=el('tr','watch-section');const th=el('th','',section);th.colSpan=mtMovePeriods.length+1;hr.append(th);tbody.append(hr);}
+  const tr=el('tr');tr.append(el('td','',q.name));
   for(const period of mtMovePeriods){const v=mtMoveReturn(q,period);tr.append(el('td',v==null?'':v<0?'down':'up',mtMoveFormat(v)));}
   tbody.append(tr);
  }

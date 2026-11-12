@@ -122,3 +122,11 @@
   #workspace-stage table td{overflow-wrap:normal;word-break:normal}
   #workspace-stage :has(> table){overflow-x:auto;-webkit-overflow-scrolling:touch;max-width:100%}
 }
+/* Company overview: one ordered metrics grid with group headings */
+#workspace-stage .layout-metrics{display:grid;grid-template-columns:repeat(auto-fill,minmax(210px,1fr));gap:1px;border:1px solid var(--t-line);border-radius:8px;overflow:hidden;background:transparent}
+#workspace-stage .layout-metrics>.research-dashboard,#workspace-stage .layout-metrics>.layout-merged-kpis{display:contents!important}
+#workspace-stage .layout-metrics-head{grid-column:1/-1;background:#141418;color:var(--t-muted);font:600 11px/1.4 var(--t-mono);letter-spacing:.08em;text-transform:uppercase;padding:9px 16px;box-shadow:0 0 0 1px var(--t-line)}
+/* Price moves by period: section headings between asset classes */
+#workspace-stage .mt-mover-section{margin:14px 0 6px;padding:6px 10px;background:linear-gradient(90deg,rgba(255,160,40,.14),rgba(255,160,40,0) 60%);border-bottom:1px solid rgba(255,160,40,.35);color:var(--t-amber);font:600 12px/1.4 var(--t-mono);letter-spacing:.08em;text-transform:uppercase}
+#workspace-stage .mt-mover-section:first-child{margin-top:0}
+#workspace-stage .r23-news-search{font:500 11px var(--t-mono);color:var(--t-amber);margin-left:8px;white-space:nowrap}

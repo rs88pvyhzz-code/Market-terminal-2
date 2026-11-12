@@ -15,7 +15,19 @@ ONS_SERIES = [
     ('MGSX', 'lms', 'uk_unemployment', 'UK unemployment (16+, LFS)', 'monthly', 'UK'),
     ('IHYQ', 'ukea', 'uk_gdp_qoq', 'UK real GDP (q/q)', 'quarterly', 'UK'),
     ('IHYR', 'ukea', 'uk_gdp_yoy', 'UK real GDP (y/y)', 'quarterly', 'UK'),
+    ('DKO8', 'mm23', 'uk_core_cpi', 'UK core CPI inflation (12m)', 'monthly', 'UK'),
+    ('KAI9', 'lms', 'uk_pay_growth', 'UK regular pay growth (3m avg, y/y)', 'monthly', 'UK'),
+    ('J5EC', 'drsi', 'uk_retail_mom', 'UK retail sales volume (m/m)', 'monthly', 'UK'),
+    ('J5EB', 'drsi', 'uk_retail_yoy', 'UK retail sales volume (y/y)', 'monthly', 'UK'),
 ]
+# ONS website path for each series: the CSV generator needs the topic the series lives under.
+ONS_TOPICS = {
+    'D7G7': 'economy/inflationandpriceindices', 'DKO8': 'economy/inflationandpriceindices',
+    'MGSX': 'employmentandlabourmarket/peoplenotinwork/unemployment',
+    'KAI9': 'employmentandlabourmarket/peopleinwork/earningsandworkinghours',
+    'IHYQ': 'economy/grossdomesticproductgdp', 'IHYR': 'economy/grossdomesticproductgdp',
+    'J5EC': 'businessindustryandtrade/retailindustry', 'J5EB': 'businessindustryandtrade/retailindustry',
+}
 # Eurostat's aggregate for 2026 is EA21. Do not silently switch between
 # aggregate compositions: maintain comparable statistical series.
 EUROSTAT_SERIES = [
@@ -24,6 +36,8 @@ EUROSTAT_SERIES = [
     ('namq_10_gdp', {'geo':'EA21','na_item':'B1GQ','s_adj':'SCA','unit':'CLV_PCH_PRE'}, 'eu_gdp_qoq', 'Euro-area real GDP (q/q)', 'quarterly'),
     ('namq_10_gdp', {'geo':'EA21','na_item':'B1GQ','s_adj':'SCA','unit':'CLV_PCH_SM'}, 'eu_gdp_yoy', 'Euro-area real GDP (y/y)', 'quarterly'),
     ('une_rt_m', {'geo':'EA21','sex':'T','age':'Y_LT25','s_adj':'SA','unit':'PC_ACT'}, 'eu_youth_unemployment', 'Euro-area youth unemployment (under 25)', 'monthly'),
+    ('sts_trtu_m', {'geo':'EA21','indic_bt':'VOL_SLS','nace_r2':'G47','s_adj':'SCA','unit':'PCH_PRE'}, 'eu_retail_mom', 'Euro-area retail sales volume (m/m)', 'monthly'),
+    ('sts_trtu_m', {'geo':'EA21','indic_bt':'VOL_SLS','nace_r2':'G47','s_adj':'CA','unit':'PCH_SM'}, 'eu_retail_yoy', 'Euro-area retail sales volume (y/y)', 'monthly'),
 ]
 for _region, _label in [('DE','Germany'),('FR','France'),('IT','Italy'),('ES','Spain')]:
     EUROSTAT_SERIES.extend([
@@ -108,7 +122,7 @@ def get_regional_data(core,opts):
     warnings=[];macros=[];euro_days={};n_cached=0
     for code,dataset,key,name,freq,region in ONS_SERIES:
         # ONS published CSV endpoint; failure is clearly marked and isolated.
-        path=f'/{"economy/inflationandpriceindices" if code=="D7G7" else "employmentandlabourmarket/peoplenotinwork/unemployment" if code=="MGSX" else "economy/grossdomesticproductgdp"}/timeseries/{code.lower()}/{dataset}'
+        path=f'/{ONS_TOPICS[code]}/timeseries/{code.lower()}/{dataset}'
         url='https://www.ons.gov.uk/generator?'+urllib.parse.urlencode({'format':'csv','uri':path})
         try:
             raw,cached,msg=core.get_bytes(url,f'ons_{code.lower()}',opts.offline,opts.cache_hours)
@@ -161,7 +175,10 @@ def demo_regional(end,days=730):
     definitions=[('UK','uk_cpi','UK CPI inflation (12m)','monthly',3.1),('UK','uk_unemployment','UK unemployment (16+, LFS)','monthly',4.4),
        ('UK','uk_gdp_qoq','UK real GDP (q/q)','quarterly',.5),('UK','uk_gdp_yoy','UK real GDP (y/y)','quarterly',1.4),
        ('EU','eu_inflation','Euro-area HICP inflation (12m)','monthly',2.4),('EU','eu_unemployment','Euro-area unemployment (15–74)','monthly',6.2),
-       ('EU','eu_gdp_qoq','Euro-area real GDP (q/q)','quarterly',.3),('EU','eu_policy','ECB deposit facility rate','policy',2.4)]
+       ('EU','eu_gdp_qoq','Euro-area real GDP (q/q)','quarterly',.3),('EU','eu_policy','ECB deposit facility rate','policy',2.4),
+       ('UK','uk_core_cpi','UK core CPI inflation (12m)','monthly',3.2),('UK','uk_pay_growth','UK regular pay growth (3m avg, y/y)','monthly',4.1),
+       ('UK','uk_retail_mom','UK retail sales volume (m/m)','monthly',.2),('UK','uk_retail_yoy','UK retail sales volume (y/y)','monthly',1.1),
+       ('EU','eu_retail_mom','Euro-area retail sales volume (m/m)','monthly',.1),('EU','eu_retail_yoy','Euro-area retail sales volume (y/y)','monthly',1.4)]
     for j,(region,key,name,freq,v) in enumerate(definitions):
         hh=[]
         if freq=='quarterly':

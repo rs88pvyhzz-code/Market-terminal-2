@@ -99,6 +99,11 @@ FRED_MACRO = [
  ('FEDFUNDS','fed_funds','US effective Fed funds','%', 'level'),
  ('GDPC1','us_real_gdp','US real GDP, 4q change','%', 'yoy4'),
  ('M2SL','us_m2','US M2 money supply, 12m change','%', 'yoy12'),
+ ('CPILFESL','us_core_cpi','US core CPI, 12m change','%', 'yoy12'),
+ ('PCEPILFE','us_core_pce','US core PCE prices, 12m change','%', 'yoy12'),
+ ('PAYEMS','us_payrolls','US nonfarm payrolls, monthly change','k', 'diff'),
+ ('RSAFS','us_retail_mom','US retail sales (m/m)','%', 'mom'),
+ ('RSAFS','us_retail_yoy','US retail sales, 12m change','%', 'yoy12'),
 ]
 FRED_US_YIELDS = ['DGS1','DGS2','DGS3','DGS5','DGS7','DGS10','DGS20','DGS30']
 BOE_CODES = {'gilt5y':'IUDSNZC','gilt10y':'IUDMNZC','gilt20y':'IUDLNZC','bankRate':'IUDBEDR',
@@ -313,11 +318,24 @@ def derived_yoy(rows,offset):
         out.append({'date':cur['date'],'value':round(100*(cur['value']/prev['value']-1),3)})
     return out
 
+def derived_change(rows,percent):
+    # Month-on-month change between consecutive monthly observations only.
+    out=[]
+    for prev,cur in zip(rows,rows[1:]):
+        gap=(dt.date.fromisoformat(cur['date'])-dt.date.fromisoformat(prev['date'])).days
+        if not 25<=gap<=35 or (percent and prev['value']==0):continue
+        value=100*(cur['value']/prev['value']-1) if percent else cur['value']-prev['value']
+        out.append({'date':cur['date'],'value':round(value,3)})
+    return out
+
 def macro_series(key,name,unit,method,rows,cached):
-    history=derived_yoy(rows,12 if method=='yoy12' else 4) if method!='level' else rows
+    if method=='level':history=rows
+    elif method=='mom':history=derived_change(rows,True)
+    elif method=='diff':history=derived_change(rows,False)
+    else:history=derived_yoy(rows,12 if method=='yoy12' else 4)
     return {'key':key,'name':name,'unit':unit,'history':history,
             'value':rounded(history[-1]['value'],3) if history else None,
-            'date':history[-1]['date'] if history else None,'cached':cached,'source':'FRED','region':'US','frequency':'monthly' if method in ('level','yoy12') else 'quarterly'}
+            'date':history[-1]['date'] if history else None,'cached':cached,'source':'FRED','region':'US','frequency':'monthly' if method in ('level','yoy12','mom','diff') else 'quarterly'}
 
 def parse_us_rates(opts):
     # Pull maturities as independent series because FRED CSV can differ by frequency/date.
@@ -378,7 +396,7 @@ def demo_data():
             year=2023+(m//12);month=m%12+1
             if year>2026:break
             hh.append({'date':f'{year}-{month:02d}-01','value':round(2.1+j*.45+.2*math.sin(m/4+j),2)})
-        macro.append({'key':key,'name':name,'unit':unit,'value':hh[-1]['value'],'date':hh[-1]['date'],'history':hh,'cached':False,'source':'SYNTHETIC DEMO','region':'US','frequency':'monthly' if method in ('level','yoy12') else 'quarterly'})
+        macro.append({'key':key,'name':name,'unit':unit,'value':hh[-1]['value'],'date':hh[-1]['date'],'history':hh,'cached':False,'source':'SYNTHETIC DEMO','region':'US','frequency':'monthly' if method in ('level','yoy12','mom','diff') else 'quarterly'})
     regional,eu=regional_data.demo_regional(end)
     macro.extend(regional)
     macro.append(regional_data.economic_series('uk_policy','Bank of England Bank Rate',
@@ -488,11 +506,14 @@ def build(opts):
     except Exception as e: uk=[];warnings.append('BoE: '+str(e))
     macro=[]
     with concurrent.futures.ThreadPoolExecutor(max_workers=min(4,opts.workers)) as ex:
-        future={ex.submit(fetch_fred,code,opts):(key,name,unit,method,code) for code,key,name,unit,method in FRED_MACRO}
+        # One download per FRED code; several series (e.g. m/m and 12m) can derive from it.
+        future={ex.submit(fetch_fred,code,opts):code for code in dict.fromkeys(c for c,*_ in FRED_MACRO)}
         for fut in concurrent.futures.as_completed(future):
-            key,name,unit,method,code=future[fut]
+            code=future[fut]
             try:
-                series,cached,msg=fut.result(); macro.append(macro_series(key,name,unit,method,series,cached));cached_count+=int(cached)
+                series,cached,msg=fut.result();cached_count+=int(cached)
+                for c,key,name,unit,method in FRED_MACRO:
+                    if c==code:macro.append(macro_series(key,name,unit,method,series,cached))
                 if 'stale cache' in msg: warnings.append('FRED '+code+': stale cached response')
             except Exception as e: warnings.append('FRED '+code+': '+str(e))
     regional,eu,regional_warnings,n_region_cached=regional_data.get_regional_data(sys.modules[__name__],opts)

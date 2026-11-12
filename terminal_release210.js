@@ -97,7 +97,7 @@ const r210PreviousOverview=r24Overview;
 r24Overview=function(){r210PreviousOverview();r210NewsOverview();};
 function r210NewsOverview(){
  const host=$r('r24-developments')?.querySelector('.r24-content');if(!host)return;
- host.replaceChildren();overviewHeadlines=distinctNews(sortedNews()).filter(x=>eventWeight(x)>=23).slice(0,5);
+ host.replaceChildren();overviewHeadlines=distinctNews(sortedNews()).filter(x=>eventWeight(x)>=23).slice(0,8);  // Release 3.2: 8 key stories (was 5)
  if(!overviewHeadlines.length){
   host.append(el('p','note','No major sourced market development in this snapshot. Further dated headlines are listed below.'));
   return;
@@ -105,22 +105,22 @@ function r210NewsOverview(){
  for(const x of overviewHeadlines){
   r24Item(host,x,x.official?'Official source':x.developmentStatus==='confirmed_event'?'Confirmed development':'Publisher report');
  }
- const link=el('a','','Additional distinct market news in Markets');
- link.href='#news';link.onclick=e=>{e.preventDefault();activateWorkspace('fx',{subview:'news',scroll:false});};
+ const link=el('a','','More market headlines below');
+ link.href='#news';link.onclick=e=>{e.preventDefault();document.getElementById('news')?.scrollIntoView({behavior:'smooth',block:'start'});};
  const foot=el('p','mini r28-more');foot.append(link,document.createTextNode(' · Top '+overviewHeadlines.length+' sourced material developments, de-duplicated by event.'));host.append(foot);
 };
-let newsLimit=6;
+let newsLimit=10;  // Release 3.2: 10 further headlines shown before 'Show more' (was 6)
 renderIntelligenceNews=function(){
  const host=$r('news-list'),pills=$r('news-pills');if(!host||!pills)return;
  host.replaceChildren();pills.replaceChildren();
  for(const [key,label] of [['all','All subjects'],...Object.entries(intelligenceCategories)]){
   const b=el('button','btn'+(key===intelligenceCategory?' active':''),label);
-  b.type='button';b.onclick=()=>{intelligenceCategory=key;newsLimit=6;renderIntelligenceNews();};pills.append(b);
+  b.type='button';b.onclick=()=>{intelligenceCategory=key;newsLimit=10;renderIntelligenceNews();};pills.append(b);
  }
  const regions=el('div','r23-regions');
  for(const region of ['All','UK','US','Europe','Global']){
   const b=el('button','btn'+(region===intelligenceRegion?' active':''),region==='All'?'All regions':region);
-  b.type='button';b.onclick=()=>{intelligenceRegion=region;newsLimit=6;renderIntelligenceNews();};regions.append(b);
+  b.type='button';b.onclick=()=>{intelligenceRegion=region;newsLimit=10;renderIntelligenceNews();};regions.append(b);
  }
  pills.append(regions);
  const relevant=sortedNews().filter(x=>
@@ -139,7 +139,7 @@ renderIntelligenceNews=function(){
  for(const old of host.parentElement.querySelectorAll('.r29-news-footer'))old.remove();
  const foot=el('div','r29-news-footer','Showing '+Math.min(newsLimit,distinct.length)+' of '+distinct.length+' further headlines');
  if(distinct.length>newsLimit){
-  const more=el('button','btn','Show 6 more');more.type='button';more.onclick=()=>{newsLimit+=6;renderIntelligenceNews();};foot.append(more);
+  const more=el('button','btn','Show 10 more');more.type='button';more.onclick=()=>{newsLimit+=10;renderIntelligenceNews();};foot.append(more);
  }
  host.after(foot);
  const stamp=$r('news-stamp');if(stamp)stamp.textContent='Publisher dates retained';
