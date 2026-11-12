@@ -73,6 +73,7 @@ with sync_playwright() as p:
     assert page.locator('#etf-same-index .etf-card-actions button').count()==3
     assert page.locator('#etf-same-index .etf-card-actions input[type=checkbox]').count()==3
     assert page.locator('#etf-same-index .etf-card-facts').evaluate_all('cards=>cards.every(c=>c.children.length===9)')
+    page.locator('#tab-analytics').click();page.wait_for_timeout(80)  # same-index comparison lives in Analytics
     for index in range(3):page.locator('#etf-same-index input').nth(index).check()
     assert page.evaluate('__etf.state.selected')==primary and page.evaluate('__etf.state.compared.size')==3
     if page.locator('#etf-chart svg').count():assert page.locator('#etf-chart svg path[fill=none]').count()<=4
@@ -80,6 +81,7 @@ with sync_playwright() as p:
     page.locator('#etf-same-index [data-etf-alternative]').first.locator('button').first.click()
     assert page.evaluate('__etf.state.selected')==first_peer
     assert first_peer in page.locator('#etf-selected').inner_text()
+    page.locator('#tab-etfs').click();page.wait_for_timeout(80)
     choose(page,primary)
     for basis in ['adjusted_gbp','price_gbp','adjusted_local','price_local']:
         page.locator('#etf-basis').select_option(basis)
