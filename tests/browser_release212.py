@@ -43,7 +43,7 @@ with sync_playwright() as p:
     assert page.locator('#market-pulse .r24-snapshot-item').count()==14
     assert 'GBP/EUR' in ' '.join(page.locator('#market-pulse .r24-snapshot-item').all_text_contents())
     blocks=page.locator('#view-overview > section').evaluate_all('(els)=>els.map(e=>e.id)')
-    assert blocks[:2]==['r24-developments','overview-board'],blocks
+    assert blocks[:3]==['overview-board','r24-conditions','r24-developments'],blocks
     assert page.locator('#r24-watch').is_hidden()
     assert page.locator('#view-overview #r24-developments').is_visible()
 
@@ -60,7 +60,7 @@ with sync_playwright() as p:
     assert page.locator('#analytics-rolling .r212-filter-group').first.locator('label').inner_text()=='INSTRUMENT'
     heads=page.locator('#analytics-sectors thead th').all_text_contents()
     assert heads[:2]==['Sector','Relative (pp)'],heads
-    assert page.locator('#r212-valuation-fold').count()==1
+    assert page.locator('#r212-valuation-fold').count()==0
     check_sectors(page)
 
     # The demo deliberately has no sector history. Exercise populated rows separately,
@@ -94,7 +94,7 @@ with sync_playwright() as p:
     page.locator('#tab-companies').click()
     page.locator('#research-tab-0').click()
     ids=page.locator('#research-view-0 > [id]').evaluate_all('(xs)=>xs.map(x=>x.id)')
-    assert ids.index('company-risk-panel') < ids.index('company-news-panel'),ids  # company analysis stays with the company
+    assert ids.index('company-news-panel') < ids.index('company-risk-panel'),ids  # company analysis stays with the company
     assert page.locator('#peer-panel').is_hidden(), 'Peers belong to Business & Competition, not Overview'
     page.locator('#research-tab-3').click()
     assert page.locator('#research-tab-3').get_attribute('aria-selected')=='true'

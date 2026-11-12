@@ -12,7 +12,7 @@ with sync_playwright() as p:
     for width,height in [(1440,1100),(1024,768),(390,844)]:
         page.set_viewport_size({'width':width,'height':height});page.locator('#tab-overview').click();page.wait_for_timeout(80)
         sections=page.locator('#view-overview > section').evaluate_all('(els)=>els.map(e=>e.id)')
-        assert sections==['r24-developments','overview-board','news','r24-upcoming'],sections  # terminal_layout.js
+        assert sections==['overview-board','r24-conditions','r24-developments','news','r24-upcoming'],sections  # terminal_layout.js
         assert page.locator('#market-pulse > .r24-snapshot-item').count()==(14 if page.evaluate("document.documentElement.classList.contains('release210')") else 7)
         # Release 2.8 deliberately expands the ranked Overview maximum from 3 to 5.
         # Older snapshots still retain the original Release 2.4 contract.

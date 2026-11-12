@@ -18,7 +18,7 @@ with sync_playwright() as p:
     page=browser.new_page(viewport={'width':1440,'height':1100});errors=[];page.on('pageerror',lambda e:errors.append(str(e)))
     page.route('http://localhost:8765/**',lambda r:r.fulfill(body=html,content_type='text/html'));page.goto('http://localhost:8765/',wait_until='domcontentloaded')
     tabs=page.locator('#workspace-tabs [role=tab]');assert tabs.count()==10
-    assert tabs.all_text_contents()==['OVERVIEW','MARKETS','EQUITIES','COMPANY RESEARCH','BONDS & RATES','ANALYTICS','ETF TRACKERS','ECONOMICS','MY WATCHLIST','DATA QUALITY']
+    assert tabs.all_text_contents()==['OVERVIEW','MY WATCHLIST','MARKETS','ANALYTICS','EQUITIES','COMPANY RESEARCH','ETF TRACKERS','BONDS & RATES','ECONOMICS','DATA QUALITY']
     for route,view in [('companies','companies'),('analytics','analytics'),('constituents','equities'),('analytics-sectors','analytics')]:
         page.evaluate('(r)=>location.hash=r',route);page.wait_for_timeout(80);assert page.locator('#view-'+view).is_visible(),route
     for route,index in [('peer-panel',3),('company-events-panel',4),('forensic-panel',5)]:
@@ -30,7 +30,7 @@ with sync_playwright() as p:
     page.locator('#research-tab-0').click();page.wait_for_timeout(80)
     order=page.locator('#research-view-0 > [id]').evaluate_all('(els)=>els.map(e=>e.id)')
     # Analysis of the selected company stays in Company Research (terminal_layout.js RESEARCH).
-    expected=['research-overview','company-price-block','company-benchmark-block','company-risk-panel','company-advanced','research-executive','company-news-panel']
+    expected=['research-overview','company-news-panel','company-advanced','company-price-block','company-benchmark-block','company-risk-panel','research-executive']
     assert page.locator('#view-analytics #company-risk-panel').count()==0
     assert [order.index(x) for x in expected]==sorted(order.index(x) for x in expected),order
     for id in ['company-chart','company-benchmark-chart','company-risk-kpis','company-technical-kpis']:assert page.locator('#'+id).count()==1

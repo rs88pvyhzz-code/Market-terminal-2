@@ -75,16 +75,47 @@ function renderMarketBriefing(){
  const quality=$('view-quality');if(quality){const h=intelligencePanel('r23-news-quality','NEWS SOURCE DIAGNOSTICS',quality);const d=document.createElement('details');d.append(el('summary','','Feed requests, source dates & coverage'));const pre=el('pre','',JSON.stringify(D.newsDiagnostics||[],null,2));d.append(pre);h.append(d);}
 }
 function renderCompanyChanges(c){
- const panel=$('company-news-list');if(!panel)return;const intel=c.intelligence||{},sources=new Map((intel.sources||[]).filter(s=>String(s.url).startsWith('https://')).map(s=>[s.id,s]));
- const wrap=el('div','r23-company-changes');wrap.append(el('h4','','LATEST AVAILABLE ISSUER EVIDENCE'));
- const latest=(intel.sources||[]).filter(s=>s.kind==='results'&&String(s.url).startsWith('https://')).sort((a,b)=>String(b.published).localeCompare(String(a.published)))[0];
- if(latest){wrap.append(intelligenceLink({title:'Results document · published '+latest.published+' · period '+(latest.period||'see source'),url:latest.url}),el('div','mini','Official document · retrieved '+(latest.retrievedAt||'date not recorded')+'. Latest available evidence; not necessarily a new announcement.'));}
- for(const result of (intel.reportedResults||[]).filter(r=>sources.has(r.sourceId)&&(!latest||r.sourceId===latest.id)).slice(0,3)){const s=sources.get(result.sourceId);const row=el('div','r23-observation');row.append(el('span','',result.metric+': '+companyAmount(result.value,result.currency)+' · reported period '+result.period),el('div','mini',result.basis||'See issuer document for reporting basis'));wrap.append(row);}
+ const panel=$('company-news-list');if(!panel)return;
+ const intel=c.intelligence||{},sources=new Map((intel.sources||[]).filter(s=>String(s.url).startsWith('https://')).map(s=>[s.id,s]));
+ const wrap=el('div','r23-company-changes r213-company-evidence');
+ const latest=[...sources.values()].filter(s=>s.kind==='results').sort((a,b)=>String(b.published).localeCompare(String(a.published)))[0];
  const changes=(intel.guidance||[]).filter(g=>g.previous&&g.comparison&&g.previous.amountText!==g.amountText&&g.horizon===g.previous.horizon&&g.basis===g.previous.basis&&sources.has(g.sourceId)).slice(0,3);
- for(const g of changes){const source=sources.get(g.sourceId),old=sources.get(g.previous.sourceId);const row=el('div','r23-observation');row.append(el('strong','',g.metric+' · management expectation'),el('div','mini',(g.previous.amountText||'Previous terms unavailable')+' → '+(g.amountText||'See source')+' · '+g.comparison+' · horizon '+(g.horizon||'not specified')),intelligenceLink({title:'Current: '+source.published,url:source.url}));if(old)row.append(intelligenceLink({title:'Previous: '+old.published,url:old.url}));wrap.append(row);}
- if(!changes.length)wrap.append(el('div','mini','No comparable sourced guidance change identified. This does not establish unchanged guidance.'));
- const topics=intel.topics||{};const developments=[...(topics.acquisitions||[]),...(topics.capitalAllocation||[]),...(topics.catalysts||[])].filter(x=>sources.has(x.sourceId)&&(!latest||x.sourceId===latest.id)).slice(0,2);
- for(const x of developments){const s=sources.get(x.sourceId);wrap.append(el('div','mini',(x.classification==='management_expectation'?'Management expectation: ':'Issuer statement: ')+x.excerpt),intelligenceLink({title:'Source · '+s.published,url:s.url}));}
- const coverage=document.createElement('details');coverage.append(el('summary','','Coverage & third-party headlines'));coverage.append(el('div','mini','Operational developments, disposals, buybacks and new risks require dated comparable issuer evidence. A headline match is not a verified change. Source details and existing risk evidence remain in Outlook & Catalysts.'));wrap.append(coverage);
- panel.prepend(wrap);
+ const changeBox=el('section','r213-changes');changeBox.append(el('h4','','WHAT CHANGED'));
+ for(const g of changes){
+  const source=sources.get(g.sourceId),old=sources.get(g.previous.sourceId),row=el('div','r23-observation');
+  row.append(el('strong','',g.metric+' · management expectation'),el('div','',g.previous.amountText+' → '+g.amountText),
+    el('div','mini',g.comparison+' · horizon '+(g.horizon||'not specified')));
+  const links=el('div','r213-source-links');links.append(intelligenceLink({title:'Current · '+source.published,url:source.url}));
+  if(old)links.append(intelligenceLink({title:'Previous · '+old.published,url:old.url}));row.append(links);changeBox.append(row);
+ }
+ if(!changes.length)changeBox.append(el('p','mt-reading-note','No comparable sourced guidance change identified. This does not establish unchanged guidance.'));
+ wrap.append(changeBox);
+ const results=el('section','r213-results');results.append(el('h4','','LATEST REPORTED RESULTS'));
+ if(latest)results.append(intelligenceLink({title:'Period '+(latest.period||'see source')+' · published '+latest.published,url:latest.url}));
+ const rows=(intel.reportedResults||[]).filter(r=>sources.has(r.sourceId)&&(!latest||r.sourceId===latest.id)).slice(0,3);
+ const table=el('table','r213-results-table');const body=el('tbody');const bases=[...new Set(rows.map(r=>r.basis||'See issuer document for reporting basis'))];
+ for(const r of rows){
+  const tr=el('tr'),label=el('th','',r.metric);label.scope='row';
+  // Repeat only exceptions: differing periods/bases must never be lost in compression.
+  if(!latest||r.period!==latest.period)label.append(el('small','','Period '+r.period));
+  if(bases.length>1)label.append(el('small','',r.basis||'See issuer document for reporting basis'));
+  tr.append(label,el('td','',companyAmount(r.value,r.currency)));body.append(tr);
+ }
+ if(rows.length){table.append(body);results.append(table);if(bases.length===1)results.append(el('p','mt-reading-note',bases[0]));}
+ else results.append(el('p','mt-reading-note','No reported results available in this snapshot.'));
+ wrap.append(results);panel.prepend(wrap);
+ const heading=el('h4','r213-headlines-title','COMPANY HEADLINES');wrap.after(heading);
+ const supporting=el('section','r213-supporting r213-company-evidence');supporting.append(el('h4','','SUPPORTING EVIDENCE'));
+ const topics=intel.topics||{},developments=[...(topics.acquisitions||[]),...(topics.capitalAllocation||[]),...(topics.catalysts||[])].filter(x=>sources.has(x.sourceId)&&(!latest||x.sourceId===latest.id)).slice(0,2);
+ for(const x of developments){const source=sources.get(x.sourceId),row=el('div','r23-observation');
+  row.append(el('div','',(x.classification==='management_expectation'?'Management expectation: ':'Issuer statement: ')+x.excerpt),intelligenceLink({title:'Source · '+source.published,url:source.url}));supporting.append(row);
+ }
+ supporting.append(el('p','mt-reading-note','Issuer evidence and publisher headlines are separate. A matching headline is not a verified change.'));
+ panel.append(supporting);
+ // Full retrieval details remain available in Data Quality, scoped to this company.
+ let audit=$('company-evidence-audit');if(!audit){audit=el('section','panel');audit.id='company-evidence-audit';$('view-quality')?.append(audit);}
+ audit.replaceChildren(el('h2','','COMPANY EVIDENCE · '+c.name));
+ for(const source of sources.values())audit.append(el('p','note',(source.kind||'Document')+' · '+source.published+' · retrieved '+(source.retrievedAt||'not recorded')));
+ const snapshot=(D.company_news||[]).find(x=>x.symbol===c.symbol);
+ for(const article of snapshot?.articles||watchNewsMap.get(c.symbol)?.articles||[])audit.append(el('p','note',article.title+' · '+article.source+' · published '+article.published+' · retrieved '+(article.retrievedAt||'not recorded')));
 }

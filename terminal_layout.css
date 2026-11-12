@@ -154,3 +154,83 @@
 .layout-alt-pick:not(:disabled):hover{color:var(--t-amber);text-decoration:underline}
 .layout-alt-pick:disabled{color:var(--t-amber);cursor:default}
 #layout-sovereign-table{margin-top:10px}
+
+/* Compact presentation: readable text, less framing and more information per screen. */
+#wrap,.wrap{zoom:1!important}
+#commandbar{padding:6px 0!important}
+#commandbar .commandline{padding:0!important;margin:0 0 5px!important;gap:12px;align-items:center}
+#commandbar .commandline>.label{font:12px/1.3 system-ui,sans-serif}
+#commandbar .commandline>.label .mini{display:none}
+#commandbar #global-search{min-height:40px!important;padding:8px 12px!important;font-size:14px!important}
+#workspace-tabs{gap:5px!important;padding:0!important;display:flex!important;flex-wrap:nowrap!important;overflow-x:auto!important;max-width:100%}
+#workspace-tabs [role=tab]{min-height:44px!important;padding:8px 10px!important;font:500 12px/1.2 system-ui,sans-serif!important;letter-spacing:0!important;white-space:nowrap;flex-shrink:0}
+#workspace-stage .workspace-title{gap:5px;margin:0;padding:6px 0}
+#workspace-stage .workspace-title>span{display:none}
+#workspace-stage .workspace-view,#workspace-stage .layout-group-body{gap:10px}
+#workspace-stage .panel,#workspace-stage .layout-group-body>section{padding:12px;border-radius:5px;box-shadow:none;background:var(--t-panel)}
+#workspace-stage .note{line-height:1.35}
+#workspace-stage :is(table.watch,.mt-return-table) td{padding:6px 9px;line-height:20px;font-size:13px}
+#workspace-stage :is(table.watch,.mt-return-table) tbody tr:nth-child(even):not(.selected) td{background-color:rgba(255,255,255,.018)}
+#workspace-stage :is(table.watch,.mt-return-table) th{padding:6px 9px;font-size:12px;letter-spacing:0}
+#workspace-stage tr.watch-section th{padding:5px 9px;border-top-width:4px;background:#1b1a18;font-size:11px}
+#workspace-stage table td:first-child,#workspace-stage table th:first-child{font-family:system-ui,sans-serif}
+#workspace-stage :is(.research-stats,.watchlist-kpis,.etf-stat-grid,.analytic-cards,.research-dashboard,.company-kpis,.credit-kpis,.r28-gilt-yields,.r28-gilt-facts)>*{padding:9px 11px!important;gap:4px}
+#workspace-stage :is(.research-stats,.watchlist-kpis,.etf-stat-grid,.analytic-cards,.research-dashboard,.company-kpis,.credit-kpis,.r28-gilt-yields,.r28-gilt-facts)>*>:first-child{font:500 12px/1.3 system-ui,sans-serif!important;color:var(--t-muted)!important}
+#workspace-stage :is(.news-item,.r24-item,.company-story){font-family:system-ui,sans-serif;padding:8px 0!important}
+#workspace-stage .layout-jumps{display:flex;flex-wrap:wrap;gap:4px 14px;width:100%;margin:3px 0}
+.layout-jumps button{border:0;background:none;color:var(--t-muted);font:12px/1.4 system-ui,sans-serif;cursor:pointer;padding:5px 0;text-align:left}
+.layout-jumps button:hover,.layout-jumps button:focus-visible{color:var(--t-amber);text-decoration:underline}
+#workspace-stage :is(section,[id^=research-],#score-panel){scroll-margin-top:140px}
+#workspace-stage .mt-reading-note{display:block!important;font:12px/1.4 system-ui,sans-serif;color:var(--t-muted);margin:6px 0}
+#score-panel .mt-period-controls{display:flex;flex-wrap:wrap;align-items:center;gap:8px 18px;margin:8px 0}
+#score-panel .mt-period-controls label{display:flex;align-items:center;gap:7px;font:12px system-ui,sans-serif}
+#score-panel .mt-period-controls select{min-height:40px;font-size:13px}
+#score-panel .mt-return-table{width:100%;min-width:720px;border-collapse:separate;border-spacing:0}
+#score-panel .mt-return-table th,#score-panel .mt-return-table td{white-space:nowrap;width:auto;text-align:right}
+#score-panel .mt-return-table :is(th,td):first-child{text-align:left}
+#score-panel .mt-performance-scroll{max-height:560px;max-height:min(62vh,560px);overflow:auto;border:1px solid var(--t-line);border-radius:4px}
+#score-panel thead th{position:sticky;top:0;z-index:2;background:#1b1b20}
+#score-panel .mt-return-table td.up{background:rgba(55,177,120,.09)!important}
+#score-panel .mt-return-table td.down{background:rgba(222,85,85,.09)!important}
+#score-panel .mt-selected-period{box-shadow:inset 1px 0 #6d5834,inset -1px 0 #6d5834}
+#score-panel .mt-sort{border:0;background:transparent;color:inherit;font:inherit;min-height:36px;cursor:pointer;padding:0 4px}
+#score-panel th.mt-selected-period .mt-sort{color:var(--t-amber)}
+#score-panel .mt-currency{font-size:11px;color:var(--t-muted)}
+#company-news-panel #company-insight{border:0;background:none;box-shadow:none;padding:0;margin:0}
+#company-news-panel #company-news-list{display:flex!important;flex-direction:column;gap:0}
+#company-news-panel .r213-company-evidence{display:block;width:100%;font:14px/1.4 system-ui,sans-serif}
+#company-news-panel h4{margin:12px 0 6px;font:600 12px/1.3 system-ui,sans-serif;letter-spacing:.02em;color:var(--t-muted)}
+#company-news-panel .r23-observation{padding:7px 0;border-bottom:1px solid var(--t-line);margin:0}
+#company-news-panel .r213-source-links{display:flex;flex-wrap:wrap;gap:4px 18px;font-size:12px;margin-top:4px}
+#company-news-panel .r213-results-table{width:100%;border-collapse:collapse;margin-top:6px}
+#company-news-panel .r213-results-table th{font-weight:400;text-align:left;white-space:normal;padding:6px 0;border-bottom:1px solid var(--t-line)}
+#company-news-panel .r213-results-table td{text-align:right;font:14px/1.4 var(--t-mono);white-space:nowrap;padding:6px 0 6px 12px;border-bottom:1px solid var(--t-line)}
+#company-news-panel .r213-results-table small{display:block;font:12px/1.35 system-ui,sans-serif;color:var(--t-muted)}
+#company-news-panel .company-story{display:grid!important;grid-template-columns:minmax(0,1fr) minmax(120px,220px);align-items:start;gap:8px 18px;min-height:0!important;height:auto!important;border:0;border-bottom:1px solid var(--t-line);border-radius:0;background:none;margin:0}
+#company-news-panel .company-story a{font:14px/1.4 system-ui,sans-serif}
+#company-news-panel .company-story>span{font:12px/1.4 system-ui,sans-serif;color:var(--t-muted);margin:0!important;align-self:start}
+#company-news-panel .company-news-links{margin-top:10px;gap:8px}
+#company-news-panel .company-news-links a{padding:7px 10px;font-size:11px}
+#company-news-panel .r213-supporting{border-top:1px solid var(--t-line);margin-top:10px}
+#r24-conditions .r24-table{font-size:12px}
+#r24-conditions .r24-table :is(td,th){padding:5px 8px;line-height:1.35}
+@media(max-width:760px){
+ #commandbar .commandline>.label{display:none}
+ #commandbar .global-search-wrap{width:100%}
+ #workspace-stage .panel{padding:10px}
+ #company-news-panel .company-story{grid-template-columns:1fr;gap:3px}
+ #score-panel .mt-performance-scroll{max-height:60vh}
+ #score-panel .mt-return-table{min-width:720px}
+ #workspace-stage .layout-jumps{gap:2px 10px}
+}
+#layout-market-prices{margin-bottom:16px}
+#monitor #layout-market-prices>.scroll{max-height:460px;overflow:auto}
+#personal-watchlist-panel .watchlist-bottom{margin:8px 0 12px}
+#personal-watchlist-panel .company-news-list{display:flex;flex-direction:column}
+#personal-watchlist-panel .company-story{min-height:0;height:auto;gap:4px;padding:8px 0}
+#workspace-stage .research-warning,#workspace-stage .mt-inline-notice{display:block!important}
+@media(max-width:760px){
+ .terminal1-design.release212 #view-overview #r24-conditions .r24-table{table-layout:auto;min-width:650px}
+ .terminal1-design.release212 #view-overview #r24-conditions th:nth-child(n+3),
+ .terminal1-design.release212 #view-overview #r24-conditions td:nth-child(n+3){display:table-cell}
+}
