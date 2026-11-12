@@ -18,8 +18,7 @@ with sync_playwright() as p:
     page.goto("http://localhost:8765/",wait_until="domcontentloaded",timeout=120000)
     page.wait_for_timeout(200)
     assert page.evaluate("document.documentElement.classList.contains('release29')")
-    page.locator("#tab-fx").click()
-    page.locator("#sub-fx-news").click()
+    page.locator("#tab-overview").click()  # further headlines live on Overview
     page.wait_for_timeout(170)
     assert page.locator("#news-list .r29-news").count()<=8
     assert page.locator(".r29-news-footer").count()==1
@@ -36,7 +35,8 @@ with sync_playwright() as p:
     page.locator("#research-tab-0").click()
     page.wait_for_timeout(160)
     order=page.locator("#research-view-0 > [id]").evaluate_all("(els)=>els.map(x=>x.id)")
-    assert order.index("research-overview")<order.index("r29-coverage")<order.index("company-price-block"),order
+    assert order.index("research-overview")<order.index("company-price-block"),order
+    assert page.locator("#view-quality #r29-coverage").count()==1  # source coverage lives in Data Quality
     assert page.locator("#research-overview .r29-market-cap").count()==1
     assert "MARKET CAPITALISATION" in page.locator("#research-overview .r29-market-cap").inner_text()
     assert page.locator("#r29-coverage .r29-coverage-cell").count()==6
