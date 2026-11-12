@@ -40,26 +40,18 @@ jobs:
       - name: Genuinely fresh SEC downloads (no local-cache fallback)
         if: github.event_name == 'workflow_dispatch' && inputs.fresh_sec
         run: python verify_fresh_sec.py
-      - name: Build using real production collectors
+      - name: Calculation tests
+        run: python run_tests.py
+      - name: Script syntax
+        run: for f in *.js; do node --check "$f"; done
+      - name: Build and verify using real production collectors
         run: >-
-          python build_terminal.py --years 10
+          python build_site.py --output terminal.html --verify --strict-news --
+          --years 10
           --workers 2 --cache-hours 0
           --movers-markets FTSE100,FTSE250,SP500,NASDAQ100
           --mover-history-limit 30 --company-news-limit 20
           --price-history-batch 60 --companies AXON,CCH.L,SHAW.L,NFLX
-          --output terminal.html
-      - run: python verify_snapshot.py terminal.html
-      - run: python terminal_research_upgrade.py terminal.html
-      - run: python market_terminal_cleanup.py --post --html terminal.html
-      - run: python verify_market_briefing.py terminal.html
-      - name: Audit actual Shell, Microsoft and HSBC research
-        run: python verify_live_research.py terminal.html
-      - name: Run source-backed Release 2.8 unit tests
-        run: python -m unittest test_release28.py
-      - run: node --check terminal_release29.js
-      - run: node --check terminal_release210.js
-      - run: node --check terminal11_restoration.js
-      - run: node --check terminal12_design.js
       - name: Install browser runner
         run: |
           python -m pip install playwright
@@ -78,18 +70,7 @@ jobs:
             python -m playwright install chromium
           fi
       - name: Browser verification of actual live payload
-        run: |
-          python tests/browser_research_live.py terminal.html
-          python tests/browser_market_briefing.py terminal.html
-          python tests/browser_release24.py terminal.html
-          python tests/browser_release25.py terminal.html
-          python tests/browser_release27.py terminal.html
-          python tests/browser_release28.py terminal.html
-          python tests/browser_release29.py terminal.html
-          python tests/browser_release210.py terminal.html
-          python tests/browser_release211.py terminal.html
-          python tests/browser_release212.py terminal.html
-          python tests/browser_treasury_scroll.py terminal.html
+        run: python tests/run_browser.py --live terminal.html
       - name: Upload actual terminal and source diagnostics for review
         if: always()
         uses: actions/upload-artifact@v4
