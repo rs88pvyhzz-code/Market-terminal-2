@@ -1181,7 +1181,7 @@ function renderMarketMini(){
 }
 function renderGroups(){wipe('group-pills');['','Equities','ETFs','FX','Rates','Commodities','Crypto'].forEach(g=>{
  const b=el('button','btn'+(state.group===g?' active':''),g||'All');b.onclick=()=>{state.group=g;renderGroups();renderWatch();renderScore();};$('group-pills').append(b);});}
-function filtered(){let rows=D.quotes.filter(q=>(!state.group||q.group===state.group)&&
+function filtered(){let rows=[...D.quotes,...ukMonitorYields()].filter(q=>(!state.group||q.group===state.group)&&
     (!state.search||(q.name+' '+q.symbol).toLowerCase().includes(state.search)));
  if(state.sort!=='default'){const k=state.sort;rows=rows.slice().sort((a,b)=>{
    let x=k==='day'?moveVal(a,'day'):k==='ytd'?moveVal(a,'ytd'):k==='year'?moveVal(a,'year'):a[k];
@@ -1205,17 +1205,32 @@ const WATCH_SECTIONS=[
   ['Crypto',q=>q.group==='Crypto'],
   ['Other',q=>true]];
 function watchSection(q){return WATCH_SECTIONS.find(([,test])=>test(q))[0];}
-function renderWatch(){const body=$('watch-rows');body.replaceChildren();let rows=filtered();$('count').textContent=rows.length+' / '+D.quotes.length+' instruments';
+function ukMonitorYields(){
+ const rows=[];
+ for(const [field,tenor] of [['gilt5y',5],['gilt10y',10],['gilt20y',20]]){
+  const points=(D.uk_rates||[]).filter(r=>Number.isFinite(r[field])).sort((a,b)=>a.date.localeCompare(b.date));
+  const last=points.at(-1),prev=points.at(-2);if(!last)continue;
+  const before=date=>points.filter(r=>r.date<=date).at(-1)?.[field];
+  const year=Number(last.date.slice(0,4));const base=before((year-1)+'-12-31');
+  const prior=before((year-1)+last.date.slice(4));
+  const annual=points.filter(r=>r.date>=(year-1)+last.date.slice(4)).map(r=>r[field]);
+  rows.push({group:'Rates',kind:'yield',symbol:'UK'+tenor+'Y',name:'UK '+tenor+'Y spot gilt yield',currency:'GBP',price:last[field],changeBp:prev?100*(last[field]-prev[field]):null,ytdBp:base==null?null:100*(last[field]-base),yearBp:prior==null?null:100*(last[field]-prior),low52:Math.min(...annual),high52:Math.max(...annual),asOf:last.date,source:'Bank of England · nominal zero-coupon spot yield',monitorOnly:true});
+ }
+ const b=(D.gilts||[]).find(x=>x.shortTicker==='TN28');
+ if(b&&b.quoted&&b.askDirty>0){const v=giltValuation(b,b.askClean,b.asOf,b.askDirty);if(v)rows.push({group:'Rates',kind:'yield',symbol:'TN28',name:'TN28 · gross yield to maturity',currency:'GBP',price:v.ytm,asOf:b.asOf,source:'DMO offer price · calculated gross YTM, includes coupons and redemption',monitorOnly:true});}
+ return rows;
+}
+function renderWatch(){const body=$('watch-rows');body.replaceChildren();let rows=filtered();$('count').textContent=rows.length+' / '+(D.quotes.length+ukMonitorYields().length)+' instruments';
   const sectioned=state.sort==='default';
   if(sectioned){const order=new Map(WATCH_SECTIONS.map(([n],i)=>[n,i]));rows=rows.map((q,i)=>[q,i]).sort((a,b)=>order.get(watchSection(a[0]))-order.get(watchSection(b[0]))||a[1]-b[1]).map(x=>x[0]);}
   let current=null;
   for(const q of rows){
   if(sectioned){const name=watchSection(q);if(name!==current){current=name;const n=rows.filter(x=>watchSection(x)===name).length;const hr=el('tr','watch-section');const cell=el('th','',name);cell.colSpan=10;cell.scope='colgroup';cell.append(el('span','watch-section-count',' '+n));hr.append(cell);body.append(hr);}}
   const tr=el('tr',q.symbol===state.sym?'selected':'');
-  td(tr,q.name);td(tr,q.symbol,'hide-sm');td(tr,q.currency||'—','hide-sm');td(tr,price(q),'n');
+  const nameCell=td(tr,q.name);nameCell.title=q.source||'';td(tr,q.symbol,'hide-sm');td(tr,q.currency||'—','hide-sm');td(tr,price(q),'n');
   for(const k of ['day','ytd','year'])td(tr,move(q,k),'n '+tone(moveVal(q,k)));
   td(tr,fmt(q.low52,prec(q)),'n hide-sm');td(tr,fmt(q.high52,prec(q)),'n hide-sm');td(tr,q.asOf||'—','hide-sm');
-  tr.onclick=()=>{state.sym=q.symbol;$('main-pick').value=q.symbol;renderMain();renderWatch();};body.append(tr);}
+  tr.onclick=()=>{if(q.monitorOnly){activateWorkspace('bonds');return;}state.sym=q.symbol;$('main-pick').value=q.symbol;renderMain();renderWatch();};body.append(tr);}
 }
 function renderMain(){let q=qMap.get(state.sym);if(!q){empty('main-chart','No market series selected.');return;}
   $('main-pick').value=state.sym;
@@ -1436,7 +1451,7 @@ const METRIC_KEY={UK:{inflation:'uk_cpi',unemployment:'uk_unemployment',gdp:'uk_
 function macroMetric(key){for(const region of Object.keys(METRIC_KEY))for(const [metric,id] of Object.entries(METRIC_KEY[region]))if(id===key)return metric;return null;}
 function macroHistory(m){return (m.history||[]).filter(p=>p.value!=null).map(p=>({date:p.date,v:Number(p.value)}));}
 function renderMacro(){
-  const list=(D.macro||[]).filter(m=>(m.region||'US')===state.macroRegion), tiles=$('macro-tiles');tiles.replaceChildren();
+  const list=(D.macro||[]).filter(m=>(m.region||'US')===state.macroRegion).sort((a,b)=>{const rank=m=>/bank rate|policy rate/i.test(m.name)?0:/inflation|cpi|hicp/i.test(m.name)?1:/gdp.*q\/q/i.test(m.name)?2:/gdp/i.test(m.name)?3:/unemployment/i.test(m.name)?4:5;return rank(a)-rank(b);}), tiles=$('macro-tiles');tiles.replaceChildren();
  renderEconomicPrints();
  if(!list.length){tiles.append(el('div','empty','No economic series for this region. Check data sources below.'));empty('macro-chart','No data available.');$('macro-detail').textContent='';return;}
  if(!list.some(m=>m.key===state.macro))state.macro=(list.find(m=>macroMetric(m.key)==='inflation')||list[0]).key;
@@ -2590,12 +2605,11 @@ function renderWatchlist(){
    riskMeasures[1],riskMeasures[2],['DISCOUNT TO NAV','—','Not available from this free feed; cannot infer from P/E'],
    riskMeasures[3],riskMeasures[4],['TRUST MARKET CAPITALISATION',companyAmount(c.marketCap,c.marketCapCurrency||''),'Trust market cap, not your holding']];
  }else{
-  data=[...core,['DIVIDEND YIELD',c.dividendYieldPct==null?'—':fmt(c.dividendYieldPct,2)+'%','Cash distribution yield where sourced; accumulation ETFs may not distribute'],...riskMeasures,w.assetType==='fund'?
-   ['FUND NAV','—','A platform code is not an exchange ticker; use provider NAV']:
-   ['FUND FEES & HOLDINGS','CHECK ISSUER','Fund-level fees and holdings need a verified factsheet']];
+  data=[...core,['DIVIDEND YIELD',c.dividendYieldPct==null?'—':fmt(c.dividendYieldPct,2)+'%','Cash distribution yield where sourced; accumulation ETFs may not distribute'],...riskMeasures,...(w.assetType==='fund'?[['FUND NAV','—','A platform code is not an exchange ticker; use provider NAV']]:[])];
  }
- for(const [label,value,info] of data.slice(0,9))kpis.append(watchValTile(label,value,info));
- const extra=$('watchlist-extra-kpis');extra.replaceChildren();for(const [label,value,info] of data.slice(9))extra.append(watchValTile(label,value,info));
+ for(const [label,value,info] of data.slice(0,10))kpis.append(watchValTile(label,value,info));
+ const extra=$('watchlist-extra-kpis');extra.replaceChildren();for(const [label,value,info] of data.slice(10))extra.append(watchValTile(label,value,info));
+ extra.closest('details,section')?.classList.toggle('empty-watch-extras',!extra.children.length);
  const btn=$('watchlist-open-company');const research=w.assetType!=='fund'&&(companyMap.has(w.symbol)||indexedStocks.has(w.symbol));
  btn.textContent=research?'OPEN COMPANY RESEARCH':w.assetType==='fund'?'OPEN VANGUARD FUNDS':'OPEN SOURCE QUOTE';
  btn.onclick=()=>research?openConstituent(w.symbol):window.open(w.assetType==='fund'?'https://www.vanguardinvestor.co.uk/investments':'https://finance.yahoo.com/quote/'+encodeURIComponent(w.symbol)+'/','_blank','noopener,noreferrer');

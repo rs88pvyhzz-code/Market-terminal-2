@@ -26,6 +26,8 @@ def verify(path):
         if item['classification']=='observed_market_movement':
             assert item.get('alertId')==item['id']
             assert any(a.get('id')==item['alertId'] and a['kind']=='Calculated' for a in data['marketBriefing']['alerts'])
+        if item['classification']=='reported_development':
+            assert item.get('url') and item.get('retrievedAt'), 'Reported development requires a dated publisher article'
         if item['classification']=='general_news':assert not item['marketMoving']
     companies=[]
     for symbol in ['SHEL.L','MSFT','HSBA.L']:

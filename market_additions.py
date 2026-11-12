@@ -28,6 +28,12 @@ MARKET_INDICES=(
     ('NASDAQ100','Nasdaq 100','US'),
     ('FTSE100','FTSE 100','UK'),
     ('FTSE250','FTSE 250','UK'),
+    ('DOW', 'Dow Jones 30', 'US'),
+    ('DAX', 'DAX 40', 'Germany'),
+    ('CAC40', 'CAC 40', 'France'),
+    ('SMI', 'Swiss Market Index', 'Switzerland'),
+    ('HSI', 'Hang Seng', 'Hong Kong'),
+    ('NIKKEI225', 'Nikkei 225', 'Japan'),
 )
 
 
@@ -127,7 +133,8 @@ def market_valuation(movers, fundamentals, companies, us_rates, uk_rates, asof=N
         ey=100/trailing if trailing and trailing>0 else None
         risk_date=None
         if region=='US':nominal,risk_date=latest_rate(us_rates,'DGS10')
-        else:nominal,risk_date=latest_rate(uk_rates,'gilt10y')
+        elif region=='UK':nominal,risk_date=latest_rate(uk_rates,'gilt10y')
+        else:nominal,risk_date=None,None
         coverage=round(100*pe_n/len(unique),1) if unique else 0
         output.append({'id':mid,'name':name,'region':region,'members':len(unique),
             'withMarketCap':caps,'positivePERows':pe_n,'forwardPERows':fwd_n,
