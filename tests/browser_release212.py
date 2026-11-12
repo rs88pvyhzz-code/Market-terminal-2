@@ -6,7 +6,7 @@ from pathlib import Path
 from playwright.sync_api import sync_playwright
 
 html=Path(sys.argv[1]).read_text(encoding='utf-8')
-m=re.search(r'window\\.MT_DATA\\s*=\\s*',html)
+m=re.search(r'window\.MT_DATA\s*=\s*',html)
 assert m
 data=json.JSONDecoder().raw_decode(html[m.end():])[0]
 assert 'terminal12-styles' in html
@@ -85,9 +85,9 @@ with sync_playwright() as p:
         assert 'Cumulative cash return' in displayed[1]
         assert 'Total profit for holding' in displayed[2]
         for actual,expected in [(displayed[0],gilt['ytm']),(displayed[1],gilt['cumulative'])]:
-            value=float(re.search(r'-?[0-9,]+(?:\\.[0-9]+)?(?=%)',actual).group(0).replace(',',''))
+            value=float(re.search(r'-?[0-9,]+(?:\.[0-9]+)?(?=%)',actual).group(0).replace(',',''))
             assert abs(value-expected)<0.025,(actual,expected)
-        value=float(re.search(r'£(-?[0-9,]+(?:\\.[0-9]+)?)',displayed[2]).group(1).replace(',',''))
+        value=float(re.search(r'£(-?[0-9,]+(?:\.[0-9]+)?)',displayed[2]).group(1).replace(',',''))
         assert abs(value-gilt['profitPer100']*200)<0.03,(value,gilt)
         assert not page.locator('#gilt-stats').get_by_text('After-tax YTM').count()
 
