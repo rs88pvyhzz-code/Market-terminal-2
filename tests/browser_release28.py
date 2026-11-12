@@ -62,7 +62,7 @@ with sync_playwright() as p:
         page.locator('#gilt-rows tr[data-isin]').first.click()
         page.wait_for_timeout(130)
         assert page.locator('#gilt-stats .r28-gilt-single').count()==1
-        assert page.locator('#gilt-stats .r28-gilt-yield').count()==2
+        assert page.locator('#gilt-stats .r28-gilt-yield').count()==3
         if page.locator('#mt-gilt-tax-rows tr').count():
             selected=page.locator('#mt-gilt-tax-rows tr.selected')
             assert selected.count()==0,'Selected gilt must appear only in summary'
