@@ -34,7 +34,7 @@ function intelligenceConditions(host){
  for(const b of (D.marketAnalytics?.breadth||[]).slice(0,2))host.append(el('div','r23-observation',b.name+' breadth: '+b.advancers+' advancing / '+b.decliners+' declining · '+b.quoted+'/'+b.members+' quoted · '+b.date));
  for(const c of (D.credit_spreads||[]).filter(x=>['US_IG','US_HY'].includes(x.key)))host.append(el('div','r23-observation',c.name+' OAS '+fmt(c.latestBp,0)+' bp · 1M '+fmt(c.change30Bp,0)+' bp · '+c.date));
  host.append(el('div','mini','Concentration: current free snapshots do not provide verified point-in-time index weights. No concentration rating inferred.'));
- host.append(el('div','mini','Observed comparisons, not causal explanations. Breadth, concentration coverage, credit and yield-curve detail remain in Markets Analytics and Bonds & Rates.'));
+ host.append(el('div','mini','Observed comparisons, not causal explanations. Breadth and sector detail are on this tab; credit spreads and full yield curves are in Bonds & Rates.'));
  const b=el('button','btn','Open market analytics');b.onclick=()=>activateWorkspace('analytics');host.append(b);
 }
 function renderMarketBriefing(){
