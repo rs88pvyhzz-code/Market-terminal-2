@@ -50,7 +50,7 @@ with sync_playwright() as p:
     for isin in restricted:
         row=page.locator('#gilt-rows tr[data-isin="'+isin+'"]')
         assert row.count()==1
-        assert row.locator('td').all_text_contents()[5:8]==['Review','Review','Review']
+        assert row.locator('td').all_text_contents()[5:]==['Review']
         original=next(g for g in d['gilts'] if g['isin']==isin)
         assert float(row.locator('td').nth(3).inner_text())==round(original['bidClean'],2)
         assert float(row.locator('td').nth(4).inner_text())==round(original['askClean'],2)
@@ -61,13 +61,13 @@ with sync_playwright() as p:
         peer=page.locator('#mt-gilt-tax-rows tr[data-isin="'+isin+'"]')
         assert peer.count()==0
         assert page.locator('#gilt-stats .r28-gilt-single').count()==1
-        assert page.locator('#gilt-stats .r28-gilt-yield').count()==2
+        assert page.locator('#gilt-stats .r28-gilt-yield').count()==3
         page.locator('#gilt-clean-input').fill('99');assert page.locator('#gilt-yield-review').is_visible()
         assert peer.count()==0
-        assert 'Unavailable' in page.locator('#gilt-stats .r28-gilt-yield').all_text_contents()[0] or page.locator('#gilt-stats .r28-gilt-yield').count()==2
-    page.locator('#ladder-start').fill('2029');page.locator('#ladder-years').fill('4')
-    for isin in restricted:assert page.locator('#ladder-rows tr[data-isin="'+isin+'"] ').count()==0
-    page.locator('#gilt-sort').select_option('net')
+        assert 'Unavailable' in page.locator('#gilt-stats .r28-gilt-yield').all_text_contents()[0] or page.locator('#gilt-stats .r28-gilt-yield').count()==3
+    assert page.locator('#gilt-ladder').is_hidden(),'Retired tax-focused ladder must not interrupt gross return summary'
+    assert page.locator('#gilt-rows tr').first.locator('td').count()==6
+    page.locator('#gilt-sort').select_option('gross')
     assert page.locator('#gilt-rows tr').first.get_attribute('data-isin') not in restricted
     assert page.evaluate('JSON.stringify(window.MT_DATA.gilts)')==before
     page.locator('#gilt-search').fill('TN28');page.locator('#gilt-rows tr').first.click();page.locator('#gilt-search').fill('')
@@ -81,12 +81,12 @@ with sync_playwright() as p:
         assert page.locator('.gilt-table').evaluate('(t)=>t.scrollWidth<=t.parentElement.clientWidth'),width
         assert page.locator('#gilt-rows .gilt-identity small').first.inner_text().startswith('GB')
         page.locator('#gilt-search').fill('TN28');assert page.locator('#gilt-rows tr').count()==1
-        page.locator('#gilt-search').fill('');page.locator('#gilt-sort').select_option('net');page.locator('#gilt-type').select_option('linked');assert page.locator('#gilt-rows tr').count()==34
+        page.locator('#gilt-search').fill('');page.locator('#gilt-sort').select_option('gross');page.locator('#gilt-type').select_option('linked');assert page.locator('#gilt-rows tr').count()==34
         page.locator('#gilt-type').select_option('all')
         assert page.evaluate('document.body.scrollWidth<=innerWidth'),width
         page.locator('#tab-companies').click();page.locator('#research-tab-0').click();page.wait_for_timeout(100)
         assert page.evaluate('document.body.scrollWidth<=innerWidth'),width
-    page.locator('#tab-bonds').click();page.evaluate("window.r22RealNow=Date.now;Date.now=()=>Date.parse('2026-11-12T16:00:00Z')");page.locator('#gilt-sort').select_option('gross');assert 'STALE' in page.locator('#gilt-freshness').inner_text();page.evaluate('Date.now=window.r22RealNow');page.locator('#gilt-sort').select_option('net')
+    page.locator('#tab-bonds').click();page.evaluate("window.r22RealNow=Date.now;Date.now=()=>Date.parse('2026-11-12T16:00:00Z')");page.locator('#gilt-sort').select_option('gross');assert 'STALE' in page.locator('#gilt-freshness').inner_text();page.evaluate('Date.now=window.r22RealNow');page.locator('#gilt-sort').select_option('gross')
     page.set_viewport_size({'width':768,'height':1100});page.locator('#tab-bonds').click();page.wait_for_timeout(100);page.screenshot(path='/tmp/release22-gilts-ipad.png',full_page=False)
     page.locator('#tab-companies').click();page.locator('#research-tab-0').click();page.wait_for_timeout(100);page.screenshot(path='/tmp/release22-company-ipad.png',full_page=True)
     for tab in tabs.all():tab.click();page.wait_for_timeout(60)
