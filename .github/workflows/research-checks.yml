@@ -46,6 +46,7 @@ jobs:
         with:
           name: company-research-release1-screenshots
           path: |
+            /tmp/refinements-*.png
             /tmp/research-r1-*.png
             /tmp/research-r2-*.png
             /tmp/release22-*.png

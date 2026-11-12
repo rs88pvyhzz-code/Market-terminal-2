@@ -26,7 +26,7 @@ NEWS_QUERIES = {
     'UK': 'UK FTSE gilts Bank of England inflation companies when:3d',
     'EUROPE': 'ECB euro zone European markets bonds stocks when:3d',
     'RATES': 'bond yields US treasury UK gilts ECB Fed rates when:3d',
-    'COMPANIES': 'Shell BP AstraZeneca HSBC corporate earnings stocks when:3d',
+    'COMPANIES': '(Nvidia OR Microsoft OR Apple OR Shell OR HSBC) (CEO OR earnings OR guidance OR resignation) when:3d',
 }
 
 def _parse_rss_date(s):
@@ -144,7 +144,7 @@ def _collect_legacy_news(core,opts):
         url='https://news.google.com/rss/search?'+urllib.parse.urlencode(
             {'q':query,'hl':'en-GB','gl':'GB','ceid':'GB:en'})
         try:
-            raw,used,msg=core.get_bytes(url,'news_'+category.lower(),opts.offline,opts.cache_hours)
+            raw,used,msg=core.get_bytes(url,'news_'+category.lower(),opts.offline,min(opts.cache_hours,0.25))
             cached+=int(used)
             NEWS_DIAGNOSTICS.append(dict(source='Google News '+category,url=url,status=msg,archived=bool(opts.offline or 'stale cache' in msg)))
             if 'stale cache' in msg:warnings.append('News '+category+': stale cached articles')
@@ -185,7 +185,7 @@ def _collect_legacy_news(core,opts):
     return articles,warnings,cached
 
 NEWS_DIAGNOSTICS=[]
-PRIMARY_NEWS_FEEDS=[('Federal Reserve','https://www.federalreserve.gov/feeds/press_monetary.xml','RATES'),('Bank of England','https://www.bankofengland.co.uk/rss/news','RATES'),('ECB','https://www.ecb.europa.eu/rss/press.html','EUROPE')]
+PRIMARY_NEWS_FEEDS=[('Federal Reserve','https://www.federalreserve.gov/feeds/press_monetary.xml','RATES'),('Bank of England','https://www.bankofengland.co.uk/rss/news','RATES'),('ECB','https://www.ecb.europa.eu/rss/press.html','EUROPE'),('NVIDIA','https://nvidianews.nvidia.com/releases.xml','COMPANIES')]
 
 def collect_news(core,opts):
     NEWS_DIAGNOSTICS.clear()
@@ -202,7 +202,7 @@ def collect_news(core,opts):
     for name,url,category in PRIMARY_NEWS_FEEDS:
         try:
             key='news_primary_'+name.lower().replace(' ','_')
-            raw,used,message=core.get_bytes(url,key,opts.offline,opts.cache_hours)
+            raw,used,message=core.get_bytes(url,key,opts.offline,min(opts.cache_hours,0.25))
             retrieved=dt.datetime.fromtimestamp((core.CACHE/(key+'.bin')).stat().st_mtime,dt.timezone.utc).isoformat()
             recovered=bool(opts.offline or 'stale cache' in message)
             found=rss_articles(raw,category,default_source=name,max_age_days=7)

@@ -166,6 +166,27 @@ function mergeSnapshot(park){
   if(dash.nextElementSibling!==kpis)dash.after(kpis);
   kpis.classList.add('layout-merged-kpis');
   for(const tile of kpis.children){const label=(tile.firstElementChild&&tile.firstElementChild.textContent||'').trim();tile.hidden=SNAPSHOT_DUPLICATES.test(label);}
+  const groups=[
+    ['PRICE & VALUATION',/^(PRICE$|MARKET CAPITALISATION|VALUATION|FORWARD P\/E|DIVIDEND YIELD|PRICE \/ BOOK|EPS)/i],
+    ['REVENUE & PROFIT',/^(REVENUE|NET PROFIT|OPERATING PROFIT|PROFITABILITY|PROFIT MARGIN|EBITDA|RETURN ON EQUITY)/i],
+    ['CASH FLOW & FINANCIAL STRENGTH',/^(CASH GENERATION|FREE CASH FLOW|FINANCIAL STRENGTH|TOTAL DEBT)/i]
+  ];
+  const tiles=[...dash.querySelectorAll('.research-card'),...kpis.children].filter(n=>!n.hidden);
+  let grouped=$L('layout-company-metrics');
+  if(!grouped){grouped=document.createElement('div');grouped.id='layout-company-metrics';dash.before(grouped);}
+  // Renderers replace the source grids. Only rebuild when fresh tiles arrive.
+  if(tiles.length){
+    grouped.replaceChildren();
+    for(const [title,pattern] of groups){
+      const section=document.createElement('section'),h=document.createElement('h3'),grid=document.createElement('div');
+      h.textContent=title;grid.className='layout-metric-grid';section.append(h,grid);
+      for(const tile of tiles.filter(t=>pattern.test(t.firstElementChild?.textContent.trim()||'')))grid.append(tile);
+      if(grid.children.length)grouped.append(section);
+    }
+    const extra=tiles.filter(t=>t.parentElement===dash||t.parentElement===kpis);
+    if(extra.length){const grid=document.createElement('div');grid.className='layout-metric-grid';grid.append(...extra);grouped.append(grid);}
+  }
+  dash.hidden=true;kpis.hidden=true;
   if(holder&&!holder.contains(kpis)&&!park.contains(holder)){
     const rest=[...holder.children].filter(c=>!c.matches('h3,h4,summary,.r24-support-heading'));
     if(!rest.length)park.append(holder);

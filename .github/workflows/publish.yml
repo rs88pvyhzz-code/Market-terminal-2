@@ -57,7 +57,7 @@ jobs:
           python build_site.py --output terminal.html --verify --
           --years 10
           --workers 2 --cache-hours 0
-          --movers-markets FTSE100,FTSE250,SP500,NASDAQ100
+          --movers-markets FTSE100,FTSE250,SP500,NASDAQ100,DOW,DAX,CAC40,SMI,HSI,NIKKEI225
           --mover-history-limit 30
           --company-news-limit 20
           --price-history-batch 60

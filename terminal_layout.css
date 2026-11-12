@@ -68,15 +68,15 @@
 #workspace-stage .note{line-height:1.55}
 
 /* Unified tiles (US Treasuries style) */
-#workspace-stage :is(.research-stats,.watchlist-kpis,.etf-stat-grid,.analytic-cards,.research-dashboard,.company-kpis,.mt-quality-grid,.r29-coverage-grid,.credit-kpis,.r28-gilt-yields,.r28-gilt-facts,.history-coverage-grid,.t11-ratios,#view-economics .macro){
+#workspace-stage :is(.research-stats,.watchlist-kpis,.etf-stat-grid,.analytic-cards,.research-dashboard,.company-kpis,.mt-quality-grid,.r29-coverage-grid,.credit-kpis,.r28-gilt-yields,.r28-gilt-facts,.history-coverage-grid,.t11-ratios,.layout-metric-grid,#view-economics .macro){
   display:grid;gap:1px!important;background:transparent!important;border:1px solid var(--t-line)!important;border-radius:8px;overflow:hidden;padding:0!important}
-#workspace-stage :is(.research-stats,.watchlist-kpis,.etf-stat-grid,.analytic-cards,.research-dashboard,.company-kpis,.mt-quality-grid,.r29-coverage-grid,.credit-kpis,.r28-gilt-yields,.r28-gilt-facts,.history-coverage-grid,.t11-ratios,#view-economics .macro)>*{
+#workspace-stage :is(.research-stats,.watchlist-kpis,.etf-stat-grid,.analytic-cards,.research-dashboard,.company-kpis,.mt-quality-grid,.r29-coverage-grid,.credit-kpis,.r28-gilt-yields,.r28-gilt-facts,.history-coverage-grid,.t11-ratios,.layout-metric-grid,#view-economics .macro)>*{
   background:var(--t-tile)!important;border:0!important;border-radius:0!important;box-shadow:0 0 0 1px var(--t-line)!important;padding:14px 16px!important;min-width:0;display:flex;flex-direction:column;gap:6px;justify-content:flex-start}
-#workspace-stage :is(.research-stats,.watchlist-kpis,.etf-stat-grid,.analytic-cards,.research-dashboard,.company-kpis,.mt-quality-grid,.r29-coverage-grid,.credit-kpis,.r28-gilt-yields,.r28-gilt-facts,.history-coverage-grid,.t11-ratios,#view-economics .macro)>*>:first-child{
+#workspace-stage :is(.research-stats,.watchlist-kpis,.etf-stat-grid,.analytic-cards,.research-dashboard,.company-kpis,.mt-quality-grid,.r29-coverage-grid,.credit-kpis,.r28-gilt-yields,.r28-gilt-facts,.history-coverage-grid,.t11-ratios,.layout-metric-grid,#view-economics .macro)>*>:first-child{
   font:500 12px/1.35 var(--t-mono)!important;color:var(--t-amber)!important;letter-spacing:.02em;text-transform:none!important}
-#workspace-stage :is(.research-stats,.watchlist-kpis,.etf-stat-grid,.analytic-cards,.research-dashboard,.company-kpis,.mt-quality-grid,.r29-coverage-grid,.credit-kpis,.r28-gilt-yields,.r28-gilt-facts,.history-coverage-grid,.t11-ratios,#view-economics .macro)>*>:nth-child(2){
+#workspace-stage :is(.research-stats,.watchlist-kpis,.etf-stat-grid,.analytic-cards,.research-dashboard,.company-kpis,.mt-quality-grid,.r29-coverage-grid,.credit-kpis,.r28-gilt-yields,.r28-gilt-facts,.history-coverage-grid,.t11-ratios,.layout-metric-grid,#view-economics .macro)>*>:nth-child(2){
   font:400 20px/1.25 var(--t-mono)!important;color:var(--t-fg);font-variant-numeric:tabular-nums;overflow-wrap:anywhere}
-#workspace-stage :is(.research-stats,.watchlist-kpis,.etf-stat-grid,.analytic-cards,.research-dashboard,.company-kpis,.mt-quality-grid,.r29-coverage-grid,.credit-kpis,.r28-gilt-yields,.r28-gilt-facts,.history-coverage-grid,.t11-ratios,#view-economics .macro)>*>:nth-child(n+3){
+#workspace-stage :is(.research-stats,.watchlist-kpis,.etf-stat-grid,.analytic-cards,.research-dashboard,.company-kpis,.mt-quality-grid,.r29-coverage-grid,.credit-kpis,.r28-gilt-yields,.r28-gilt-facts,.history-coverage-grid,.t11-ratios,.layout-metric-grid,#view-economics .macro)>*>:nth-child(n+3){
   font:400 11.5px/1.45 var(--t-mono)!important;color:var(--t-muted)}
 #workspace-stage :is(.research-stats,.watchlist-kpis,.etf-stat-grid,.analytic-cards,.research-dashboard,.company-kpis,.credit-kpis,.r28-gilt-yields,.r28-gilt-facts)>*>:nth-child(n+3):is(.pos,.up,.good){color:#5fd39a}
 #workspace-stage :is(.research-stats,.watchlist-kpis,.etf-stat-grid,.analytic-cards,.research-dashboard,.company-kpis,.credit-kpis,.r28-gilt-yields,.r28-gilt-facts)>*>:nth-child(n+3):is(.neg,.down,.bad){color:#ff6b6b}
@@ -122,3 +122,12 @@
   #workspace-stage table td{overflow-wrap:normal;word-break:normal}
   #workspace-stage :has(> table){overflow-x:auto;-webkit-overflow-scrolling:touch;max-width:100%}
 }
+
+#layout-company-metrics{display:grid;gap:16px}
+#layout-company-metrics h3{color:var(--amber);font-size:13px;margin:0 0 8px}
+#layout-company-metrics .layout-metric-grid{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));border:1px solid var(--line);border-radius:6px;overflow:hidden}
+#layout-company-metrics .layout-metric-grid>div{min-width:0;padding:16px;border:1px solid var(--line);display:flex;flex-direction:column;gap:8px}
+#layout-company-metrics .layout-metric-grid :is(strong,.val){font-size:24px;overflow-wrap:anywhere}
+#layout-company-metrics [hidden],.empty-watch-extras,#workspace-stage #research-overview .research-dashboard[hidden],#workspace-stage #company-kpis[hidden]{display:none!important}
+@media(max-width:1000px){#layout-company-metrics .layout-metric-grid{grid-template-columns:repeat(2,minmax(0,1fr))}}
+@media(max-width:480px){#layout-company-metrics .layout-metric-grid :is(strong,.val){font-size:19px}}

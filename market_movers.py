@@ -24,8 +24,14 @@ MARKET_CONFIG = {
     'FTSE250': {'name':'FTSE 250','page':'FTSE_250_Index','suffix':'.L','expected_min':195,'expected_max':275},
     'SP500': {'name':'S&P 500','page':'List_of_S%26P_500_companies','suffix':'','expected_min':450,'expected_max':530},
     'NASDAQ100': {'name':'Nasdaq 100','page':'List_of_NASDAQ-100_companies','suffix':'','expected_min':85,'expected_max':115},
+    'DOW': {'name':'Dow Jones 30','page':'Dow_Jones_Industrial_Average','suffix':'','expected_min':25,'expected_max':35},
+    'DAX': {'name':'DAX 40','page':'DAX','suffix':'.DE','expected_min':35,'expected_max':45},
+    'CAC40': {'name':'CAC 40','page':'CAC_40','suffix':'.PA','expected_min':35,'expected_max':45},
+    'SMI': {'name':'Swiss Market Index','page':'Swiss_Market_Index','suffix':'.SW','expected_min':18,'expected_max':22},
+    'HSI': {'name':'Hang Seng','page':'Hang_Seng_Index','suffix':'.HK','expected_min':65,'expected_max':100},
+    'NIKKEI225': {'name':'Nikkei 225','page':'Nikkei_225','suffix':'.T','expected_min':210,'expected_max':240},
 }
-DEFAULT_MARKETS = ('FTSE100','FTSE250','SP500','NASDAQ100')
+DEFAULT_MARKETS = tuple(MARKET_CONFIG)
 
 
 class Tables(html.parser.HTMLParser):
@@ -68,7 +74,10 @@ def clean_symbol(value, suffix):
     s=s.upper().strip().replace('\u200b','').replace('–','-')
     if not re.fullmatch(r'[A-Z0-9][A-Z0-9.\-]{0,12}',s):return None
     if suffix:
-        s=s.rstrip('.')+suffix
+        s=s.rstrip('.')
+        if s.endswith(suffix):return s
+        if suffix=='.HK' and s.isdigit():s=s.zfill(4)
+        s=s+suffix
     else:
         s=s.replace('.','-')
     return s
@@ -83,8 +92,8 @@ def parse_constituents(html, market_id):
             headers=[text.lower().strip().replace('\n',' ') for _,text in head]
             def col(names):
                 return next((i for i,x in enumerate(headers) if x in names),None)
-            symbol_col=col({'ticker','symbol','epic','ticker symbol'})
-            name_col=col({'company','security','name','company name'})
+            symbol_col=col({'ticker','symbol','epic','ticker symbol','stock code','code','epic code'})
+            name_col=col({'company','security','name','company name','constituent','constituent name'})
             if symbol_col is None or name_col is None:continue
             found=[];seen=set()
             for row in table[hi+1:]:
@@ -251,7 +260,7 @@ def demo_movers():
     rng=random.Random(251)
     out=[]
     for market_id in MARKET_CONFIG:
-        count={'FTSE100':100,'FTSE250':250,'SP500':503,'NASDAQ100':101}[market_id]
+        count={'FTSE100':100,'FTSE250':250,'SP500':503,'NASDAQ100':101,'DOW':30,'DAX':40,'CAC40':40,'SMI':20,'HSI':85,'NIKKEI225':225}[market_id]
         rows=[]
         for i in range(count):
             ch=round(rng.uniform(-8.5,8.5),2)

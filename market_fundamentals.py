@@ -14,7 +14,8 @@ import os
 import urllib.request
 
 CACHE_NAME = 'fundamental_summaries.json'
-MARKETS = ('SP500', 'FTSE100', 'FTSE250', 'NASDAQ100')
+from market_movers import DEFAULT_MARKETS
+MARKETS = DEFAULT_MARKETS
 
 
 def finite(value):

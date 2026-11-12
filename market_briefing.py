@@ -62,6 +62,8 @@ def significance_evidence(item, text):
         amount = re.search(r'(?:[$£€]|usd\s*|gbp\s*|eur\s*)([0-9]+(?:\.[0-9]+)?)\s*(billion|bn|b)\b',text)
         if transaction and amount and float(amount[1]) >= 1 and not re.search(r'\b(talks|rumou?r|considers?|considering|mulls?)\b',text):
             evidence.append('Reported confirmed transaction with stated value >=1 billion in stated headline currency units ($/£/€/USD/GBP/EUR); nominal threshold, no FX estimate')
+    if not anticipation and re.search(r'\b(ceo|chief executive)\b.{0,60}\b(resigns?|resigned|steps? down|stepped down|ousted|fired|departs?|departure|transition)\b|\b(resigns?|ousted)\b.{0,40}\b(ceo|chief executive)\b',text):
+        evidence.append('Reported chief-executive departure or transition')
     return evidence
 
 
@@ -139,7 +141,7 @@ def enrich(payload):
     now=timestamp(payload.get('generatedAt')) or dt.datetime.now(dt.timezone.utc)
     names=[re.sub(r'\b(plc|inc|corporation|corp|limited|ltd|holdings|ag|se)\b.*','',r.get('name',''),flags=re.I).strip() for r in payload.get('personalWatchlist',[]) if isinstance(r,dict)]
     items=list(payload.get('news',[]))
-    for group in payload.get('watchlist_news',[]) or []:
+    for group in (payload.get('watchlist_news',[]) or [])+(payload.get('company_news',[]) or []):
         if isinstance(group,dict):
             for item in group.get('articles',[]):items.append(dict(item))
     payload['news']=deduplicate([classify(x,now,names) for x in items if x.get('title') and str(x.get('url','')).startswith('https://')])
@@ -167,7 +169,7 @@ def enrich(payload):
             if change>=THRESHOLDS['vixRisePct'] and previous and q['price']-previous>=THRESHOLDS['vixRisePoints']:
                 alerts.append({'title':f"VIX: {change:+.2f}%",'detail':f"Observed rise {q['price']-previous:.2f} points; thresholds {THRESHOLDS['vixRisePct']}% and {THRESHOLDS['vixRisePoints']} points.",'date':date,'kind':'Calculated','source':'Yahoo Finance','assetClass':'Volatility','severity':min(change/THRESHOLDS['vixRisePct'],(q['price']-previous)/THRESHOLDS['vixRisePoints'])})
         elif abs(change)>=THRESHOLDS['priceMovePct'] and sigma is not None and sigma>=THRESHOLDS['volatilitySigma']:
-            alerts.append({'title':f"{q.get('name') or q.get('symbol')}: {change:+.2f}%",'detail':f"{sigma:.1f} × daily volatility (existing 1Y annualised volatility / √252); thresholds {THRESHOLDS['volatilitySigma']}× and {THRESHOLDS['priceMovePct']}%. Intraday moves are provisional.",'date':date,'kind':'Calculated','source':'Yahoo Finance; existing market-history metrics','assetClass':'FX' if q.get('kind')=='fx' else 'Commodities' if q.get('kind')=='future' else 'Equities','severity':min(abs(change)/THRESHOLDS['priceMovePct'],sigma/THRESHOLDS['volatilitySigma'])})
+            alerts.append({'title':f"{q.get('name') or q.get('symbol')}: {change:+.2f}%",'detail':f"{sigma:.1f} × daily volatility (existing 1Y annualised volatility / √252); thresholds {THRESHOLDS['volatilitySigma']}× and {THRESHOLDS['priceMovePct']}%. Intraday moves are provisional.",'date':date,'kind':'Calculated','symbol':q.get('symbol'),'researchUrl':'https://finance.yahoo.com/quote/'+str(q.get('symbol',''))+'/news/','source':'Yahoo Finance; existing market-history metrics','assetClass':'FX' if q.get('kind')=='fx' else 'Commodities' if q.get('kind')=='future' else 'Equities','severity':min(abs(change)/THRESHOLDS['priceMovePct'],sigma/THRESHOLDS['volatilitySigma'])})
     for credit in payload.get('credit_spreads',[]):
         rows=sorted([x for x in credit.get('history',[]) if isinstance(x.get('bp'),(int,float)) and timestamp(x.get('date'))],key=lambda x:x['date'])
         if len(rows)>=2:
@@ -225,11 +227,11 @@ def assemble_daily_briefing(payload, alerts, now):
         (rest if group in classes else first).append(alert);classes.add(group)
     candidates=[]
     for alert in first+rest:
-        candidates.append({'id':alert['id'],'alertId':alert['id'],'title':alert['title'],'published':alert['date'],'source':alert.get('source'),'url':alert.get('url'),'classification':'observed_market_movement','marketMoving':True,'selectionReasons':[alert['detail'],'Existing alert threshold crossed; no event-to-price cause inferred'],'assetClass':alert.get('assetClass')})
+        candidates.append({'id':alert['id'],'alertId':alert['id'],'title':alert['title'],'published':alert['date'],'source':alert.get('source'),'url':alert.get('url'),'researchUrl':alert.get('researchUrl'),'classification':'observed_market_movement','marketMoving':True,'selectionReasons':[alert['detail'],'Existing alert threshold crossed; no event-to-price cause inferred'],'assetClass':alert.get('assetClass')})
     for story in payload['news']:
         if story['archived']:continue
         status=story['developmentStatus']
-        candidates.append({'id':story['id'],'newsId':story['id'],'title':story['title'],'url':story['url'],'published':story['published'],'retrievedAt':story.get('retrievedAt'),'source':story['source'],'classification':'confirmed_event' if status=='confirmed_event' else 'general_news','marketMoving':bool(status=='confirmed_event' and story.get('significanceEvidence')),'selectionReasons':[{'confirmed_event':'Primary-source release/decision with explicit event evidence','reported_development':'Reported development; primary confirmation not available','general_news':'General news; no verified significant event established','commentary_preview':'Preview/opinion/speculation; below confirmed developments'}[status], 'Primary source' if publisher_tier(story)==0 else 'Identified established publisher (preference only, not significance evidence)' if publisher_tier(story)==1 else 'Other attributed publisher',*story.get('significanceEvidence',[])],'tier':{'confirmed_event':0,'reported_development':1,'general_news':2,'commentary_preview':3}[status]})
+        candidates.append({'id':story['id'],'newsId':story['id'],'title':story['title'],'url':story['url'],'published':story['published'],'retrievedAt':story.get('retrievedAt'),'source':story['source'],'classification':'confirmed_event' if status=='confirmed_event' else 'general_news','marketMoving':bool(status in ('confirmed_event','reported_development') and story.get('significanceEvidence')),'selectionReasons':[{'confirmed_event':'Primary-source release/decision with explicit event evidence','reported_development':'Reported development; primary confirmation not available','general_news':'General news; no verified significant event established','commentary_preview':'Preview/opinion/speculation; below confirmed developments'}[status], 'Primary source' if publisher_tier(story)==0 else 'Identified established publisher (preference only, not significance evidence)' if publisher_tier(story)==1 else 'Other attributed publisher',*story.get('significanceEvidence',[])],'tier':{'confirmed_event':0,'reported_development':1,'general_news':2,'commentary_preview':3}[status]})
     # Fresh dated issuer results already in the research cache are primary evidence.
     for company in payload.get('companies',[]):
         for source in company.get('intelligence',{}).get('sources',[]):
@@ -238,7 +240,7 @@ def assemble_daily_briefing(payload, alerts, now):
             if any(x.get('url')==source['url'] for x in candidates):continue
             candidates.append({'id':source['id'],'title':company['name']+' — results document: '+(source.get('title') or source.get('form') or 'Results'),'url':source['url'],'published':source['published'],'retrievedAt':source['retrievedAt'],'source':company['name']+' issuer filing','classification':'confirmed_event','marketMoving':False,'selectionReasons':['Dated issuer results document in existing verified research cache; not an earnings surprise or investment significance claim'],'tier':0})
     # Observed threshold breaches and confirmed primary events lead; commentary is last.
-    candidates.sort(key=lambda x:-1 if x['classification']=='observed_market_movement' else x.get('tier',0))
+    candidates.sort(key=lambda x: (2 if x['classification']=='observed_market_movement' else x.get('tier',3) if x.get('marketMoving') or x.get('tier')==0 else 3+x.get('tier',3)))
     leading=candidates[:5]
     for item in leading:
         if item.get('alertId'):continue
@@ -250,4 +252,4 @@ def assemble_daily_briefing(payload, alerts, now):
     selected_ids={a['id'] for a in selected}
     selected.extend(a for a in unique.values() if a['id'] not in selected_ids)
     payload['marketBriefing']['alerts']=selected[:THRESHOLDS['maxAlerts']]
-    payload['marketBriefing']['briefingMethod']='Existing observed alert breaches first (asset-class coverage, then threshold exceedance), confirmed primary events, reported developments, general news, previews/opinion last. Source preference never grants significance.'
+    payload['marketBriefing']['briefingMethod']='Confirmed primary events and material reported developments first, then observed alert breaches, general news and previews/opinion. Source preference never grants significance.'

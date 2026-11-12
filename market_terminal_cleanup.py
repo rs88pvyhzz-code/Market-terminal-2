@@ -165,7 +165,8 @@ function renderScore(){
  for(const b of controls.querySelectorAll('button'))b.classList.toggle('active',b.dataset.mtPeriod===mtMovePeriod);
  const heading=parent?.querySelector('h2');if(heading)heading.textContent='PRICE MOVES BY PERIOD';
  const note=parent?.querySelector('p.note');if(note)note.textContent='Local-currency price changes, excluding income; 3Y and 5Y figures are annualised. Futures and currencies are not directly comparable investment returns.';
- const list=(D.quotes||[]).filter(q=>(!state.group||q.group===state.group)&&q.kind!=='yield'&&q.kind!=='volatility')
+ const indexAvailable=(D.quotes||[]).some(q=>q.symbol==='^TWII'&&Number.isFinite(mtMoveReturn(q,mtMovePeriod)));
+ const list=(D.quotes||[]).filter(q=>!(q.symbol==='EWT'&&indexAvailable&&!state.group)).filter(q=>(!state.group||q.group===state.group)&&q.kind!=='yield'&&q.kind!=='volatility')
   .map(q=>({q,value:mtMoveReturn(q,mtMovePeriod)})).filter(r=>Number.isFinite(r.value))
   .sort((a,b)=>b.value-a.value);
  host.replaceChildren();
