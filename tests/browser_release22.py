@@ -21,17 +21,22 @@ with sync_playwright() as p:
     assert tabs.all_text_contents()==['OVERVIEW','MARKETS','EQUITIES','COMPANY RESEARCH','BONDS & RATES','ANALYTICS','ETF TRACKERS','ECONOMICS','MY WATCHLIST','DATA QUALITY']
     for route,view in [('companies','companies'),('analytics','analytics'),('constituents','equities'),('analytics-sectors','analytics')]:
         page.evaluate('(r)=>location.hash=r',route);page.wait_for_timeout(80);assert page.locator('#view-'+view).is_visible(),route
-    for route,index in [('peer-panel',3),('company-events-panel',4),('forensic-panel',5)]:
+    for route,index in [('company-events-panel',4)]:
         page.evaluate('(r)=>location.hash=r',route);page.wait_for_timeout(80);assert page.locator('#research-view-'+str(index)).is_visible(),route
+    # Peer comparison and accounting checks are analytics: their links open Analytics.
+    for route in ['peer-panel','forensic-panel']:
+        page.evaluate('(r)=>location.hash=r',route);page.wait_for_timeout(80);assert page.locator('#view-analytics').is_visible() and page.locator('#'+route).is_visible(),route
     page.locator('#tab-analytics').click();assert page.locator('#mt-risk-comparison').is_visible()
     assert page.locator('#mt-risk-rows tr').count()==8;page.locator('#mt-risk-period').select_option('3Y');assert page.locator('#mt-risk-rows tr').count()==8
     page.locator('#tab-quality').click();assert page.locator('#mt-quality-tab-filter').count()==1;assert page.locator('#terminal1-source-register').count()==1
     page.locator('#tab-companies').click();assert page.locator('#research-nav [role=tab]').count()==6
     page.locator('#research-tab-0').click();page.wait_for_timeout(80)
     order=page.locator('#research-view-0 > [id]').evaluate_all('(els)=>els.map(e=>e.id)')
-    expected=(['research-overview','r29-coverage','company-price-block','company-benchmark-block','research-executive','company-risk-panel','company-news-panel','company-advanced']
-              if page.evaluate("document.documentElement.classList.contains('release29')") else
-              ['company-price-block','company-benchmark-block','research-overview','research-executive','company-risk-panel','company-news-panel','company-advanced'])
+    # Company Research keeps facts; benchmark, risk, technicals and the executive
+    # summary are analytics and live on the Analytics tab (terminal_layout.js).
+    expected=['research-overview','company-price-block','company-news-panel']
+    analytics=page.locator('#view-analytics [id]').evaluate_all('(els)=>els.map(e=>e.id)')
+    for x in ['company-benchmark-block','research-executive','company-risk-panel','company-advanced']:assert x in analytics,x
     assert [order.index(x) for x in expected]==sorted(order.index(x) for x in expected),order
     for id in ['company-chart','company-benchmark-chart','company-risk-kpis','company-technical-kpis']:assert page.locator('#'+id).count()==1
     assert 'RSI' not in page.locator('#company-risk-kpis').inner_text()
