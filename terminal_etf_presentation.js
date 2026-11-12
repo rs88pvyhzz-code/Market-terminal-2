@@ -11,7 +11,7 @@ intelligenceConditions=function(host){
   for(const b of (D.marketAnalytics?.breadth||[]).slice(0,2))rows.push([b.name+' breadth',b.advancers+' advancing / '+b.decliners+' declining',b.quoted+'/'+b.members+' quoted',b.date]);
   for(const c of (D.credit_spreads||[]).filter(c=>['US_IG','US_HY'].includes(c.key)))rows.push([c.name,fmt(c.latestBp,0)+' bp','1M '+fmt(c.change30Bp,0)+' bp',c.date]);
   r24Table(host,['Indicator','Observation','Change / context','Date'],rows,'r26-conditions');
-  host.append(el('p','note','Observed comparisons; no causal inference. Verified point-in-time concentration weights are unavailable. Full breadth, credit and curve analysis remains in Markets Analytics and Bonds & Rates.'));
+  host.append(el('p','note','Observed comparisons; no causal inference. Verified point-in-time concentration weights are unavailable. Market breadth and sector detail follow below; credit spreads and full yield curves are in Bonds & Rates.'));
 };
 const r26PriorOverview=r24Overview;
 r24Overview=function(){
