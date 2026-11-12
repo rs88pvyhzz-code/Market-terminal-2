@@ -249,7 +249,7 @@ function tidyEtf(){
   });
   panel.querySelectorAll('.etf-stat-grid').forEach(grid=>{
     const tiles=[...grid.children],label=t=>(t.firstElementChild&&t.firstElementChild.textContent||'').trim().toLowerCase();
-    if(tiles.some(t=>/^fund assets/.test(label(t))))tiles.forEach(t=>{if(label(t)==='fund size')t.hidden=true;});
+    if(tiles.some(t=>/^fund assets/.test(label(t))))tiles.forEach(t=>{if(label(t)==='fund size')t.classList.add('layout-hidden');});
   });
 }
 
@@ -381,6 +381,51 @@ function renderBondTabs(){
 window.addEventListener('hashchange',()=>{const id=location.hash.slice(1);if(!id)return;const i=bondTabFor(id);if(i>=0&&i!==bondTab){bondTab=i;renderBondTabs();}});
 {const id=location.hash.slice(1);const i=id?bondTabFor(id):-1;if(i>=0)bondTab=i;}
 
+// Clean reading (Release 3.4): this terminal has one expert reader, so explanatory
+// notes, caveats, source boilerplate, coverage counts and footers are removed from
+// every tab except Data Quality. Kept: figures, tables, tiles with data, headlines
+// and their dates, chart summaries, empty-state messages and controls.
+const KEEP_NOTE=[/^(1D|1W|1M|3M|6M|YTD|1Y|3Y|5Y|10Y|MAX)\s*·/,/\bprice (?:move|change)[: ]/i,/^\d{4}-\d{2}-\d{2} to \d{4}/,/^No /,/^Showing \d+ of \d+/];
+const DROP_SECTIONS=['etf-issuer-snapshot'];
+const TILE_GRIDS='.etf-stat-grid,.research-stats,.watchlist-kpis,.etf-stat-grid,.analytic-cards,.research-dashboard,.company-kpis,.credit-kpis,.r28-gilt-yields,.r28-gilt-facts,.t11-ratios,.macro,.pulse-board,.layout-metrics,.r29-coverage-grid';
+function cleanReading(){
+  const stage=$L('workspace-stage');if(!stage)return;
+  document.querySelectorAll('footer.foot').forEach(f=>f.hidden=true);
+  for(const id of DROP_SECTIONS){const n=$L(id);if(n)n.classList.add('layout-hidden');}
+  stage.querySelectorAll('.research-warning,.mt-inline-notice,.r24-calendar-key,.r28-gilt-advanced,.r28-more').forEach(n=>{if(!n.closest('#view-quality'))n.classList.add('layout-hidden');});
+  stage.querySelectorAll('p,.note,.mini,small').forEach(n=>{
+    if(n.dataset.cleanChecked===n.textContent)return;n.dataset.cleanChecked=n.textContent;
+    if(n.closest('#view-quality,table,label,button,select,summary,h1,h2,h3,h4,.news-item,.r24-item,.r23-observation,.layout-group-head,#layout-bond-tabs'))return;
+    const text=n.textContent.trim();if(!text)return;
+    // Research write-ups (outlook, statements, issuer evidence) are content: there only
+    // purely explanatory lines (no figure or date) are removed.
+    if(n.closest('.research-view:not(#research-view-0),.r23-company-changes')){if(!/\d/.test(text))n.classList.add('layout-hidden');return;}
+    const tile=n.closest(TILE_GRIDS);
+    if(tile){ // inside a data tile: keep captions that carry figures or dates
+      if(n.parentElement&&n.parentElement.firstElementChild===n)return;   // tile label
+      if(!/\d/.test(text))n.classList.add('layout-hidden');
+      return;
+    }
+    if(KEEP_NOTE.some(re=>re.test(text)))return;
+    n.classList.add('layout-hidden');
+  });
+  // Tile captions that only explain (no figure or date) go; captions with data stay.
+  stage.querySelectorAll(TILE_GRIDS.split(',').map(g=>g+' > * > :nth-child(n+3)').join(',')).forEach(n=>{
+    if(n.closest('#view-quality'))return;
+    if(n.children.length===0&&!/\d/.test(n.textContent))n.classList.add('layout-hidden');
+  });
+  $L('company-dates')?.classList.add('layout-hidden');
+  // Methodology fold-outs belong in Data Quality only.
+  stage.querySelectorAll('details').forEach(d=>{
+    if(d.closest('#view-quality'))return;
+    const sum=d.querySelector(':scope > summary');if(sum&&/methodolog|source tables|how this is calculated/i.test(sum.textContent))d.classList.add('layout-hidden');
+  });
+  // Retrieval timestamps on article cards add nothing to the publisher date.
+  stage.querySelectorAll('.news-item .meta,.r24-item .mini,.mini').forEach(n=>{
+    if(n.children.length===0&&/ · retrieved \d{4}-\d{2}-\d{2}T[\d:.+]+/.test(n.textContent))n.textContent=n.textContent.replace(/\s*·\s*retrieved \d{4}-\d{2}-\d{2}T[\d:.+-]+(?::\d{2})?/g,'');
+  });
+}
+
 function refreshContexts(){
   for(const g of ANALYTICS){
     const box=$L('layout-analytics-'+g.key);if(!box)continue;
@@ -409,6 +454,7 @@ function applyLayout(){
       {try{step();}catch(e){console.warn('Layout step skipped:',step.name,e&&e.message);}}
     const ws=$L('watchlist-summary');if(ws&&ws.parentElement!==park)park.append(ws);
     stripCaveats();
+    try{cleanReading();}catch(e){console.warn('Clean reading skipped:',e&&e.message);}
     const av=$L('view-analytics');
     if(av){for(const g of ANALYTICS)place(analyticsGroup(av,g),g.items);}
     const qv=$L('mt-other-audits')||$L('view-quality');
