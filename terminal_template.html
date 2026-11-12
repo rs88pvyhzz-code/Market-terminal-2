@@ -782,7 +782,7 @@ h2{font:600 15px/1.35 var(--font);color:var(--amber);margin:0}h3{font:500 13px v
  <div class="row"><div><h2>SECTOR RELATIVE PERFORMANCE</h2><p class="note">Current constituent price returns against their benchmark. Equal-weight sector sample, not a sector index; returns exclude dividends.</p></div></div>
  <div class="research-controls"><label class="mini" for="sector-index">INDEX</label><select id="sector-index" class="field" aria-label="Choose index for sector returns"></select>
   <label class="mini" for="sector-period">PERIOD</label><select id="sector-period" class="field" aria-label="Sector returns time frame"><option value="1M">1 month</option><option value="3M">3 months</option><option value="6M">6 months</option><option value="1Y">1 year</option></select></div>
- <div class="analytic-scroll"><table class="watch"><thead><tr><th>Sector</th><th class="n">Covered / identified</th><th class="n">Sector price move</th><th class="n">Index price move</th><th class="n">Relative (pp)</th><th>Relative bar</th></tr></thead><tbody id="sector-rows"></tbody></table></div>
+ <div class="analytic-scroll"><table class="watch"><thead><tr><th>Sector</th><th class="n">Relative (pp)</th><th class="n">Sector move</th><th class="n">Index move</th><th class="n">Covered / identified</th><th>Relative bar</th></tr></thead><tbody id="sector-rows"></tbody></table></div>
  <p class="note" id="sector-note"></p>
 </section>
 <section class="panel" id="analytics-rolling">
@@ -849,21 +849,23 @@ h2{font:600 15px/1.35 var(--font);color:var(--amber);margin:0}h3{font:500 13px v
     <label class="mini" for="gilt-search">FIND GILT</label>
     <input class="field" id="gilt-search" type="search" placeholder="Gilt name, ISIN, 2028, TN28..." style="flex:1 1 200px;max-width:440px" aria-label="Search UK gilts">
     <select class="field" id="gilt-type" aria-label="Gilt type"><option value="all">All gilts</option><option value="conventional">Conventional</option><option value="linked">Index-linked</option></select>
-    <select class="field" id="gilt-sort" aria-label="Sort gilts"><option value="maturity">Sort: maturity</option><option value="net">Sort: highest after-tax yield</option><option value="gross">Sort: highest gross yield</option></select>
+    <select class="field" id="gilt-sort" aria-label="Sort gilts"><option value="maturity">Sort: maturity</option><option value="gross">Sort: highest gross yield</option></select>
     <a class="btn" href="https://www.dmo.gov.uk/data/pdfdatareport?reportCode=D10B" target="_blank" rel="noopener noreferrer">OFFICIAL DMO REPORT</a>
   </div>
   <p class="gilt-freshness" id="gilt-freshness" role="status"></p>
   <details class="research-detail"><summary>DMO source, definitions &amp; retrieval diagnostics</summary><p class="note" id="gilt-retrieval"></p><p class="note">Purchase is the DMO buying from the investor (bid); Sale is the DMO selling to the investor (offer). These are retail-service reference prices, not executable broker quotes. Index-linked clean prices are real; dirty prices include indexation.</p></details>
-  <div class="constituents-scroll gilt-table-scroll" style="max-height:380px"><table class="watch gilt-table"><colgroup><col style="width:30%"><col style="width:12%"><col style="width:8%"><col span="5" style="width:10%"></colgroup><thead><tr>
-    <th>Gilt / ISIN</th><th>Maturity</th><th class="n">Coupon</th><th class="n">Bid clean</th><th class="n">Offer clean</th><th class="n">Gross YTM*</th><th class="n" id="gilt-net-head">Net YTM†</th><th class="n">Tax-equivalent†</th>
+  <div class="constituents-scroll gilt-table-scroll" style="max-height:380px"><table class="watch gilt-table"><colgroup><col style="width:32%"><col style="width:13%"><col style="width:11%"><col style="width:14%"><col style="width:14%"><col style="width:16%"></colgroup><thead><tr>
+    <th>Gilt / ISIN</th><th>Maturity</th><th class="n">Coupon</th><th class="n">Bid clean</th><th class="n">Offer clean</th><th class="n">Gross YTM*</th>
   </tr></thead><tbody id="gilt-rows"></tbody></table></div>
-  <details class="research-detail"><summary>Yield definitions & tax assumptions</summary><p class="note" id="gilt-quality">Prices are dated DMO retail-service references, not necessarily available through a stockbroker. *Gross yield is a model calculation using DMO conventions (T+3 settlement for DMO prices, actual/actual, ex-dividend), not a DMO published yield. †Net YTM taxes coupons only at the selected rate; the gain to par is CGT-exempt. Gross-equivalent = the taxable deposit rate needed to match it. Excludes the accrued income scheme and ISA/SIPP wrappers (use 0%).</p></details>
+  <details class="research-detail"><summary>Gilt yield methodology</summary><p class="note" id="gilt-quality">Prices are dated DMO reference quotes. Gross annualised YTM includes coupons and the gain or loss to maturity, using the dirty purchase cost and modelled payment dates; not a broker-executable price. No after-tax estimate is shown.</p></details>
   <div class="row"><h3 id="gilt-selected">SELECT A GILT</h3><span class="mini" id="gilt-selected-source">—</span></div>
   <p id="gilt-yield-review" class="research-warning" role="status" hidden></p>
   <div class="inputs" style="display:flex;gap:8px;flex-wrap:wrap;align-items:center">
     <label for="gilt-clean-input" class="mini">YOUR BUY CLEAN PRICE (£ PER £100 NOMINAL)</label>
     <input type="number" id="gilt-clean-input" class="field" min="1" max="250" step="0.01" placeholder="Enter price, e.g. 95.50" style="max-width:200px" inputmode="decimal" aria-label="Gilt clean purchase price">
     <span class="mini" id="gilt-price-basis">Enter a price or select a quoted gilt</span>
+    <label for="gilt-nominal-input" class="mini">NOMINAL HOLDING (£)</label>
+    <input type="number" id="gilt-nominal-input" class="field" min="100" max="100000000" step="100" value="10000" style="max-width:150px" inputmode="decimal" aria-label="Nominal gilt holding amount">
   </div>
   <div class="research-stats" id="gilt-stats"></div>
   <details class="research-detail"><summary>Detailed gilt methodology</summary><p class="note" id="gilt-calc-note">Yield, accrued interest, duration and DV01 are <b>approximate</b>; the DMO spreadsheet has no published yield. The DMO price is a historical retail-service quote, not an executable offer. The model applies DMO conventions (T+3 settlement for DMO prices, T+1 for your own price, actual/actual accrual, 7-business-day ex-dividend) but ignores bank holidays and irregular first coupons, and excludes dealing costs. Index-linked gilts have real clean prices and inflation-adjusted dirty prices; a nominal YTM is <b>not</b> calculated for them.</p></details>
@@ -1927,10 +1929,12 @@ function renderSectors(){
  const sectors=[...m.sectors].sort((a,b)=>{const av=a.periods?.[range]?.relativePp,bv=b.periods?.[range]?.relativePp;
   return av==null?1:bv==null?-1:bv-av||a.sector.localeCompare(b.sector);});
  for(const item of sectors){const d=item.periods?.[range]||{},n=d.covered||0,ratio=item.sectorMembers?fmt(n/item.sectorMembers*100,0)+'%':'—',tr=el('tr');
-  td(tr,item.sector);td(tr,n+' / '+item.sectorMembers+' ('+ratio+')','n');
+  const title=td(tr,item.sector);
+  title.append(el('span','r212-sector-context','Sector '+(d.sectorReturnPct==null?'—':pc(d.sectorReturnPct))+' · index '+(d.indexReturnPct==null?'—':pc(d.indexReturnPct))+' · covered '+n+'/'+item.sectorMembers));
+  td(tr,d.relativePp==null?'—':(d.relativePp>0?'+':'')+fmt(d.relativePp,2)+'pp','n '+tone(d.relativePp));
   td(tr,d.sectorReturnPct==null?'—':pc(d.sectorReturnPct),'n '+tone(d.sectorReturnPct));
   td(tr,d.indexReturnPct==null?'—':pc(d.indexReturnPct),'n');
-  td(tr,d.relativePp==null?'—':(d.relativePp>0?'+':'')+fmt(d.relativePp,2)+'pp','n '+tone(d.relativePp));
+  td(tr,n+' / '+item.sectorMembers+' ('+ratio+')','n');
   const cell=td(tr,'');if(d.relativePp!=null){const bar=el('div','sector-bar');const fill=el('span','sector-fill '+(d.relativePp>=0?'plus':'minus'));
    fill.style.width=Math.min(100,Math.abs(d.relativePp)/20*100)+'%';bar.append(fill);cell.append(bar);}
   body.append(tr);
@@ -3974,19 +3978,19 @@ function renderGilts(){
   $('gilt-freshness').textContent=`DMO quotation: ${date||'unavailable'} · Website refreshed: ${D.generatedAt||'unknown'}${stale?' · STALE — '+(fresh.stale?'expected '+(fresh.expectedQuotationDate||'a newer business-day quote'):'next update overdue after '+(fresh.freshnessDeadline||'the UK publication cutoff')):''}`;
   $('gilt-freshness').classList.toggle('research-warning',!!stale);
   $('gilt-retrieval').textContent=`${fresh.origin||'Dated verified source'} · source retrieved ${fresh.retrievedAt||'not recorded'}. ${fresh.publicationRule||'DMO business-day report.'} ${fresh.downloadedFresh?'Fresh official download verified during collection.':'Recovered/uploaded prices; no fresh download confirmed for this build.'} ${(fresh.attempts||[]).filter(x=>!x.success).map(x=>x.requestedDate+': '+x.error).join(' · ')}`;
-  $('gilt-quality').textContent=count?'*Gross yield is modelled from the official offer, not a DMO published yield. †Net yield taxes coupons at the selected rate; tax-equivalent preserves the existing deposit-rate comparison.':'No verified DMO quotes; enter an explicit user price for conventional-gilt calculations.';
-  const taxRate=giltTaxRate(),netHead=$('gilt-net-head');if(netHead)netHead.textContent='Net YTM @'+taxRate+'%†';
+  $('gilt-quality').textContent=count?'*Annualised gross yield to maturity includes both the scheduled coupons and any price gain or loss on redemption. Modelled from the dated DMO offer; not a DMO published or live broker yield.':'No verified DMO quotes; enter an explicit user price for conventional-gilt calculations.';
+  const taxRate=giltTaxRate(); // retained for legacy ladder maths, not displayed as a gilt-investment yield
   const metrics=new Map(rows.map(g=>{const model=!g.indexLinked&&!giltYieldReviewReason(g)&&g.askClean!=null?giltValuation(g,g.askClean,g.asOf,g.askDirty):null;
     const net=model?giltNetYield(g,g.askClean,taxRate,g.asOf,g.askDirty):null;return [g.ticker,{model,net}];}));
   const sortKey=giltState.sort||'maturity',val=g=>{const m=metrics.get(g.ticker);return giltRankingValue(g,m,sortKey);};
   if(sortKey!=='maturity')rows.sort((a,b)=>(val(b)??-1e9)-(val(a)??-1e9));
-  if(!rows.length){const tr=el('tr');const cell=td(tr,'No gilts match this filter');cell.colSpan=8;table.append(tr);}
+  if(!rows.length){const tr=el('tr');const cell=td(tr,'No gilts match this filter');cell.colSpan=6;table.append(tr);}
   for(const g of rows){const tr=el('tr');tr.dataset.isin=g.isin;tr.style.cursor='pointer';if(g.ticker===giltState.symbol)tr.classList.add('selected');
     const {model,net}=metrics.get(g.ticker);
     const name=td(tr,'');name.className='gilt-identity';name.append(el('strong','',g.name),el('small','',g.isin+(g.shortTicker?' · '+g.shortTicker:'')+' · '+(g.indexLinked?'Index-linked':'Conventional')));name.title='Official quotation '+g.asOf;if(giltYieldReviewReason(g)||(model&&g.askDirty!=null&&Math.abs(model.accrued-(g.askDirty-g.askClean))>=.0005)){name.append(el('small','dn','Yield model accrual: review'));name.title+=' · model accrued interest differs from DMO dirty minus clean; check ex-dividend/irregular coupon conventions';}td(tr,g.maturity);td(tr,fmt(g.coupon,3)+'%','n');
     td(tr,g.bidClean!=null?fmt(g.bidClean,3):'—','n');td(tr,g.askClean!=null?fmt(g.askClean,3):'—','n');
     td(tr,giltYieldReviewReason(g)?'Review':g.indexLinked?'—':model?fmt(model.ytm,3)+'%*':'—','n');
-    td(tr,giltYieldReviewReason(g)?'Review':net!=null?fmt(net,3)+'%':'—','n');td(tr,giltYieldReviewReason(g)?'Review':net!=null&&taxRate<100?fmt(net/(1-taxRate/100),3)+'%':'—','n');
+    
     tr.onclick=()=>{giltState.symbol=g.ticker;renderGilts();};table.append(tr);
   }
   const b=giltList.find(g=>g.ticker===giltState.symbol);
@@ -4013,7 +4017,7 @@ function renderGilts(){
     ['Running yield',v?fmt(v.running,3)+'%':'—','Coupon / clean purchase price'],
     ['Modified duration',review?'Review required':v?fmt(v.duration,2)+' years':'—','Approximate'],
     ['DV01 per £100 nominal',review?'Review required':v?'£'+fmt(v.dv01,4):'—','Per +1 basis point'],
-    ['Capital gain at par',v?'£'+fmt(v.capitalGain,2):'—',b.indexLinked?'RPI-adjusted redemption, not £100':'Before taxes / fees']];
+    ['Redemption amount / £100 nominal',b.indexLinked?'RPI-linked':'£100.00',b.indexLinked?'Inflation-linked proceeds require separate modelling':'Received at maturity; included in hold-to-maturity return']];
   if(b.indexLinked)st.splice(4,0,['Index ratio',b.indexRatio!=null?fmt(b.indexRatio,5):'—',b.indexationLag?'Indexation lag '+b.indexationLag:'Index-linked']);
   for(const [k,x,note] of st)host.append(researchTile(k,x,note));
   const raw=giltHist.filter(p=>p.ticker===b.ticker).sort((x,y)=>x.date.localeCompare(y.date));

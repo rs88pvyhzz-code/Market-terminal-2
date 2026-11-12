@@ -147,7 +147,7 @@ renderCalendar=function(){
   b.onclick=()=>{r28CalendarMajorOnly=major;renderCalendar();};filters.append(b);
  }
  const pool=r28CalendarMajorOnly?r28MajorCalendar():r24CalendarEvents();
- const items=pool.filter(e=>state.calendarRegion==='ALL'||e.region===state.calendarRegion).slice(0,r28CalendarMajorOnly?18:70);
+ const items=pool.filter(e=>state.calendarRegion==='ALL'||e.region===state.calendarRegion).slice(0,r28CalendarMajorOnly?5:70);
  r28CalendarTable(host,items,false);
 };
 const r28PrevRenderMacro=renderMacro;
@@ -192,49 +192,67 @@ function r28StickyTables(root=document){
  }
 }
 function r28GiltPairs(host,statRows,b,v,clean,manual){
+ // Gross hold-to-maturity cash flows: dirty cost is paid once, all remaining
+ // coupons are received, and £100 per £100 nominal is repaid at redemption.
+ // Net/tax-equivalent calculations deliberately do not appear in this view.
  host.replaceChildren();
- const vals=new Map(statRows.map(a=>[a[0],a]));
- const t=$('mt-gilt-tax-rate'),tax=t?Number(t.value):giltTaxRate();
- const when=manual?r28SnapshotDate():b.asOf,dirty=manual?null:b.askDirty;
+ const when=manual?r28SnapshotDate():b.asOf;
  const review=giltYieldReviewReason(b);
- const net=(!b.indexLinked&&!review)?mtNetGiltYield(b,clean,tax,when,dirty):null;
- const ytm=(!b.indexLinked&&!review&&v&&r28Finite(v.ytm))?v.ytm:null;
- const group=el('div','r28-gilt-single');
- const heading=el('div','r28-gilt-caption','One purchase assumption · '+(manual?'manual clean price as of '+when:'DMO offer dated '+when)+' · '+tax+'% coupon tax');
+ const usable=!!(v&&!b.indexLinked&&!review&&r28Finite(v.dirty)&&v.dirty>0);
+ const flows=usable?giltCashflows(b,when,!manual&&b.askDirty!=null):null;
+ const couponPer100=flows?flows.flows.reduce((sum,f)=>sum+f.coupon,0):null;
+ const nominalInput=$('gilt-nominal-input');
+ const nominal=Number(nominalInput?.value);
+ const validNominal=Number.isFinite(nominal)&&nominal>=100&&nominal<=100000000;
+ const scale=validNominal?nominal/100:null;
+ const dirty=usable?v.dirty:null;
+ const grossYtm=usable&&r28Finite(v.ytm)?v.ytm:null;
+ const grossProfitPer100=usable&&couponPer100!=null?100+couponPer100-dirty:null;
+ const holdingReturn=grossProfitPer100!=null?grossProfitPer100/dirty*100:null;
+ const gbp=x=>x==null?'—':'£'+fmt(x,2);
+ const value=x=>x==null?'Unavailable':fmt(x,2)+'%';
+ const group=el('div','r28-gilt-single r212-gilt-income');
+ const heading=el('div','r28-gilt-caption','BUY AND HOLD TO MATURITY · '+(manual?'entered price as of '+when:'DMO offer dated '+when));
  group.append(heading);
  const yields=el('div','r28-gilt-yields');
- for(const [name,value] of [['Gross YTM',ytm],['After-tax YTM',net]]){
-  const cell=el('div','r28-gilt-yield');cell.append(el('div','mini',name),el('strong','',value==null?'Unavailable':fmt(value,3)+'%'));
-  yields.append(cell);
+ for(const [name,number,kind] of [
+   ['Annualised gross YTM',grossYtm,'percent'],
+   ['Cumulative cash return',holdingReturn,'percent'],
+   ['Total profit for holding',grossProfitPer100!=null&&scale!=null?grossProfitPer100*scale:null,'money']]){
+   const cell=el('div','r28-gilt-yield');
+   cell.append(el('div','mini',name),el('strong','',kind==='money'?gbp(number):value(number)));
+   yields.append(cell);
  }
  group.append(yields);
  const facts=el('div','r28-gilt-facts');
- for(const [name,value] of [
-  ['Clean purchase price',clean!=null?fmt(clean,3):'—'],
-  ['Accrued interest',v?fmt(v.accrued,4):'—'],
-  ['Dirty cost / £100',v?fmt(v.dirty,4):'—'],
-  ['Redemption at par',b.indexLinked?'Index-linked':'£100.000'],
-  ['Coupon',fmt(b.coupon,3)+'%'],
-  ['Maturity',b.maturity],
- ]){
-  const d=el('div','r28-gilt-fact');d.append(el('span','mini',name),el('strong','',value));facts.append(d);
+ const metrics=[
+  ['Nominal redeemed at maturity',validNominal?gbp(nominal):'Enter a valid holding'],
+  ['Initial dirty purchase cost',dirty!=null&&scale!=null?gbp(dirty*scale):'—'],
+  ['All remaining coupon receipts',couponPer100!=null&&scale!=null?gbp(couponPer100*scale):'—'],
+  ['Total cash received to maturity',couponPer100!=null&&scale!=null?gbp((100+couponPer100)*scale):'—'],
+  ['Clean purchase price / £100',clean!=null?fmt(clean,3):'—'],
+  ['Dirty purchase price / £100',dirty!=null?fmt(dirty,4):'—'],
+  ['Coupon rate',fmt(b.coupon,3)+'%'],
+  ['Maturity date',b.maturity],
+ ];
+ for(const [name,text] of metrics){
+  const cell=el('div','r28-gilt-fact');cell.append(el('span','mini',name),el('strong','',text));facts.append(cell);
  }
  group.append(facts);
  const advanced=el('div','r28-gilt-advanced');
- for(const label of ['Modified duration','Running yield','DV01 per £100 nominal','Quoted bid / offer spread','Capital gain at par']){
-  const value=vals.get(label);
-  if(value)advanced.append(el('span','',label+': '+value[1]));
+ for(const [label,metric] of statRows){
+  if(['Modified duration','Running yield','DV01 per £100 nominal','Quoted bid / offer spread'].includes(label))
+    advanced.append(el('span','',label+': '+metric));
  }
  group.append(advanced);
- group.append(el('p','note','Gross and after-tax yield use the same dated cashflows and clean/dirty purchase basis. The after-tax calculation taxes received coupons only; no accrued-income scheme, personal allowance or dealing costs.'));
+ const text=review?'Review required — gross yield and cash profit withheld until the bond cash-flow schedule is independently validated.':
+  b.indexLinked?'No fixed nominal hold-to-maturity return is shown for index-linked gilts.':
+  !usable?'Not enough validated purchase/cash-flow data to calculate redemption return.':
+  'Gross cash figures are undiscounted and include redemption plus scheduled coupons, less initial dirty cost. Annualised YTM is the cash-flow internal rate of return. Tax, broker fees and reinvestment of coupons are excluded. DMO reference quotes are not executable broker prices.';
+ group.append(el('p','note',text));
  host.append(group);
- mtRenderGiltTax(b,clean,manual);
- const body=$('mt-gilt-tax-rows');if(body){
-  const selected=[...body.querySelectorAll('tr')].find(tr=>tr.dataset.isin===b.isin);
-  if(selected)selected.remove(); // selected gilt is already summarised above
- }
- const heading2=$('mt-gilt-tax-heading');if(heading2)heading2.textContent='OTHER GILTS — NEARBY MATURITIES · '+tax+'% COUPON TAX';
- const summary=$('mt-gilt-tax-summary');if(summary)summary.textContent='Alternatives only · DMO prices dated '+b.asOf+' · same coupon tax rate. Your manually entered price is not applied to other gilts.';
+ const taxBox=$('mt-gilt-tax-panel');
+ if(taxBox)taxBox.hidden=true;
 }
 mtRenderGiltSummary=r28GiltPairs;
 function r28AnalystPanel(c){
