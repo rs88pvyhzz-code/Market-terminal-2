@@ -729,7 +729,7 @@ def main():
     p.add_argument('--demo',action='store_true',help='generate an explicitly SYNTHETIC, offline interactive demo')
     p.add_argument('--output',default=None,help='output HTML filename')
     p.add_argument('--movers-markets',default=','.join(market_movers.DEFAULT_MARKETS),
-        help='index constituent markets for top 10 movers: FTSE100,FTSE250,SP500,NASDAQ100 (default all four)')
+        help='index constituent markets for movers and valuations (default all ten configured markets)')
     p.add_argument('--no-movers',action='store_true',help='skip constituent-level mover downloads')
     p.add_argument('--companies',default='',help='extra company tickers separated by commas (e.g. SHEL.L,MSFT)')
     p.add_argument('--no-companies',action='store_true',help='skip detailed company collection')

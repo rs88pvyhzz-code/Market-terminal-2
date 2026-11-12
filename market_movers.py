@@ -70,6 +70,7 @@ class Tables(html.parser.HTMLParser):
 
 
 def clean_symbol(value, suffix):
+    value=re.sub(r'^(?:TYO|TSE|SEHK|HKEX)\s*:\s*','',value.strip(),flags=re.I)
     s=re.sub(r'\[[^\]]*\]','',value).strip().split()[0] if value.strip() else ''
     s=s.upper().strip().replace('\u200b','').replace('–','-')
     if not re.fullmatch(r'[A-Z0-9][A-Z0-9.\-]{0,12}',s):return None

@@ -220,6 +220,21 @@ def assemble_daily_briefing(payload, alerts, now):
         alert['id']=key
         unique.setdefault(key,alert)
     observations=sorted([a for a in unique.values() if a['kind']=='Calculated'],key=lambda a:-a.get('severity',0))
+    # Related company articles are separate evidence, never a claimed cause of a move.
+    for alert in observations:
+        related=[]
+        for group in (payload.get('company_news',[]) or [])+(payload.get('watchlist_news',[]) or []):
+            if not alert.get('symbol') or group.get('symbol')!=alert['symbol']:continue
+            name=re.sub(r'\b(plc|inc|corporation|corp|limited|ltd)\b.*','',group.get('name',''),flags=re.I)
+            normal=lambda t:' '.join(re.findall(r'[a-z0-9]+',t.lower()))
+            name=normal(name)
+            for article in group.get('articles',[]):
+                published=timestamp(article.get('published'))
+                if len(name)<3 or name not in normal(article.get('title','')):continue
+                if not published or not 0<=(now-published).total_seconds()<=THRESHOLDS['maxNewsAgeHours']*3600:continue
+                if article.get('archived') or article.get('restored') or not article.get('retrievedAt') or not str(article.get('url','')).startswith('https://'):continue
+                if not any(a['url']==article['url'] for a in related):related.append(article)
+        alert['relatedArticles']=sorted(related,key=lambda a:a.get('published',''),reverse=True)[:2]
     # Broad coverage when multiple asset classes actually cross existing thresholds.
     first=[];rest=[];classes=set()
     for alert in observations:
@@ -227,7 +242,7 @@ def assemble_daily_briefing(payload, alerts, now):
         (rest if group in classes else first).append(alert);classes.add(group)
     candidates=[]
     for alert in first+rest:
-        candidates.append({'id':alert['id'],'alertId':alert['id'],'title':alert['title'],'published':alert['date'],'source':alert.get('source'),'url':alert.get('url'),'researchUrl':alert.get('researchUrl'),'classification':'observed_market_movement','marketMoving':True,'selectionReasons':[alert['detail'],'Existing alert threshold crossed; no event-to-price cause inferred'],'assetClass':alert.get('assetClass')})
+        candidates.append({'id':alert['id'],'alertId':alert['id'],'title':alert['title'],'published':alert['date'],'source':alert.get('source'),'url':alert.get('url'),'researchUrl':alert.get('researchUrl'),'relatedArticles':alert.get('relatedArticles',[]),'classification':'observed_market_movement','marketMoving':True,'selectionReasons':[alert['detail'],'Existing alert threshold crossed; no event-to-price cause inferred'],'assetClass':alert.get('assetClass')})
     for story in payload['news']:
         if story['archived']:continue
         status=story['developmentStatus']
