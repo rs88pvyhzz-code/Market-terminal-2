@@ -12,7 +12,7 @@ with sync_playwright() as p:
     for width,height in [(1440,1100),(1024,768),(390,844)]:
         page.set_viewport_size({'width':width,'height':height});page.locator('#tab-overview').click();page.wait_for_timeout(80)
         sections=page.locator('#view-overview > section').evaluate_all('(els)=>els.map(e=>e.id)')
-        assert sections==['r24-developments','overview-board','r24-conditions','r24-watch','r24-upcoming'],sections
+        assert sections==['r24-developments','overview-board','news','r24-upcoming'],sections  # terminal_layout.js
         assert page.locator('#market-pulse > .r24-snapshot-item').count()==(14 if page.evaluate("document.documentElement.classList.contains('release210')") else 7)
         # Release 2.8 deliberately expands the ranked Overview maximum from 3 to 5.
         # Older snapshots still retain the original Release 2.4 contract.
@@ -24,7 +24,9 @@ with sync_playwright() as p:
         for tab,name in [('overview','overview'),('fx','markets'),('economics','economics'),('equities','equities'),('companies','research'),('analytics','analytics'),('bonds','bonds'),('etfs','etfs'),('watchlist','watchlist'),('quality','quality')]:
             page.locator('#tab-'+tab).click();page.wait_for_timeout(80)
             if tab=='companies':page.locator('#research-tab-0').click();page.wait_for_timeout(100)
-            if tab=='fx':page.locator('#sub-fx-prices').click();page.wait_for_timeout(50);assert page.locator('#movers').is_visible();page.locator('#sub-fx-news').click();assert page.locator('#news').is_visible();page.locator('#sub-fx-prices').click()
+            if tab=='fx':assert page.locator('#monitor').is_visible()
+            if tab=='equities':assert page.locator('#movers').is_visible()
+            if tab=='overview':assert page.locator('#news').is_visible()
             if tab=='economics':
                 assert page.locator('#calendar-items table').count()==1
                 assert page.locator('#calendar-items th').all_text_contents()==['Date','Time','Country','Indicator','Previous','Forecast','Actual','Source']
@@ -54,9 +56,12 @@ with sync_playwright() as p:
         assert page.locator('#research-valuation button').count()==0
         assert 'Trailing P/E' in page.locator('#research-valuation').inner_text()
         page.locator('#research-tab-0').click();page.wait_for_timeout(80)
-        assert page.locator('#company-chart').is_visible() and page.locator('#company-risk-kpis').is_visible()
+        assert page.locator('#company-chart').is_visible()
+        page.locator('#tab-analytics').click();page.wait_for_timeout(80)
+        assert page.locator('#company-risk-kpis').is_visible()  # risk is analytics
+        page.locator('#tab-companies').click();page.wait_for_timeout(80)
         assert page.locator('#research-overview details').count()==0
-        assert page.locator('#company-advanced').is_visible() and page.locator('#company-advanced').evaluate('(e)=>e.tagName')=='SECTION'
+        assert page.locator('#view-analytics #company-advanced').count()==1 and page.locator('#company-advanced').evaluate('(e)=>e.tagName')=='SECTION'
         page.locator('#research-tab-1').click();page.wait_for_timeout(80)
         for period in ['3Y','5Y']:
             button=page.locator('#research-statements button').filter(has_text=period)
