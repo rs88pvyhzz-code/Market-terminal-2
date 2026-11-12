@@ -29,7 +29,7 @@ CHECK = '''() => {
   for (const [key, ids] of Object.entries(L.TABS)) {
     const view = $('view-' + key); if (!view) { problems.push('missing view ' + key); continue; }
     for (const child of view.children) {
-      if (child.classList.contains('workspace-title') || child.hidden) continue;
+      if (child.classList.contains('workspace-title') || child.classList.contains('layout-subtabs') || child.hidden) continue;
       if (getComputedStyle(child).display === 'none') continue;
       if (!ids.includes(child.id)) problems.push('undeclared panel on ' + key + ': ' + (child.id || child.className));
     }
@@ -67,6 +67,14 @@ with sync_playwright() as p:
             check('tab ' + tab)
             assert page.evaluate('document.body.scrollWidth<=innerWidth+1'), (width, tab, 'page scrolls sideways')
 
+        page.locator('#tab-bonds').click()
+        page.wait_for_timeout(120)
+        for label, ids in [('UK gilts', ['gilts']), ('US Treasuries', ['us-treasuries']), ('Yield curves', ['rates', 'real']),
+                           ('Credit spreads', ['corporate-credit']), ('Sovereign', ['sovereign'])]:
+            page.locator('#layout-bond-tabs button', has_text=label).click()
+            page.wait_for_timeout(120)
+            shown = page.evaluate("[...document.querySelectorAll('#view-bonds > section')].filter(s=>s.getClientRects().length).map(s=>s.id)")
+            assert shown == ids, (width, label, shown)
         page.locator('#tab-companies').click()
         options = page.locator('#company-pick option').evaluate_all('(o)=>o.map(x=>x.value).filter(Boolean)')
         for symbol in options[:3]:
