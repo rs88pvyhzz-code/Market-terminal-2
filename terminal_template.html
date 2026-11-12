@@ -782,7 +782,7 @@ h2{font:600 15px/1.35 var(--font);color:var(--amber);margin:0}h3{font:500 13px v
  <div class="row"><div><h2>SECTOR RELATIVE PERFORMANCE</h2><p class="note">Current constituent price returns against their benchmark. Equal-weight sector sample, not a sector index; returns exclude dividends.</p></div></div>
  <div class="research-controls"><label class="mini" for="sector-index">INDEX</label><select id="sector-index" class="field" aria-label="Choose index for sector returns"></select>
   <label class="mini" for="sector-period">PERIOD</label><select id="sector-period" class="field" aria-label="Sector returns time frame"><option value="1M">1 month</option><option value="3M">3 months</option><option value="6M">6 months</option><option value="1Y">1 year</option></select></div>
- <div class="analytic-scroll"><table class="watch"><thead><tr><th>Sector</th><th class="n">Covered / identified</th><th class="n">Sector price move</th><th class="n">Index price move</th><th class="n">Relative (pp)</th><th>Relative bar</th></tr></thead><tbody id="sector-rows"></tbody></table></div>
+ <div class="analytic-scroll"><table class="watch"><thead><tr><th>Sector</th><th class="n">Relative (pp)</th><th class="n">Sector move</th><th class="n">Index move</th><th class="n">Covered / identified</th><th>Relative bar</th></tr></thead><tbody id="sector-rows"></tbody></table></div>
  <p class="note" id="sector-note"></p>
 </section>
 <section class="panel" id="analytics-rolling">
@@ -1929,10 +1929,12 @@ function renderSectors(){
  const sectors=[...m.sectors].sort((a,b)=>{const av=a.periods?.[range]?.relativePp,bv=b.periods?.[range]?.relativePp;
   return av==null?1:bv==null?-1:bv-av||a.sector.localeCompare(b.sector);});
  for(const item of sectors){const d=item.periods?.[range]||{},n=d.covered||0,ratio=item.sectorMembers?fmt(n/item.sectorMembers*100,0)+'%':'—',tr=el('tr');
-  td(tr,item.sector);td(tr,n+' / '+item.sectorMembers+' ('+ratio+')','n');
+  const title=td(tr,item.sector);
+  title.append(el('span','r212-sector-context','Sector '+(d.sectorReturnPct==null?'—':pc(d.sectorReturnPct))+' · index '+(d.indexReturnPct==null?'—':pc(d.indexReturnPct))+' · covered '+n+'/'+item.sectorMembers));
+  td(tr,d.relativePp==null?'—':(d.relativePp>0?'+':'')+fmt(d.relativePp,2)+'pp','n '+tone(d.relativePp));
   td(tr,d.sectorReturnPct==null?'—':pc(d.sectorReturnPct),'n '+tone(d.sectorReturnPct));
   td(tr,d.indexReturnPct==null?'—':pc(d.indexReturnPct),'n');
-  td(tr,d.relativePp==null?'—':(d.relativePp>0?'+':'')+fmt(d.relativePp,2)+'pp','n '+tone(d.relativePp));
+  td(tr,n+' / '+item.sectorMembers+' ('+ratio+')','n');
   const cell=td(tr,'');if(d.relativePp!=null){const bar=el('div','sector-bar');const fill=el('span','sector-fill '+(d.relativePp>=0?'plus':'minus'));
    fill.style.width=Math.min(100,Math.abs(d.relativePp)/20*100)+'%';bar.append(fill);cell.append(bar);}
   body.append(tr);
