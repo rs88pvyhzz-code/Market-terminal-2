@@ -64,14 +64,15 @@ def is_isin_valid(s):
 
 def validate():
     rows=facts()
-    assert len(rows)==78, ('Issuer row count altered',len(rows))
+    assert len(rows)==80, ('Issuer row count altered',len(rows))  # 78 + CNYA.L, NDIA.L (Release 3.1)
     assert len({r['symbol'] for r in rows})==len(rows), 'Duplicate symbol in issuer CSV'
     assert len({r['isin'] for r in rows})==len(rows), 'Duplicate share class ISIN in issuer CSV'
     for r in rows:
         assert is_isin_valid(r['isin']), ('Bad ISIN',r['symbol'],r['isin'])
         assert 0 <= float(r['terPct']) <= 5, ('Fee out of range',r['symbol'])
-        assert float(r['aum'])>0, ('Bad AUM',r['symbol'])
-        assert r['aumCurrency'] in ('USD','EUR','GBP','JPY')
+        if r['aum']:  # blank = no dated fund size captured; never a zero
+            assert float(r['aum'])>0, ('Bad AUM',r['symbol'])
+            assert r['aumCurrency'] in ('USD','EUR','GBP','JPY')
     for r in US_BONDS_JSON:
         assert re.fullmatch(r'[A-Z]{2,5}',r['symbol'])
     return rows
@@ -324,7 +325,8 @@ def enrich(data):
                      terSource=fund_source,terProvider=r['issuer'])
             if r.get('sourceUrl'):f['terUrl']=r['sourceUrl']
             counts['feeFallback']+=1
-        if f.get('fundSize') is None or f.get('fundSize')==0 or not f.get('fundSizeSource'):
+        # A snapshot row may carry fees but no dated fund size; never coerce a blank to a number.
+        if r.get('aum') and (f.get('fundSize') is None or f.get('fundSize')==0 or not f.get('fundSizeSource')):
             f.update(fundSize=float(r['aum']),fundSizeCurrency=r['aumCurrency'],
                 fundSizeAsOf=r['aumAsOf'],fundSizeCheckedAt=verified_date,
                 fundSizeSource=fund_source,

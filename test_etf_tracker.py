@@ -119,4 +119,18 @@ class CatalogTests(unittest.TestCase):
         self.assertTrue(warnings)
         self.assertEqual(cached,0)
 
+class ConsolidationRuns(unittest.TestCase):
+    """The production build runs the issuer snapshot over every catalogued fund;
+    the demo build does not, so check it here. A blank snapshot field (e.g. a
+    fund with fees but no dated AUM) must not stop the build."""
+    def test_enrich_runs_over_whole_catalogue(self):
+        import etf_consolidation
+        data=etf_tracker.demo(ROOT/'etf_catalog.csv')
+        out=etf_consolidation.enrich(data)
+        funds={f['symbol']:f for f in out['funds']}
+        self.assertAlmostEqual(funds['NDIA.L']['terPct'],0.65)
+        self.assertEqual(funds['EMXC.L']['isin'],'LU2009202107')
+        self.assertIsNone(funds['CNYA.L'].get('fundSize'))
+
+
 if __name__=='__main__':unittest.main()
