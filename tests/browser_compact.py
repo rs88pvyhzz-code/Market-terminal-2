@@ -66,7 +66,7 @@ with sync_playwright() as p:
         values=[float(x.replace('%','')) for x in page.locator('#mt-movers-matrix tr[data-symbol] td:nth-child(5)').all_text_contents() if x!='—']
         assert values==sorted(values)
         page.locator('#mt-movers-view').select_option('regions')
-        assert page.locator('#mt-movers-matrix tr.watch-section').first.inner_text()=='UK equity indices'
+        assert page.locator('#mt-movers-matrix tr.watch-section').first.text_content()=='UK equity indices'
         row_height=rows.first.bounding_box()['height'];assert row_height<=36,(width,row_height)
         assert page.locator('#mt-movers-table thead th').first.evaluate('(e)=>getComputedStyle(e).position')=='sticky'
         page.locator('#score-panel').scroll_into_view_if_needed()

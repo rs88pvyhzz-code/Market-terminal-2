@@ -234,3 +234,8 @@
  .terminal1-design.release212 #view-overview #r24-conditions th:nth-child(n+3),
  .terminal1-design.release212 #view-overview #r24-conditions td:nth-child(n+3){display:table-cell}
 }
+.layout-yield-grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:12px}
+.layout-yield-grid>div{display:flex;flex-direction:column;gap:4px}
+.layout-yield-grid span,.layout-yield-grid small{font:12px/1.35 system-ui,sans-serif;color:var(--t-muted)}
+.layout-yield-grid strong{font:20px/1.3 var(--t-mono);font-variant-numeric:tabular-nums}
+#layout-yield-snapshot h2{font-size:12px;margin:0 0 8px}

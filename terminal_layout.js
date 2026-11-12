@@ -28,7 +28,7 @@ const TABS={
   fx:['monitor'],
   equities:['equity-screener','constituents','movers'],
   companies:['companies'],
-  bonds:['gilts','us-treasuries','rates','real','sovereign','corporate-credit'],
+  bonds:['layout-yield-snapshot','gilts','us-treasuries','rates','real','sovereign','corporate-credit'],
   etfs:['etf-tracker-panel'],
   economics:['macro','calendar','macro-surprise'],
   watchlist:['personal-watchlist-panel']
@@ -88,7 +88,7 @@ const TAB_NAMES={companies:'Company Research',bonds:'Bonds & Rates',etfs:'ETF Tr
 // Match visual navigation to keyboard navigation; stable IDs preserve deep links.
 function orderNavigation(){
  const nav=$L('workspace-tabs');if(!nav)return;
- for(const key of WORKSPACES){const tab=$L('tab-'+key);if(tab)nav.append(tab);}
+ WORKSPACES.forEach((key,i)=>{const tab=$L('tab-'+key);if(tab&&nav.children[i]!==tab)nav.insertBefore(tab,nav.children[i]||null);});
 }
 function unwrapValuations(){
  const fold=$L('r212-valuation-fold'),panel=$L('market-valuations');
@@ -103,6 +103,20 @@ function sectionLinks(){
   const sig=targets.map(n=>n.id).join('|');if(nav.dataset.targets===sig)continue;nav.dataset.targets=sig;nav.replaceChildren();
   for(const node of targets){const b=document.createElement('button');b.type='button';b.textContent=node.querySelector('h2,h3').textContent.replace(/ · .*/,'');
    b.onclick=()=>node.scrollIntoView({behavior:'smooth',block:'start'});nav.append(b);}
+ }
+}
+
+function renderYieldSnapshot(){
+ const view=$L('view-bonds');if(!view)return;
+ let host=$L('layout-yield-snapshot');if(!host){host=document.createElement('div');host.id='layout-yield-snapshot';host.className='panel';view.append(host);}
+ if(host.dataset.ready)return;host.dataset.ready='yes';
+ const heading=document.createElement('h2');heading.textContent='GOVERNMENT YIELD SNAPSHOT';host.append(heading);
+ const grid=document.createElement('div');grid.className='layout-yield-grid';host.append(grid);
+ for(const [name,rows,field] of [['UK 10Y · BoE spot',D.uk_rates,'gilt10y'],['US 10Y · Treasury par',D.us_rates,'DGS10'],['Euro area 10Y · spot',D.eu_rates,'eur10y']]){
+  const row=(rows||[]).filter(x=>Number.isFinite(x[field])).at(-1),cell=document.createElement('div');
+  const label=document.createElement('span');label.textContent=name;
+  const value=document.createElement('strong');value.textContent=row?fmt(row[field],2)+'%':'Unavailable';
+  const date=document.createElement('small');date.textContent=row?.date||'No observation';cell.append(label,value,date);grid.append(cell);
  }
 }
 
@@ -489,7 +503,7 @@ function applyLayout(){
     for(const [key,ids] of Object.entries(TABS)){const view=$L('view-'+key);if(view)place(view,ids);}
     for(const [id,ids] of Object.entries(RESEARCH)){const view=$L(id);if(view)place(view,ids);}
     mergeSnapshot(park);
-    for(const step of [orderPulse,orderDetailContent,tidyEtf,renderEtfAlternatives,renderWarnings,renderSovereignTable,renderBondTabs])
+    for(const step of [orderPulse,orderDetailContent,renderYieldSnapshot,tidyEtf,renderEtfAlternatives,renderWarnings,renderSovereignTable,renderBondTabs])
       {try{step();}catch(e){console.warn('Layout step skipped:',step.name,e&&e.message);}}
     const ws=$L('watchlist-summary');if(ws&&ws.parentElement!==park)park.append(ws);
     stripCaveats();
