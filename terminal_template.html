@@ -1189,8 +1189,29 @@ function filtered(){let rows=D.quotes.filter(q=>(!state.group||q.group===state.g
    let n=(typeof x==='string'||typeof y==='string')?String(x||'').localeCompare(String(y||'')):numCmp(x,y);return state.desc?-n:n;});}
  return rows;}
 function td(tr,text,classes=''){let c=el('td',classes,text);tr.append(c);return c;}
-function renderWatch(){const body=$('watch-rows');body.replaceChildren();const rows=filtered();$('count').textContent=rows.length+' / '+D.quotes.length+' instruments';
-  for(const q of rows){const tr=el('tr',q.symbol===state.sym?'selected':'');
+// Global prices are read in sections: equity indices by region, then ETFs, currencies,
+// government yields, commodities and crypto. Sections show only in the default order;
+// a column sort or a single-group filter gives one plain list.
+const WATCH_SECTIONS=[
+  ['UK equity indices',q=>q.group==='Equities'&&/^\^(FTSE|FTMC|FTAS|FTLC)/.test(q.symbol)],
+  ['European equity indices',q=>q.group==='Equities'&&/^(\^(STOXX|GDAXI|FCHI|IBEX|AEX|SSMI|FTMIB|OMX|BFX|ATX)|FTSEMIB)/.test(q.symbol)],
+  ['Americas equity indices',q=>q.group==='Equities'&&/^\^(GSPC|IXIC|NDX|DJI|RUT|GSPTSE|MXX|BVSP|MERV|IPSA|VIX)/.test(q.symbol)],
+  ['Asia-Pacific equity indices',q=>q.group==='Equities'&&/^(\^(N225|HSI|KS11|AXJO|NSEI|BSESN|TWII|JKSE|STI|KLSE|SET|NZ50|HSCE)|000001\.SS|000300\.SS)/.test(q.symbol)],
+  ['Other equity indices',q=>q.group==='Equities'],
+  ['ETFs',q=>q.group==='ETFs'],
+  ['Currencies',q=>q.group==='FX'],
+  ['Government bond yields',q=>q.group==='Rates'],
+  ['Commodities',q=>q.group==='Commodities'],
+  ['Crypto',q=>q.group==='Crypto'],
+  ['Other',q=>true]];
+function watchSection(q){return WATCH_SECTIONS.find(([,test])=>test(q))[0];}
+function renderWatch(){const body=$('watch-rows');body.replaceChildren();let rows=filtered();$('count').textContent=rows.length+' / '+D.quotes.length+' instruments';
+  const sectioned=state.sort==='default';
+  if(sectioned){const order=new Map(WATCH_SECTIONS.map(([n],i)=>[n,i]));rows=rows.map((q,i)=>[q,i]).sort((a,b)=>order.get(watchSection(a[0]))-order.get(watchSection(b[0]))||a[1]-b[1]).map(x=>x[0]);}
+  let current=null;
+  for(const q of rows){
+  if(sectioned){const name=watchSection(q);if(name!==current){current=name;const n=rows.filter(x=>watchSection(x)===name).length;const hr=el('tr','watch-section');const cell=el('th','',name);cell.colSpan=10;cell.scope='colgroup';cell.append(el('span','watch-section-count',' '+n));hr.append(cell);body.append(hr);}}
+  const tr=el('tr',q.symbol===state.sym?'selected':'');
   td(tr,q.name);td(tr,q.symbol,'hide-sm');td(tr,q.currency||'—','hide-sm');td(tr,price(q),'n');
   for(const k of ['day','ytd','year'])td(tr,move(q,k),'n '+tone(moveVal(q,k)));
   td(tr,fmt(q.low52,prec(q)),'n hide-sm');td(tr,fmt(q.high52,prec(q)),'n hide-sm');td(tr,q.asOf||'—','hide-sm');

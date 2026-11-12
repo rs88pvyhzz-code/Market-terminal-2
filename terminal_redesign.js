@@ -80,15 +80,37 @@ function r24CalendarEvents(){
 }
 function r24MajorEvent(e){return /inflation|consumer price|\bcpi\b|\bgdp\b|gross domestic|employment|payroll|wages|retail sales|monetary policy|bank rate|interest rate|fomc|policy decision/i.test(e.title||'');}
 function r24Value(x){return x===null||x===undefined||x===''?'Unavailable':typeof x==='number'?fmt(x,2):String(x);}
+// Latest official print for the series a scheduled release will update. The value
+// comes from the Economic indicators data already in this snapshot; nothing is
+// estimated. Consensus forecasts are proprietary (wire-service polls), so the
+// table does not show a forecast column, and an "actual" cannot exist before release.
+const R24_PRINT_SERIES=[
+  [/consumer price|inflation|\bcpi\b|\bhicp\b/i,{UK:/^UK CPI/i,US:/^US CPI/i,EU:/HICP/i}],
+  [/labour market|unemployment|employment situation|jobs report|payroll/i,{UK:/^UK unemployment/i,US:/^US unemployment/i,EU:/^Euro-area unemployment/i}],
+  [/\bgdp\b|gross domestic/i,{UK:/^UK real GDP \(q\/q\)/i,US:/^US real GDP/i,EU:/^Euro-area real GDP/i}],
+  [/bank rate|monetary policy|interest rate|policy decision|fomc/i,{UK:/Bank Rate/i,US:/Fed funds/i,EU:/ECB|deposit facility/i}]
+];
+function r24LatestPrint(e){
+  if(e.previous!==null&&e.previous!==undefined&&e.previous!=='')return {text:typeof e.previous==='number'?fmt(e.previous,2):String(e.previous),title:'Supplied with the calendar entry'};
+  if(/update on progress|transformation|methodolog|consultation/i.test(e.title||''))return null; // not a statistical print
+  const rule=R24_PRINT_SERIES.find(([re])=>re.test(e.title||''));if(!rule)return null;
+  const nameRe=rule[1][e.region];if(!nameRe)return null;
+  const series=(D.macro||[]).find(m=>nameRe.test(m.name||'')&&Number.isFinite(Number(m.value)));if(!series)return null;
+  const unit=series.unit==='%'||/%/.test(series.unit||'')?'%':(series.unit?' '+series.unit:'');
+  const period=String(series.period||series.date||'').slice(0,7);
+  return {text:fmt(Number(series.value),2)+unit+(period?' · '+period:''),title:series.name+(series.source?' · '+series.source:'')};
+}
 function r24CalendarTable(host,events,overview=false){
   const rows=events.map(e=>{
     const source=r24Link(e.source||'Official calendar',e.url);
-    const forecast=e.forecastSource||e.forecastSourceUrl?r24Value(e.forecast):'Unavailable';
-    return overview?[e.date+' · '+(e.time||'Time unavailable'),e.region==='EU'?'Euro area':e.region,r24Link(e.title,e.url),r24Value(e.previous),forecast]:[e.date,e.time||'Unavailable',e.region==='EU'?'Euro area':e.region,r24Link(e.title,e.url),r24Value(e.previous),forecast,r24Value(e.actual),source];
+    const latest=r24LatestPrint(e);
+    const latestCell=latest?latest.text:'Not a tracked series';
+    return overview?[e.date+' · '+(e.time||'Time unavailable'),e.region==='EU'?'Euro area':e.region,r24Link(e.title,e.url),latestCell]:[e.date,e.time||'Unavailable',e.region==='EU'?'Euro area':e.region,r24Link(e.title,e.url),latestCell,source];
   });
-  const table=r24Table(host,overview?['Date / time','Country','Indicator','Previous','Forecast']:['Date','Time','Country','Indicator','Previous','Forecast','Actual','Source'],rows,'r24-calendar-table');
-  events.forEach((e,i)=>{if(r24MajorEvent(e))table.tBodies[0].rows[i].classList.add('r24-major-event');});
+  const table=r24Table(host,overview?['Date / time','Country','Indicator','Latest print']:['Date','Time','Country','Indicator','Latest print','Source'],rows,'r24-calendar-table');
+  events.forEach((e,i)=>{const row=table.tBodies[0].rows[i];if(r24MajorEvent(e))row.classList.add('r24-major-event');const latest=r24LatestPrint(e);if(!latest)row.cells[overview?3:4].classList.add('r24-untracked');else row.cells[overview?3:4].title=latest.title;});
   if(!events.length)host.append(el('p','note','No verified scheduled releases are available for this selection.'));
+  else if(!host.querySelector('.r24-calendar-key'))host.append(el('p','note r24-calendar-key','Latest print is the most recent official value of the series the release will update, from Economic indicators. Consensus forecasts are not published free and are not shown; the new figure appears in Economic indicators after release.'));
 }
 function r24Conditions(host){
   const vix=qMap.get('^VIX'),breadth=D.marketAnalytics?.breadth||[],credit=(D.credit_spreads||[]).filter(x=>['US_IG','US_HY'].includes(x.key));

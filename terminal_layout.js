@@ -2,9 +2,9 @@
  *
  * Rules enforced here (and checked by tests/browser_layout.py):
  *   1. Every section sits on exactly one tab.
- *   2. All analytics (risk, volatility, correlation, momentum, benchmarks,
- *      spreads, peer comparisons, valuation proxies, after-tax and ladder
- *      calculators, signals) live only on the Analytics tab.
+ *   2. Market-wide analytics (risk, volatility, correlation, breadth, spreads,
+ *      valuation proxies, after-tax and ladder calculators, signals) live on the
+ *      Analytics tab. Analysis of the selected company stays in Company Research.
  *   3. Duplicated or distracting panels are retired, not deleted: they are parked
  *      in a hidden container so older render code that still writes to them by id
  *      cannot throw.
@@ -43,11 +43,6 @@ const ANALYTICS=[
   {key:'markets',title:'Markets',source:null,context:null,scopes:[['scope-view-fx'],[]],
    items:['compare','mt-risk-comparison','score-panel','analytics-rolling','r23-market-conditions',
           'analytics-breadth','analytics-sectors','r212-valuation-fold','market-valuations','r23-alerts']},
-  {key:'company',title:'Company',source:'companies',scopes:[['scope-view-companies','scope-panel'],['scope-research-view','scope-research-view-0']],
-   context:()=>{const n=$L('company-name')?.textContent.trim(),s=$L('company-symbol')?.textContent.trim();
-     return n?(n+(s?' ['+s+']':'')):'No company selected';},
-   items:['company-benchmark-block','company-risk-panel','company-advanced','research-executive',
-          'peer-panel','research-warning-priority','forensic-panel']},
   {key:'bonds',title:'Bonds & rates',source:'bonds',scopes:[['scope-view-bonds'],['scope-gilts']],
    context:()=>{const g=$L('gilt-selected')?.textContent.trim();return g?'Selected gilt: '+g:'';},
    items:['mt-gilt-tax','gilt-ladder','us-spread-panel','cross-rates']},
@@ -58,6 +53,16 @@ const ANALYTICS=[
    context:()=>{const w=$L('watchlist-selected-name')?.textContent.trim();return w||'No security selected';},
    items:['watchlist-risk']}
 ];
+
+// Company Research: company-specific analysis stays with the company it describes,
+// in the research view where it is read. Listed panels are placed first, in order;
+// anything else in the view (e.g. the full metrics grid) follows them.
+const RESEARCH={
+  'research-view-0':['research-overview','company-price-block','company-benchmark-block','company-risk-panel',
+                     'company-advanced','research-executive','company-news-panel'],
+  'research-view-3':['peer-panel'],
+  'research-view-5':['research-warning-priority','forensic-panel']
+};
 
 // Company-level source coverage belongs with the other source diagnostics.
 const QUALITY=['r29-coverage','company-coverage'];
@@ -74,7 +79,7 @@ const RETIRED_HEADINGS=['Dashboard rules'];
 // Renderers to run when Analytics becomes visible: charts need a visible
 // container to measure. Each is optional; a failure in one does not stop the rest.
 const ANALYTICS_PAINT=[
-  ()=>renderCompany(),()=>renderPeers(),()=>renderGilts(),()=>usSpread(),()=>renderRates(),
+  ()=>renderGilts(),()=>usSpread(),()=>renderRates(),
   ()=>renderEtfTracker(),()=>renderWatchlist(),()=>renderMarketBriefing()
 ];
 
@@ -148,6 +153,25 @@ function analyticsGroup(view,g){
   return $L('layout-body-'+g.key);
 }
 
+// Company Research: the reported snapshot figures join the overview tiles as one
+// block, instead of a separate "All reported snapshot metrics" section further down.
+// Figures already shown in the overview tiles (day move, market capitalisation) are
+// hidden from the merged grid, not deleted. Re-run after every company render,
+// because that render rebuilds the overview and its snapshot section.
+const SNAPSHOT_DUPLICATES=/^(day move|market capitali[sz]ation)$/i;
+function mergeSnapshot(park){
+  const kpis=$L('company-kpis'),dash=document.querySelector('#research-overview .research-dashboard');
+  if(!kpis||!dash)return;
+  const holder=kpis.closest('.research-detail');
+  if(dash.nextElementSibling!==kpis)dash.after(kpis);
+  kpis.classList.add('layout-merged-kpis');
+  for(const tile of kpis.children){const label=(tile.firstElementChild&&tile.firstElementChild.textContent||'').trim();tile.hidden=SNAPSHOT_DUPLICATES.test(label);}
+  if(holder&&!holder.contains(kpis)&&!park.contains(holder)){
+    const rest=[...holder.children].filter(c=>!c.matches('h3,h4,summary,.r24-support-heading'));
+    if(!rest.length)park.append(holder);
+  }
+}
+
 function refreshContexts(){
   for(const g of ANALYTICS){
     const box=$L('layout-analytics-'+g.key);if(!box)continue;
@@ -170,6 +194,8 @@ function applyLayout(){
       if(h&&RETIRED_HEADINGS.includes(h.textContent.trim())&&!park.contains(sec))park.append(sec);
     });
     for(const [key,ids] of Object.entries(TABS)){const view=$L('view-'+key);if(view)place(view,ids);}
+    for(const [id,ids] of Object.entries(RESEARCH)){const view=$L(id);if(view)place(view,ids);}
+    mergeSnapshot(park);
     const av=$L('view-analytics');
     if(av){for(const g of ANALYTICS)place(analyticsGroup(av,g),g.items);}
     const qv=$L('mt-other-audits')||$L('view-quality');
@@ -196,7 +222,7 @@ paintWorkspace=function(key){
   finally{applyLayout();}
 };
 
-window.terminalLayout={TABS,ANALYTICS,QUALITY,RETIRED_IDS,apply:applyLayout};
+window.terminalLayout={TABS,RESEARCH,ANALYTICS,QUALITY,RETIRED_IDS,apply:applyLayout};
 applyLayout();
 // Other layers rearrange panels in their own DOMContentLoaded handlers and on short
 // timers; a zero-delay task queued from ours runs after all of them.

@@ -44,7 +44,8 @@ class ScopeAliases(unittest.TestCase):
 
 class LayoutInjection(unittest.TestCase):
     def page(self):
-        return ('<html><head><style>#gilts .r{a:b}</style></head><body><script>\'use strict\';(function(){\n'
+        return ('<html><head><style>#gilts .r{a:b}</style></head><body><script>window.MT_DATA = {"news":[]};</script>'
+                '<script>\'use strict\';(function(){\n'
                 'function init(){}\ninit();\n})();</script></body></html>')
 
     def test_injected_inside_application_scope_once(self):
@@ -55,15 +56,17 @@ class LayoutInjection(unittest.TestCase):
             first = f.read_text()
             build_site.inject_layout(f)                 # idempotent
             self.assertEqual(first, f.read_text())
-            body = first.split('<script>')[1]
+            body = first[first.index("'use strict'"):]
             self.assertLess(body.index('init();'), body.index('terminal-layout-script'))
             self.assertLess(body.index('terminal-layout-script'), body.rindex('})();'))
             self.assertIn('.scope-gilts .r', first)
+            self.assertLess(first.index('window.MT_DATA'), first.index('id="news-freshness"'))
+            self.assertLess(first.index('id="news-freshness"'), first.index("'use strict'"))
 
     def test_missing_scope_end_fails(self):
         with tempfile.TemporaryDirectory() as d:
             f = Path(d) / 't.html'
-            f.write_text('<html><head></head><body></body></html>')
+            f.write_text('<html><head></head><body><script>window.MT_DATA = {};</script></body></html>')
             with self.assertRaises(SystemExit):
                 build_site.inject_layout(f)
 

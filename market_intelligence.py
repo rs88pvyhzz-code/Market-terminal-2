@@ -470,7 +470,8 @@ def demo_extras(end,days=730):
     # Clearly synthetic news and releases, not fictional claims about actual events.
     demo_news=[{'category':cat,'title':'DEMO ONLY — sample '+cat.lower()+' news headline; no report retrieved',
                 'url':'https://news.google.com/','source':'SYNTHETIC DEMO',
-                'published':'2026-11-05 12:00 UTC'} for cat in NEWS_QUERIES]
+                # Dated relative to the build so the 3-day freshness rule keeps them visible.
+                'published':(dt.datetime.now(dt.timezone.utc)-dt.timedelta(hours=6)).strftime('%Y-%m-%d %H:%M UTC')} for cat in NEWS_QUERIES]
     demo_calendar=[{'date':(end+dt.timedelta(days=i)).isoformat(),'region':r,
                    'title':'DEMO ONLY — illustrative economic-release placeholder',
                    'url':u,'source':'SYNTHETIC DEMO','time':'Demonstration'} for i,r,u in [

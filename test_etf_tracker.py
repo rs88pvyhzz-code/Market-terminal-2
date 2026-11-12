@@ -16,7 +16,7 @@ class CatalogTests(unittest.TestCase):
         self.assertGreaterEqual(len(set(x['market'] for x in rows)),45)
         self.assertEqual(len(rows),len(set(x['symbol'] for x in rows)))
         records={x['symbol']:x for x in rows}
-        self.assertEqual(records['EMXN.L']['replication'],'Synthetic swap')
+        self.assertEqual(records['EMXC.L']['replication'],'Synthetic swap')
         self.assertEqual(records['SPOL.L']['replication'],'Physical full')
         self.assertEqual(records['FRIN.L']['market'],'India')
         self.assertEqual(records['HMCX.L']['market'],'UK FTSE 250')

@@ -30,7 +30,7 @@ XTRACKERS = {
 AMUNDI = {
     'LEMA.L': ('LU2573967036', 'https://www.amundietf.co.uk/en/professional/products/equity/amundi-core-msci-emerging-markets-swap-ucits-etf-acc/lu2573967036'),
     'AEME.L': ('LU1437017350', 'https://www.amundietf.co.uk/en/professional/products/equity/amundi-core-msci-emerging-markets-ucits-etf-acc/lu1437017350'),
-    'EMXN.L': ('LU2009202107', 'https://www.amundietf.co.uk/en/professional/etf-products/search'),
+    'EMXC.L': ('LU2009202107', 'https://www.amundietf.co.uk/en/professional/etf-products/search'),
     'CECL.L': ('LU1900066462', 'https://www.amundietf.co.uk/en/professional/etf-products/search'),
 }
 # The official Amundi product search lists fund ISIN, OGC and AUM together.

@@ -17,7 +17,8 @@ Stages
                                  (--strict-news makes the briefing check hard)
   3. terminal_research_upgrade   research layout, after-tax gilt comparison
   4. market_terminal_cleanup     period returns, economics, data quality
-  5. layout                      terminal_layout.css/js injected last, so the
+  5. layout                      news_freshness.js after the snapshot data;
+                                 terminal_layout.css/js injected last, so the
                                  tab layout is the final word on placement
 """
 import argparse
@@ -31,6 +32,8 @@ LAYOUT_CSS = 'terminal_layout.css'
 LAYOUT_JS = 'terminal_layout.js'
 LAYOUT_STYLE_ID = 'terminal-layout-styles'
 LAYOUT_SCRIPT_ID = 'terminal-layout-script'
+NEWS_JS = 'news_freshness.js'
+NEWS_SCRIPT_ID = 'news-freshness'
 
 
 def run(label, args, required=True):
@@ -145,6 +148,16 @@ def inject_layout(html_path):
     js = (ROOT / LAYOUT_JS).read_text('utf-8')
     if '</script' in js.lower() or '</style' in css.lower():
         raise SystemExit('Layout assets must not contain closing script or style tags.')
+    # News freshness runs on the snapshot data before the application reads it.
+    data_at = html.find('window.MT_DATA')
+    data_end = html.find('</script>', data_at)
+    if data_at < 0 or data_end < 0:
+        raise SystemExit('Snapshot data script not found; cannot apply the news freshness rule.')
+    news_js = (ROOT / NEWS_JS).read_text('utf-8')
+    if '</script' in news_js.lower():
+        raise SystemExit(f'{NEWS_JS} must not contain a closing script tag.')
+    data_end += len('</script>')
+    html = html[:data_end] + f'\n<script id="{NEWS_SCRIPT_ID}">\n{news_js}\n</script>' + html[data_end:]
     html = alias_all_styles(html)
     html = html.replace('</head>', f'<style id="{LAYOUT_STYLE_ID}">\n{css}\n</style>\n</head>')
     html = html.replace(MAIN_SCRIPT_END, f'\ninit();\n/*{LAYOUT_SCRIPT_ID}*/\n{js}\n}})();')

@@ -43,3 +43,82 @@
 .layout-group-body{display:grid;gap:14px;min-width:0}
 /* Scope stand-ins must not inherit the framing of the panels they stand in for. */
 .layout-group.scope-panel{background:none;border:0;padding:0;box-shadow:none}
+
+/* ===================================================================
+   Release 3.1 visual system — one look across every tab, on the
+   original Terminal 1 palette (black, amber, grey, green/red moves).
+   Tiles everywhere follow the US Treasuries presentation: one framed
+   grid, hairline dividers, amber mono label, large mono value, grey
+   mono caption. Later rules here win because this sheet loads last.
+   =================================================================== */
+:root{--t-bg:#09090b;--t-panel:#121215;--t-tile:#18181c;--t-tile-hi:#1e1e23;--t-line:#2c2c33;--t-amber:#ffa028;--t-fg:#ececef;--t-muted:#9a9aa3;
+  --t-mono:ui-monospace,"SF Mono",SFMono-Regular,Menlo,Consolas,monospace}
+
+/* Larger text everywhere. On tablets and desktops the whole terminal is scaled,
+   which keeps every proportion; on phones only the smallest text is raised. */
+@media (min-width:720px){#wrap,.wrap{zoom:1.12}}
+@media (max-width:719px){
+  #workspace-stage :is(.mini,.note,.obs,.d,small,.lab,.k,.key){font-size:max(12px,1em)!important}
+  #workspace-stage :is(td,th){font-size:13px}
+}
+
+/* Panels */
+#workspace-stage .panel,#workspace-stage .layout-group-body>section{border-radius:10px;border:1px solid var(--t-line);background:linear-gradient(180deg,#141418 0,var(--t-panel) 64px);box-shadow:0 1px 0 rgba(255,255,255,.03) inset,0 8px 24px rgba(0,0,0,.25)}
+#workspace-stage .panel>h2,#workspace-stage .panel>.row h2,#workspace-stage .panel>.row>div>h2{letter-spacing:.06em}
+#workspace-stage .note{line-height:1.55}
+
+/* Unified tiles (US Treasuries style) */
+#workspace-stage :is(.research-stats,.watchlist-kpis,.etf-stat-grid,.analytic-cards,.research-dashboard,.company-kpis,.mt-quality-grid,.r29-coverage-grid,.credit-kpis,.r28-gilt-yields,.r28-gilt-facts,.history-coverage-grid,.t11-ratios,#view-economics .macro){
+  display:grid;gap:1px!important;background:transparent!important;border:1px solid var(--t-line)!important;border-radius:8px;overflow:hidden;padding:0!important}
+#workspace-stage :is(.research-stats,.watchlist-kpis,.etf-stat-grid,.analytic-cards,.research-dashboard,.company-kpis,.mt-quality-grid,.r29-coverage-grid,.credit-kpis,.r28-gilt-yields,.r28-gilt-facts,.history-coverage-grid,.t11-ratios,#view-economics .macro)>*{
+  background:var(--t-tile)!important;border:0!important;border-radius:0!important;box-shadow:0 0 0 1px var(--t-line)!important;padding:14px 16px!important;min-width:0;display:flex;flex-direction:column;gap:6px;justify-content:flex-start}
+#workspace-stage :is(.research-stats,.watchlist-kpis,.etf-stat-grid,.analytic-cards,.research-dashboard,.company-kpis,.mt-quality-grid,.r29-coverage-grid,.credit-kpis,.r28-gilt-yields,.r28-gilt-facts,.history-coverage-grid,.t11-ratios,#view-economics .macro)>*>:first-child{
+  font:500 12px/1.35 var(--t-mono)!important;color:var(--t-amber)!important;letter-spacing:.02em;text-transform:none!important}
+#workspace-stage :is(.research-stats,.watchlist-kpis,.etf-stat-grid,.analytic-cards,.research-dashboard,.company-kpis,.mt-quality-grid,.r29-coverage-grid,.credit-kpis,.r28-gilt-yields,.r28-gilt-facts,.history-coverage-grid,.t11-ratios,#view-economics .macro)>*>:nth-child(2){
+  font:400 20px/1.25 var(--t-mono)!important;color:var(--t-fg);font-variant-numeric:tabular-nums;overflow-wrap:anywhere}
+#workspace-stage :is(.research-stats,.watchlist-kpis,.etf-stat-grid,.analytic-cards,.research-dashboard,.company-kpis,.mt-quality-grid,.r29-coverage-grid,.credit-kpis,.r28-gilt-yields,.r28-gilt-facts,.history-coverage-grid,.t11-ratios,#view-economics .macro)>*>:nth-child(n+3){
+  font:400 11.5px/1.45 var(--t-mono)!important;color:var(--t-muted)}
+#workspace-stage :is(.research-stats,.watchlist-kpis,.etf-stat-grid,.analytic-cards,.research-dashboard,.company-kpis,.credit-kpis,.r28-gilt-yields,.r28-gilt-facts)>*>:nth-child(n+3):is(.pos,.up,.good){color:#5fd39a}
+#workspace-stage :is(.research-stats,.watchlist-kpis,.etf-stat-grid,.analytic-cards,.research-dashboard,.company-kpis,.credit-kpis,.r28-gilt-yields,.r28-gilt-facts)>*>:nth-child(n+3):is(.neg,.down,.bad){color:#ff6b6b}
+#workspace-stage .r28-gilt-yields>*>:nth-child(2){font-size:26px!important;color:var(--t-fg)}
+#workspace-stage .r28-gilt-single{background:transparent!important;border:0!important;padding:0!important;display:grid;gap:12px}
+#workspace-stage .r28-gilt-caption{font:500 12px var(--t-mono)!important;color:var(--t-muted)!important;letter-spacing:.04em;text-transform:uppercase}
+#workspace-stage .pulse-board{border-radius:8px;overflow:hidden}
+
+/* Tables */
+#workspace-stage table.watch thead th{background:#16161a;color:var(--t-amber);font:500 11.5px/1.4 var(--t-mono);letter-spacing:.05em;text-transform:uppercase;border-bottom:1px solid var(--t-line);position:sticky;top:0;z-index:1}
+#workspace-stage table.watch td{font-variant-numeric:tabular-nums;border-bottom:1px solid #1d1d22}
+#workspace-stage table.watch tbody tr:hover td{background:#17171c}
+#workspace-stage table.watch tbody tr.selected td{background:#2a2112}
+
+/* Global prices sections */
+#workspace-stage tr.watch-section th{position:static;text-align:left;background:linear-gradient(90deg,rgba(255,160,40,.14),rgba(255,160,40,0) 60%);color:var(--t-amber);font:600 12px/1.4 var(--t-mono);letter-spacing:.08em;text-transform:uppercase;padding:12px 12px 8px;border-bottom:1px solid rgba(255,160,40,.35);border-top:10px solid var(--t-panel)}
+#workspace-stage tr.watch-section:first-child th{border-top:0}
+#workspace-stage .watch-section-count{color:var(--t-muted);font-weight:400;margin-left:8px}
+#workspace-stage tr.watch-section:hover th{background:linear-gradient(90deg,rgba(255,160,40,.14),rgba(255,160,40,0) 60%)}
+
+/* Economic calendar */
+#workspace-stage .r24-untracked{color:var(--t-muted);font-style:italic}
+
+/* Buttons and pills */
+#workspace-stage .btn{border-radius:6px}
+#workspace-stage .btn.active{box-shadow:0 0 0 1px rgba(255,160,40,.5),0 4px 14px rgba(255,160,40,.18)}
+@media (min-width:720px){#workspace-stage table.watch,#workspace-stage table.mt-return-table{width:100%}}
+#workspace-stage .r28-gilt-advanced{font:400 11.5px/1.5 var(--t-mono)!important;color:var(--t-muted)!important;border-top:1px solid var(--t-line)!important}
+#workspace-stage .r28-gilt-yields{grid-template-columns:repeat(auto-fit,minmax(200px,1fr))!important}
+#workspace-stage .r28-gilt-facts{grid-template-columns:repeat(auto-fit,minmax(180px,1fr))!important}
+/* Reported snapshot figures merged into the company overview tiles */
+#workspace-stage .layout-merged-kpis{margin-top:-1px;border-top-left-radius:0!important;border-top-right-radius:0!important}
+#workspace-stage #research-overview .research-dashboard:has(+ .layout-merged-kpis){border-bottom-left-radius:0!important;border-bottom-right-radius:0!important}
+#workspace-stage .layout-merged-kpis>[hidden]{display:none!important}
+#workspace-stage #research-overview .research-dashboard,#workspace-stage .layout-merged-kpis{grid-template-columns:repeat(auto-fill,minmax(230px,1fr))!important;margin-bottom:0!important}
+#workspace-stage .layout-merged-kpis{margin-top:0!important;border-top:0!important}
+#workspace-stage .layout-merged-kpis>*>*{white-space:normal!important;overflow:visible!important;text-overflow:clip!important}
+/* Phones: every data table scrolls sideways instead of squeezing headers into
+   one letter per line (gilts, US Treasuries, calendars and the rest). */
+@media (max-width:719px){
+  #workspace-stage table{width:max-content!important;min-width:100%!important;table-layout:auto!important}
+  #workspace-stage table th{white-space:nowrap!important;overflow-wrap:normal!important;word-break:normal!important;width:auto!important}
+  #workspace-stage table td{overflow-wrap:normal;word-break:normal}
+  #workspace-stage :has(> table){overflow-x:auto;-webkit-overflow-scrolling:touch;max-width:100%}
+}
