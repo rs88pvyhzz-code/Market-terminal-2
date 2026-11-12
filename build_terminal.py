@@ -59,7 +59,7 @@ INSTRUMENTS = [
  ('Equities','^GDAXI','DAX','index'),('Equities','^FCHI','CAC 40','index'),
  ('Equities','FTSEMIB.MI','FTSE MIB','index'),('Equities','^IBEX','IBEX 35','index'),
  ('Equities','^SSMI','Swiss Market Index','index'),('Equities','^N225','Nikkei 225','index'),
- ('Equities','^TOPX','TOPIX','index'),('Equities','^HSI','Hang Seng','index'),
+('Equities','^HSI','Hang Seng','index'),
  ('Equities','000300.SS','CSI 300','index'),('Equities','^KS11','KOSPI','index'),
  ('Equities','^AXJO','ASX 200','index'),('Equities','^NSEI','Nifty 50','index'),
  ('Equities','^BVSP','Brazil Bovespa','index'),('Equities','^MXX','Mexico IPC','index'),

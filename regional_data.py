@@ -120,12 +120,20 @@ def economic_series(key,name,rows,source,region,frequency,cached,source_url=''):
 def get_regional_data(core,opts):
     """Return (macro series, ECB daily yield rows, warnings, cached count)."""
     warnings=[];macros=[];euro_days={};n_cached=0
-    for code,dataset,key,name,freq,region in ONS_SERIES:
+    import time
+    for n_ons,(code,dataset,key,name,freq,region) in enumerate(ONS_SERIES):
+        # ONS rate-limits bursts (HTTP 429). Space requests out and, on 429, wait and retry.
+        if n_ons and not opts.offline:time.sleep(1.5)
         # ONS published CSV endpoint; failure is clearly marked and isolated.
         path=f'/{ONS_TOPICS[code]}/timeseries/{code.lower()}/{dataset}'
         url='https://www.ons.gov.uk/generator?'+urllib.parse.urlencode({'format':'csv','uri':path})
         try:
-            raw,cached,msg=core.get_bytes(url,f'ons_{code.lower()}',opts.offline,opts.cache_hours)
+            for attempt in range(3):
+                try:
+                    raw,cached,msg=core.get_bytes(url,f'ons_{code.lower()}',opts.offline,opts.cache_hours);break
+                except Exception as e:
+                    if '429' not in str(e) or attempt==2 or opts.offline:raise
+                    time.sleep(8*(attempt+1))
             pts=parse_ons_csv(raw,freq)
             macros.append(economic_series(key,name,pts,'ONS',region,freq,cached,url));n_cached+=int(cached)
             if 'stale cache' in msg:warnings.append(f'ONS {code}: stale cache')

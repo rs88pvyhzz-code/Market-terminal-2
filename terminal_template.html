@@ -1193,21 +1193,30 @@ function td(tr,text,classes=''){let c=el('td',classes,text);tr.append(c);return 
 // government yields, commodities and crypto. Sections show only in the default order;
 // a column sort or a single-group filter gives one plain list.
 const WATCH_SECTIONS=[
+  ['US & Americas equity indices',q=>q.group==='Equities'&&/^\^(GSPC|IXIC|NDX|DJI|RUT|GSPTSE|MXX|BVSP|MERV|IPSA)/.test(q.symbol)],
   ['UK equity indices',q=>q.group==='Equities'&&/^\^(FTSE|FTMC|FTAS|FTLC)/.test(q.symbol)],
   ['European equity indices',q=>q.group==='Equities'&&/^(\^(STOXX|GDAXI|FCHI|IBEX|AEX|SSMI|FTMIB|OMX|BFX|ATX)|FTSEMIB)/.test(q.symbol)],
-  ['Americas equity indices',q=>q.group==='Equities'&&/^\^(GSPC|IXIC|NDX|DJI|RUT|GSPTSE|MXX|BVSP|MERV|IPSA|VIX)/.test(q.symbol)],
   ['Asia-Pacific equity indices',q=>q.group==='Equities'&&/^(\^(N225|HSI|KS11|AXJO|NSEI|BSESN|TWII|JKSE|STI|KLSE|SET|NZ50|HSCE|TOPX|TOPIX)|000001\.SS|000300\.SS)/.test(q.symbol)],
+  ['Volatility',q=>q.kind==='volatility'||q.symbol==='^VIX'],
   ['Other equity indices',q=>q.group==='Equities'],
-  ['ETFs',q=>q.group==='ETFs'],
+  ['Equity ETFs',q=>q.group==='ETFs'&&!/^(TLT|IEF|SHY|LQD|HYG|TIP|BND|AGG|IGOV|BNDX)$/.test(q.symbol)],
+  ['Bond ETFs',q=>q.group==='ETFs'],
   ['Currencies',q=>q.group==='FX'],
   ['Government bond yields',q=>q.group==='Rates'],
   ['Commodities',q=>q.group==='Commodities'],
   ['Crypto',q=>q.group==='Crypto'],
   ['Other',q=>true]];
+// Within a section the major market comes first (S&P 500 before Russell 2000,
+// FTSE 100 before FTSE 250, Euro Stoxx 50 before national indices); then data order.
+const WATCH_MAJOR=['^GSPC','^IXIC','^DJI','^RUT','^GSPTSE','^BVSP','^MXX','^FTSE','^FTMC','^STOXX50E','^STOXX','^GDAXI','^FCHI','FTSEMIB.MI','^IBEX','^SSMI','^AEX',
+  '^N225','^TOPX','^HSI','000001.SS','000300.SS','^KS11','^TWII','^AXJO','^NSEI','^STI','^JKSE','ACWI','URTH','EEM','EFA',
+  'UK10Y.BOE','UK5Y.BOE','UK20Y.BOE','TN28.DMO','^TNX','^FVX','^TYX','^IRX','GBPUSD=X','EURUSD=X','JPY=X','GBPEUR=X','EURGBP=X','CHF=X','AUDUSD=X','CNY=X',
+  'BZ=F','CL=F','GC=F','SI=F','HG=F','NG=F','ZW=F','ZC=F','BTC-USD','ETH-USD'];
+function watchMajorRank(q){const i=WATCH_MAJOR.indexOf(q.symbol);return i<0?999:i;}
 function watchSection(q){return WATCH_SECTIONS.find(([,test])=>test(q))[0];}
 function renderWatch(){const body=$('watch-rows');body.replaceChildren();let rows=filtered();$('count').textContent=rows.length+' / '+D.quotes.length+' instruments';
   const sectioned=state.sort==='default';
-  if(sectioned){const order=new Map(WATCH_SECTIONS.map(([n],i)=>[n,i]));rows=rows.map((q,i)=>[q,i]).sort((a,b)=>order.get(watchSection(a[0]))-order.get(watchSection(b[0]))||a[1]-b[1]).map(x=>x[0]);}
+  if(sectioned){const order=new Map(WATCH_SECTIONS.map(([n],i)=>[n,i]));rows=rows.map((q,i)=>[q,i]).sort((a,b)=>order.get(watchSection(a[0]))-order.get(watchSection(b[0]))||watchMajorRank(a[0])-watchMajorRank(b[0])||a[1]-b[1]).map(x=>x[0]);}
   let current=null;
   for(const q of rows){
   if(sectioned){const name=watchSection(q);if(name!==current){current=name;const n=rows.filter(x=>watchSection(x)===name).length;const hr=el('tr','watch-section');const cell=el('th','',name);cell.colSpan=10;cell.scope='colgroup';cell.append(el('span','watch-section-count',' '+n));hr.append(cell);body.append(hr);}}

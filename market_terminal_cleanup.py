@@ -165,8 +165,8 @@ function renderScore(){
  for(const b of controls.querySelectorAll('button'))b.classList.toggle('active',b.dataset.mtPeriod===mtMovePeriod);
  const heading=parent?.querySelector('h2');if(heading)heading.textContent='PRICE MOVES BY PERIOD';
  const note=parent?.querySelector('p.note');if(note)note.textContent='Local-currency price changes, excluding income; 3Y and 5Y figures are annualised. Futures and currencies are not directly comparable investment returns.';
- // Read by asset class (the Global prices sections: equity indices by region, ETFs,
- // currencies, commodities, crypto), best to worst within each section.
+ // Read by asset class (the Global prices sections: US, UK, Europe, Asia-Pacific indices,
+ // equity and bond ETFs, currencies, commodities, crypto); major market first in each.
  const sectionOf=q=>typeof watchSection==='function'?watchSection(q):q.group;
  const sectionRank=new Map((typeof WATCH_SECTIONS!=='undefined'?WATCH_SECTIONS:[]).map(([n],i)=>[n,i]));
  // ETFs that track a market whose index is already listed (S&P 500, Nasdaq 100, Europe,
@@ -175,7 +175,7 @@ function renderScore(){
  const indexDuplicates=new Set(['SPY','QQQ','IEUR','EWJ','EWU','INDA','EWZ','EWT']);
  const list=(D.quotes||[]).filter(q=>(!state.group||q.group===state.group)&&q.kind!=='yield'&&q.kind!=='volatility'&&!indexDuplicates.has(q.symbol))
   .map(q=>({q,value:mtMoveReturn(q,mtMovePeriod),section:sectionOf(q)})).filter(r=>Number.isFinite(r.value))
-  .sort((a,b)=>(sectionRank.get(a.section)??99)-(sectionRank.get(b.section)??99)||b.value-a.value);
+  .sort((a,b)=>(sectionRank.get(a.section)??99)-(sectionRank.get(b.section)??99)||(typeof watchMajorRank==='function'?watchMajorRank(a.q)-watchMajorRank(b.q):0)||b.value-a.value);
  host.replaceChildren();
  if(!list.length){host.append(el('div','empty','No sufficient historical prices for this period.'));return;}
  const selected=list;

@@ -101,6 +101,7 @@ function setupCompany(){
  const select=document.getElementById('mt-peer-currency');select?.addEventListener('change',()=>document.getElementById('peer0')?.dispatchEvent(new Event('change',{bubbles:true})));
 }
 function setupOverview(){
+ return; // Release 3.3: the 'News methodology' note is removed at the reader's request.
  const list=document.getElementById('news-list');if(!list)return;
  const d=document.createElement('details');const summary=make('summary','','News methodology');d.append(summary,make('p','mini','Headlines and dated market observations are separate evidence; no price causation is inferred.'));list.insertAdjacentElement('afterend',d);
 }

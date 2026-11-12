@@ -130,3 +130,27 @@
 #workspace-stage .mt-mover-section{margin:14px 0 6px;padding:6px 10px;background:linear-gradient(90deg,rgba(255,160,40,.14),rgba(255,160,40,0) 60%);border-bottom:1px solid rgba(255,160,40,.35);color:var(--t-amber);font:600 12px/1.4 var(--t-mono);letter-spacing:.08em;text-transform:uppercase}
 #workspace-stage .mt-mover-section:first-child{margin-top:0}
 #workspace-stage .r23-news-search{font:500 11px var(--t-mono);color:var(--t-amber);margin-left:8px;white-space:nowrap}
+
+/* ---------------- Release 3.3 ---------------- */
+.layout-hidden,.layout-subtab-hidden{display:none!important}
+/* Price moves: compact rows */
+#workspace-stage .mt-mover-row{min-height:0!important;padding:3px 0!important;margin:0!important;gap:10px!important}
+#workspace-stage .mt-mover-name{font-size:13px!important;line-height:1.3!important}
+#workspace-stage .mt-mover-track{height:10px!important}
+#workspace-stage .mt-mover-track span{height:10px!important}
+#workspace-stage .mt-mover-row .up,#workspace-stage .mt-mover-row .down{font-size:13px!important}
+#workspace-stage .mt-mover-section{margin:10px 0 4px;padding:4px 10px}
+/* News: larger headlines and dates */
+#workspace-stage :is(.news-item,.r24-item) > a,#workspace-stage :is(.news-item,.r24-item) > strong{font-size:17px!important;line-height:1.45!important}
+#workspace-stage :is(.news-item,.r24-item) :is(.meta,.mini){font-size:13px!important}
+#workspace-stage :is(.news-item,.r24-item){padding:12px 0!important}
+/* Sub-tabs (Bonds & Rates) */
+.layout-subtabs{display:flex;flex-wrap:wrap;gap:8px;margin:0 0 4px;position:sticky;top:var(--r24-nav-height,0);z-index:5;background:var(--t-bg,#09090b);padding:6px 0}
+.layout-subtabs .btn{font:500 13px var(--t-mono)}
+/* ETF alternatives */
+#layout-etf-alternatives{margin:14px 0;background:var(--t-panel);border:1px solid var(--t-line);border-radius:8px;padding:13px}
+#layout-etf-alternatives h3{margin:0 0 10px;color:var(--t-amber);font:600 13px var(--t-mono);letter-spacing:.06em}
+.layout-alt-pick{background:none;border:0;padding:0;color:var(--t-fg);font:inherit;text-align:left;cursor:pointer;white-space:normal}
+.layout-alt-pick:not(:disabled):hover{color:var(--t-amber);text-decoration:underline}
+.layout-alt-pick:disabled{color:var(--t-amber);cursor:default}
+#layout-sovereign-table{margin-top:10px}

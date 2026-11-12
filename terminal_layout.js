@@ -195,6 +195,192 @@ function mergeSnapshot(park){
   }
 }
 
+// Repeated caveats the reader already knows (causation, methodology) are removed
+// wherever a renderer writes them. Whole notes that are only a caveat are hidden;
+// a caveat sentence inside a longer plain-text note is cut out.
+const CAVEAT_SENTENCES=[
+  /[^.]*\bnot (?:proof|evidence) (?:of|that)[^.]*causa[^.]*\.?/gi,
+  /[^.]*\bno (?:price |event-to-price )?caus(?:ation|e)[^.]*inferred[^.]*\.?/gi,
+  /[^.]*\bRelated (?:headlines|articles) are[^.]*\.?/gi,
+  /[^.]*\bnot verified causes[^.]*\.?/gi,
+  /[^.]*\bCheck company announcements, dividends, splits[^.]*\.?/gi,
+  /[^.]*\bVerify company announcements and corporate actions[^.]*\.?/gi,
+  /\s*·\s*Existing alert threshold crossed[^·]*/gi
+];
+function stripCaveats(root){
+  const scope=root||$L('workspace-stage');if(!scope)return;
+  scope.querySelectorAll('.note,.mini,p,.r23-observation>div,.watchlist-kpis>*>:nth-child(3)').forEach(n=>{
+    if(n.dataset.caveatChecked===n.textContent)return;
+    if(n.children.length===0){
+      let t=n.textContent;const orig=t;
+      for(const re of CAVEAT_SENTENCES)t=t.replace(re,'');
+      t=t.replace(/\s{2,}/g,' ').trim();
+      if(t!==orig.trim()){if(!t||/^[·.,;:\s]*$/.test(t))n.hidden=true;else n.textContent=t;}
+    }
+    n.dataset.caveatChecked=n.textContent;
+  });
+  scope.querySelectorAll('details').forEach(d=>{const s=d.querySelector('summary');if(s&&/^News methodology$/i.test(s.textContent.trim()))d.hidden=true;});
+}
+
+// ---------------------------------------------------------------- Release 3.3
+// Overview pulse: equity indices, then currencies, bond yields, VIX, gold, Brent, bitcoin.
+const PULSE_ORDER=[/^FTSE 100/,/^S&P 500/,/^Nasdaq/,/STOXX 600/,/Nikkei/,/Emerging/,/^GBP\/USD/,/^GBP\/EUR/,/^EUR\/USD/,
+  /UK 10Y/,/US 10Y/,/^VIX/,/^Gold/,/^Brent/,/^Bitcoin/];
+function orderPulse(){
+  document.querySelectorAll('#overview-board .r24-snapshot-item').forEach(item=>{
+    const label=(item.firstElementChild&&item.firstElementChild.textContent||'').trim();
+    const i=PULSE_ORDER.findIndex(re=>re.test(label));item.style.order=String(i<0?50:i);
+  });
+}
+
+// ETF Trackers: catalogue counts belong in Data Quality; tidy duplicated or hedged labels.
+function tidyEtf(){
+  const panel=$L('etf-tracker-panel');if(!panel)return;
+  const stats=$L('etf-stats'),quality=$L('mt-other-audits')||$L('view-quality');
+  if(stats&&quality&&!quality.contains(stats)){
+    const box=$L('layout-etf-coverage')||document.createElement('section');
+    if(!box.id){box.id='layout-etf-coverage';box.className='panel';const h=document.createElement('h2');h.textContent='ETF CATALOGUE COVERAGE';box.append(h);}
+    const head=panel.querySelector(':scope > .row');
+    if(head)head.querySelectorAll('.note,.mini,p,span').forEach(n=>{if(!n.closest('h2')){box.append(n);} });
+    box.append(stats);quality.append(box);
+  }
+  panel.querySelectorAll('*').forEach(n=>{
+    if(n.children.length===0&&/\(submethod not confirmed\)/.test(n.textContent))n.textContent=n.textContent.replace(/\s*\(submethod not confirmed\)/g,'');
+  });
+  panel.querySelectorAll('.etf-stat-grid').forEach(grid=>{
+    const tiles=[...grid.children],label=t=>(t.firstElementChild&&t.firstElementChild.textContent||'').trim().toLowerCase();
+    if(tiles.some(t=>/^fund assets/.test(label(t))))tiles.forEach(t=>{if(label(t)==='fund size')t.hidden=true;});
+  });
+}
+
+// ETF alternatives: the selected fund beside up to three funds tracking the same
+// market (then closely related markets), largest first, on cost, size and returns.
+const ETF_RELATED={'Global':['Developed world'],'Developed world':['Global'],'Europe':['Eurozone'],'Eurozone':['Europe'],
+  'UK FTSE 100':['UK FTSE All Share','UK FTSE 250'],'UK FTSE 250':['UK FTSE 100','UK FTSE All Share'],'UK FTSE All Share':['UK FTSE 100','UK FTSE 250'],
+  'Emerging markets':['EM ex China'],'EM ex China':['Emerging markets'],'United States':['US equal weight','US small cap','US technology'],
+  'US technology':['United States'],'UK gilts':['UK short gilts'],'UK short gilts':['UK gilts'],
+  'US Treasury 7-10y':['US Treasury 3-7y','US Treasury long dated'],'US Treasury 1-3y':['US Treasury 0-1y','US Treasury 3-7y'],
+  'Global aggregate bond':['Global aggregate GBP hedged'],'Global aggregate GBP hedged':['Global aggregate bond'],
+  'USD investment grade':['EUR investment grade','UK investment grade'],'China':['Asia Pacific ex Japan'],'Latin America':['Brazil','Mexico']};
+function etfAlternatives(fund){
+  const same=ETF_FUNDS.filter(f=>f.symbol!==fund.symbol&&f.market===fund.market&&f.category===fund.category);
+  const related=(ETF_RELATED[fund.market]||[]).flatMap(m=>ETF_FUNDS.filter(f=>f.market===m&&f.category===fund.category));
+  const bySize=a=>a.sort((x,y)=>(y.fundSize||0)-(x.fundSize||0));
+  return [...bySize(same),...bySize(related)].slice(0,3);
+}
+function etfMoney(f){
+  if(!Number.isFinite(f.fundSize)||!f.fundSize)return '—';
+  const v=f.fundSize,c=f.fundSizeCurrency||'';return c+' '+(v>=1e9?fmt(v/1e9,2)+'bn':fmt(v/1e6,1)+'m');
+}
+function etfPct(v){return Number.isFinite(v)?(v>0?'+':'')+fmt(v,2)+'%':'—';}
+function renderEtfAlternatives(){
+  const detail=document.querySelector('#etf-tracker-panel .etf-detail');if(!detail||typeof ETF_BY_SYMBOL==='undefined')return;
+  const fund=ETF_BY_SYMBOL.get(etfState.selected);if(!fund)return;
+  let box=$L('layout-etf-alternatives');
+  if(!box){box=document.createElement('section');box.id='layout-etf-alternatives';box.className='layout-subpanel';}
+  if(box.dataset.fund===fund.symbol&&box.isConnected)return;
+  box.dataset.fund=fund.symbol;box.replaceChildren();
+  const h=document.createElement('h3');h.textContent='ALTERNATIVES — '+String(fund.market||'').toUpperCase();box.append(h);
+  const alts=etfAlternatives(fund);
+  if(!alts.length){const p=document.createElement('p');p.className='note';p.textContent='No other catalogued fund tracks this market.';box.append(p);}
+  else{
+    const wrap=document.createElement('div');wrap.className='mt-table-scroll';
+    const t=document.createElement('table');t.className='watch layout-alt-table';
+    t.innerHTML='<thead><tr><th>Fund / ticker</th><th>Index</th><th>TER</th><th>Fund size</th><th>1Y</th><th>3Y</th><th>5Y</th><th>Replication</th><th>Income</th></tr></thead>';
+    const tb=document.createElement('tbody');
+    for(const f of [fund,...alts]){
+      const tr=document.createElement('tr');if(f===fund)tr.className='selected';
+      const cells=[null,f.benchmark||'—',Number.isFinite(f.terPct)?fmt(f.terPct,2)+'%':'—',etfMoney(f),etfPct(f.return1Y),etfPct(f.return3Y),etfPct(f.return5Y),
+        String(f.replication||'—').replace(/\s*\(submethod not confirmed\)/,''),f.distribution||'—'];
+      const name=document.createElement('td');const b=document.createElement('button');b.type='button';b.className='layout-alt-pick';
+      b.textContent=f.name+' · '+f.symbol;b.disabled=f===fund;b.onclick=()=>{etfState.selected=f.symbol;try{renderEtfTracker();}catch(e){}renderEtfAlternatives();};
+      name.append(b);tr.append(name);
+      cells.slice(1).forEach((c,i)=>{const td=document.createElement('td');td.textContent=c;if(i>=3&&i<=5&&/^[+-]/.test(c))td.className=c.startsWith('-')?'down':'up';tr.append(td);});
+      tb.append(tr);
+    }
+    t.append(tb);wrap.append(t);box.append(wrap);
+    const p=document.createElement('p');p.className='note';p.textContent='Returns are annualised for 3Y and 5Y, in each fund\u2019s quoted currency. Same market first, then closely related markets; largest funds first.';box.append(p);
+  }
+  const anchor=detail.querySelector('.etf-stat-grid');
+  if(anchor)anchor.after(box);else detail.prepend(box);
+}
+
+// Data Quality: collection warnings grouped by source in plain language.
+function plainWarning(w){
+  const s=String(w);
+  if(/429|Too Many Requests/i.test(s))return 'Source limited request rate; retried, then skipped';
+  if(/404|Not Found|delisted/i.test(s))return 'No longer available from source';
+  if(/Under two historical closes|insufficient|too short/i.test(s))return 'Too little price history to use';
+  if(/stale cache/i.test(s))return 'Download failed; last saved copy used';
+  if(/timed? ?out|timeout/i.test(s))return 'Source did not respond in time';
+  return s.replace(/^[^:]+:\s*/,'');
+}
+function renderWarnings(){
+  const old=$L('t11-exception-details');if(!old)return;
+  const list=Array.isArray(D.warnings)?D.warnings:[];
+  let box=$L('layout-warnings');
+  if(!box){box=document.createElement('section');box.id='layout-warnings';box.className='panel';old.before(box);}
+  if(box.dataset.count===String(list.length))return;box.dataset.count=String(list.length);box.replaceChildren();
+  const h=document.createElement('h2');h.textContent='COLLECTION ISSUES THIS BUILD ('+list.length+')';box.append(h);
+  const groups=new Map();
+  for(const w of list){const s=String(w);const m=s.match(/^([A-Za-z][A-Za-z/& ]{1,20}?)\s+([^:]{1,40}):/);const src=m?m[1]:'Other';const item=m?m[2]:'';
+    const key=src+'|'+plainWarning(s);if(!groups.has(key))groups.set(key,{src,issue:plainWarning(s),items:[]});if(item)groups.get(key).items.push(item);}
+  const t=document.createElement('table');t.className='watch';t.innerHTML='<thead><tr><th>Source</th><th>What happened</th><th>Affected</th></tr></thead>';
+  const tb=document.createElement('tbody');
+  for(const g of groups.values()){const tr=document.createElement('tr');for(const c of [g.src,g.issue,g.items.length?g.items.join(', '):'—']){const td=document.createElement('td');td.textContent=c;tr.append(td);}tb.append(tr);}
+  t.append(tb);const wrap=document.createElement('div');wrap.className='mt-table-scroll';wrap.append(t);box.append(wrap);
+  old.hidden=true;
+}
+
+// Sovereign yields: one table of 10-year yields for the major economies, no chart.
+function lastTwo(arr,field){const v=(arr||[]).filter(r=>Number.isFinite(Number(r[field])));return v;}
+function changeBp(pts,days){
+  const last=pts.at(-1);if(!last)return null;const cutoff=new Date(new Date(last.date).getTime()-days*864e5).toISOString().slice(0,10);
+  const base=[...pts].reverse().find(p=>p.date<=cutoff);return base?Math.round((last.v-base.v)*100):null;
+}
+function renderSovereignTable(){
+  const host=$L('sovereign');if(!host)return;
+  const series=[];
+  const add=(name,rows,field,source)=>{const pts=(rows||[]).filter(r=>Number.isFinite(Number(r[field]))).map(r=>({date:r.date,v:Number(r[field])}));if(pts.length)series.push({name,pts,source});};
+  add('United Kingdom',D.uk_rates,'gilt10y','BoE spot');add('United States',D.us_rates,'DGS10','US Treasury');
+  for(const [code,name] of [['DE','Germany'],['FR','France'],['IT','Italy'],['ES','Spain'],['NL','Netherlands']])add(name,D.sovereign_yields,code,'Eurostat monthly');
+  if(!series.length)return;
+  let box=$L('layout-sovereign-table');
+  const sig=series.map(s=>s.name+s.pts.at(-1).date).join();if(box&&box.dataset.sig===sig)return;
+  if(!box){box=document.createElement('div');box.id='layout-sovereign-table';const head=host.querySelector('.row');(head||host.firstElementChild).after(box);}
+  box.dataset.sig=sig;box.replaceChildren();
+  const de=series.find(s=>s.name==='Germany');
+  const t=document.createElement('table');t.className='watch';t.innerHTML='<thead><tr><th>Country</th><th>10Y yield</th><th>As of</th><th>vs Germany</th><th>1M change</th><th>1Y change</th><th>Source</th></tr></thead>';
+  const tb=document.createElement('tbody');
+  for(const s of series){const last=s.pts.at(-1),spread=de&&s!==de?Math.round((last.v-de.pts.at(-1).v)*100):null;
+    const c1=changeBp(s.pts,31),c12=changeBp(s.pts,365);
+    const vals=[s.name,fmt(last.v,2)+'%',last.date,spread==null?'—':(spread>0?'+':'')+spread+'bp',c1==null?'—':(c1>0?'+':'')+c1+'bp',c12==null?'—':(c12>0?'+':'')+c12+'bp',s.source];
+    const tr=document.createElement('tr');vals.forEach(v=>{const td=document.createElement('td');td.textContent=v;tr.append(td);});tb.append(tr);}
+  t.append(tb);const wrap=document.createElement('div');wrap.className='mt-table-scroll';wrap.append(t);box.append(wrap);
+  const h2=host.querySelector('h2');if(h2)h2.textContent='SOVEREIGN 10-YEAR YIELDS';
+  const intro=host.querySelector('.row .note');if(intro)intro.textContent='Latest 10-year government bond yields. UK uses the Bank of England spot curve; euro-area countries use Eurostat monthly benchmarks, so their dates lag.';
+  for(const id of ['sovereign-chart','sovereign-latest','sovereign-meta'])$L(id)?.classList.add('layout-hidden');
+  host.querySelectorAll('select').forEach(sel=>{(sel.closest('label')||sel).classList.add('layout-hidden');const l=host.querySelector('label[for="'+sel.id+'"]');if(l)l.classList.add('layout-hidden');});
+  host.querySelectorAll('details').forEach(d=>d.classList.add('layout-hidden'));
+}
+
+// Bonds & Rates: five sub-tabs instead of one long page.
+const BOND_TABS=[['UK gilts',['gilts']],['US Treasuries',['us-treasuries']],['Yield curves',['rates','real']],['Credit spreads',['corporate-credit']],['Sovereign',['sovereign']]];
+let bondTab=0;
+function bondTabFor(id){return BOND_TABS.findIndex(([,ids])=>ids.some(x=>x===id||$L(x)?.querySelector('#'+CSS.escape(id))));}
+function renderBondTabs(){
+  const view=$L('view-bonds');if(!view)return;
+  let nav=$L('layout-bond-tabs');
+  if(!nav){nav=document.createElement('nav');nav.id='layout-bond-tabs';nav.className='layout-subtabs';
+    BOND_TABS.forEach(([label],i)=>{const b=document.createElement('button');b.type='button';b.className='btn';b.textContent=label;b.onclick=()=>{bondTab=i;renderBondTabs();try{paintWorkspace('bonds');}catch(e){}window.scrollTo({top:Math.max(0,view.offsetTop-80)});};nav.append(b);});}
+  const title=view.querySelector(':scope > .workspace-title');
+  if(nav.parentElement!==view||nav.previousElementSibling!==title){title?title.after(nav):view.prepend(nav);}
+  [...nav.children].forEach((b,i)=>b.classList.toggle('active',i===bondTab));
+  BOND_TABS.forEach(([,ids],i)=>ids.forEach(id=>$L(id)?.classList.toggle('layout-subtab-hidden',i!==bondTab)));
+}
+window.addEventListener('hashchange',()=>{const id=location.hash.slice(1);if(!id)return;const i=bondTabFor(id);if(i>=0&&i!==bondTab){bondTab=i;renderBondTabs();}});
+{const id=location.hash.slice(1);const i=id?bondTabFor(id):-1;if(i>=0)bondTab=i;}
+
 function refreshContexts(){
   for(const g of ANALYTICS){
     const box=$L('layout-analytics-'+g.key);if(!box)continue;
@@ -219,6 +405,10 @@ function applyLayout(){
     for(const [key,ids] of Object.entries(TABS)){const view=$L('view-'+key);if(view)place(view,ids);}
     for(const [id,ids] of Object.entries(RESEARCH)){const view=$L(id);if(view)place(view,ids);}
     mergeSnapshot(park);
+    for(const step of [orderPulse,tidyEtf,renderEtfAlternatives,renderWarnings,renderSovereignTable,renderBondTabs])
+      {try{step();}catch(e){console.warn('Layout step skipped:',step.name,e&&e.message);}}
+    const ws=$L('watchlist-summary');if(ws&&ws.parentElement!==park)park.append(ws);
+    stripCaveats();
     const av=$L('view-analytics');
     if(av){for(const g of ANALYTICS)place(analyticsGroup(av,g),g.items);}
     const qv=$L('mt-other-audits')||$L('view-quality');
@@ -237,6 +427,9 @@ function runAnalyticsPaint(){
 // the tab paint cycle; re-assert the layout straight after it.
 const baseArrange=researchArrangeOverview;
 researchArrangeOverview=function(){baseArrange();applyLayout();};
+
+// Re-draw the alternatives table whenever the ETF tracker re-renders a selection.
+try{const baseEtf=renderEtfTracker;renderEtfTracker=function(){const r=baseEtf.apply(this,arguments);try{renderEtfAlternatives();tidyEtf();}catch(e){}return r;};}catch(e){}
 
 const basePaint=paintWorkspace;
 paintWorkspace=function(key){
