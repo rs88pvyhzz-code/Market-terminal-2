@@ -1,6 +1,7 @@
 """Layout invariants for terminal_layout.js.
 
-1. Every analytics panel is on the Analytics tab and nowhere else.
+1. Every market-wide analytics panel is on the Analytics tab and nowhere else;
+   analysis of the selected company stays in Company Research.
 2. Every panel on every other tab is declared in the layout (nothing drifts in).
 3. Retired panels and jump-link bars are never visible.
 4. The layout holds after changing company, research view, ETF and watchlist
@@ -15,6 +16,7 @@ from pathlib import Path
 from playwright.sync_api import sync_playwright
 
 html = Path(sys.argv[1]).read_text()
+L_RESEARCH_IDS = ['company-benchmark-block', 'company-risk-panel', 'company-advanced', 'research-executive', 'peer-panel', 'forensic-panel']
 TABS = ['overview', 'fx', 'equities', 'companies', 'bonds', 'analytics', 'etfs', 'economics', 'watchlist', 'quality']
 
 CHECK = '''() => {
@@ -77,8 +79,8 @@ with sync_playwright() as p:
         page.locator('#tab-analytics').click()
         page.wait_for_timeout(150)
         check('analytics after company change')
-        name = page.locator('#company-name').text_content().strip()
-        assert name and name in page.locator('#layout-context-company').text_content(), 'company context line not updated'
+        for pid in L_RESEARCH_IDS:
+            assert page.locator('#view-companies #' + pid).count() == 1, ('company panel left Company Research', pid)
 
         page.locator('#tab-etfs').click()
         page.wait_for_timeout(120)

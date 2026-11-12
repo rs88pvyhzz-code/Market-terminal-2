@@ -94,13 +94,10 @@ with sync_playwright() as p:
     page.locator('#tab-companies').click()
     page.locator('#research-tab-0').click()
     ids=page.locator('#research-view-0 > [id]').evaluate_all('(xs)=>xs.map(x=>x.id)')
-    # Risk and momentum are analytics: they live on the Analytics tab, not in Company Research.
-    assert 'company-risk-panel' not in ids and 'company-news-panel' in ids,ids
-    assert page.locator('#view-analytics #company-risk-panel').count()==1
+    assert ids.index('company-risk-panel') < ids.index('company-news-panel'),ids  # company analysis stays with the company
     assert page.locator('#peer-panel').is_hidden(), 'Peers belong to Business & Competition, not Overview'
     page.locator('#research-tab-3').click()
     assert page.locator('#research-tab-3').get_attribute('aria-selected')=='true'
-    page.locator('#tab-analytics').click()  # peer comparison is analytics (terminal_layout.js)
     page.locator('#peer-panel').wait_for(state='visible')
     page.locator('#peer-panel').scroll_into_view_if_needed()
     assert page.locator('#r212-peer-bar').count()==1

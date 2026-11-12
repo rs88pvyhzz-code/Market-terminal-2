@@ -21,9 +21,9 @@ with sync_playwright() as p:
     page.goto('http://localhost:8765/',wait_until='domcontentloaded')
     assert page.evaluate("document.documentElement.classList.contains('terminal1-design')")
     assert page.locator('#workspace-tabs [role=tab]').all_text_contents()==tabs
-    # Original typography and panel geometry; no new corporate design.
+    # Original typography and palette; Release 3.1 panel geometry (terminal_layout.css).
     assert page.locator('.brand').evaluate('(e)=>getComputedStyle(e).fontFamily').lower().find('monospace')>=0
-    assert page.locator('#overview-board').evaluate('(e)=>getComputedStyle(e).borderRadius')=='7px'
+    assert page.locator('#overview-board').evaluate('(e)=>getComputedStyle(e).borderRadius')=='10px'
     assert page.locator('#tab-overview').evaluate('(e)=>getComputedStyle(e).backgroundColor')=='rgb(255, 160, 40)'
     assert page.locator('#market-pulse .r24-snapshot-item').count()==14
     for key in keys:

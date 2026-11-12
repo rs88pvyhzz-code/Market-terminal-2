@@ -29,7 +29,7 @@ with sync_playwright() as p:
             if tab=='overview':assert page.locator('#news').is_visible()
             if tab=='economics':
                 assert page.locator('#calendar-items table').count()==1
-                assert page.locator('#calendar-items th').all_text_contents()==['Date','Time','Country','Indicator','Previous','Forecast','Actual','Source']
+                assert page.locator('#calendar-items th').all_text_contents()==['Date','Time','Country','Indicator','Latest print','Source']
                 for b in page.locator('#calendar-filters button').all():b.click()
                 page.locator('#calendar-filters button').first.click()
             assert page.locator('details details').count()==0,(name,width,'nested disclosures')
@@ -57,11 +57,9 @@ with sync_playwright() as p:
         assert 'Trailing P/E' in page.locator('#research-valuation').inner_text()
         page.locator('#research-tab-0').click();page.wait_for_timeout(80)
         assert page.locator('#company-chart').is_visible()
-        page.locator('#tab-analytics').click();page.wait_for_timeout(80)
-        assert page.locator('#company-risk-kpis').is_visible()  # risk is analytics
-        page.locator('#tab-companies').click();page.wait_for_timeout(80)
+        assert page.locator('#company-risk-kpis').is_visible()  # company risk stays in Company Research
         assert page.locator('#research-overview details').count()==0
-        assert page.locator('#view-analytics #company-advanced').count()==1 and page.locator('#company-advanced').evaluate('(e)=>e.tagName')=='SECTION'
+        assert page.locator('#research-view-0 #company-advanced').count()==1 and page.locator('#company-advanced').evaluate('(e)=>e.tagName')=='SECTION'
         page.locator('#research-tab-1').click();page.wait_for_timeout(80)
         for period in ['3Y','5Y']:
             button=page.locator('#research-statements button').filter(has_text=period)
