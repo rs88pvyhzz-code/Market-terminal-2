@@ -54,7 +54,7 @@ with sync_playwright() as p:
         original=next(g for g in d['gilts'] if g['isin']==isin)
         assert float(row.locator('td').nth(3).inner_text())==round(original['bidClean'],2)
         assert float(row.locator('td').nth(4).inner_text())==round(original['askClean'],2)
-        row.click();assert page.locator('#gilt-yield-review').is_visible()
+        row.click();assert page.locator('#gilt-yield-review').text_content().startswith('DERIVED YIELDS REQUIRE REVIEW')  # computed; hidden in clean reading (Release 3.4)
         assert 'DERIVED YIELDS REQUIRE REVIEW' in page.locator('#gilt-yield-review').inner_text()
         assert 'Review required' in page.locator('#gilt-stats').inner_text()
         # Release 2.8: one selected-gilt summary, no duplicate row in alternatives.
@@ -62,7 +62,7 @@ with sync_playwright() as p:
         assert peer.count()==0
         assert page.locator('#gilt-stats .r28-gilt-single').count()==1
         assert page.locator('#gilt-stats .r28-gilt-yield').count()==3
-        page.locator('#gilt-clean-input').fill('99');assert page.locator('#gilt-yield-review').is_visible()
+        page.locator('#gilt-clean-input').fill('99');assert page.locator('#gilt-yield-review').text_content().startswith('DERIVED YIELDS REQUIRE REVIEW')
         assert peer.count()==0
         assert 'Unavailable' in page.locator('#gilt-stats .r28-gilt-yield').all_text_contents()[0] or page.locator('#gilt-stats .r28-gilt-yield').count()==3
     assert page.locator('#gilt-ladder').is_hidden(),'Retired tax-focused ladder must not interrupt gross return summary'
