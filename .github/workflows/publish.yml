@@ -48,35 +48,20 @@ jobs:
         run: python -m pip install 'yfinance>=0.2.55,<1' 'xlrd>=2.0.1,<3'
 
       - name: Test calculations before using them
-        run: |
-          python test_etf_tracker.py
-          python test_gilt_model.py
-          python test_equity_research.py
-          python test_research_release1.py
-          python test_shell_live_validation.py
-          python test_research_release2.py
-          python test_research_release21.py
-          python test_release22.py
-          python test_market_briefing.py
-          python test_release28.py
+        run: python run_tests.py
 
-      - name: Download data and build terminal
+      # One command: build, verify, post-process and apply the tab layout.
+      # The order lives in build_site.py so the three workflows cannot drift apart.
+      - name: Build and verify terminal
         run: >-
-          python build_terminal.py --years 10
+          python build_site.py --output terminal.html --verify --
+          --years 10
           --workers 2 --cache-hours 0
           --movers-markets FTSE100,FTSE250,SP500,NASDAQ100
           --mover-history-limit 30
           --company-news-limit 20
           --price-history-batch 60
           --companies AXON,CCH.L,SHAW.L,NFLX
-          --output terminal.html
-
-      - name: Verify actual published research payload
-        run: python verify_live_research.py terminal.html
-
-      - name: News provenance and coverage diagnostics
-        continue-on-error: true
-        run: python verify_market_briefing.py terminal.html
 
       - name: Upload production source diagnostics
         if: always()
@@ -88,19 +73,6 @@ jobs:
             terminal.sources.json
             public/news_verification.json
             .terminal_sources/requests.jsonl
-
-      - name: DMO freshness diagnostics (independent of other market publication)
-        continue-on-error: true
-        run: python verify_dmo.py --existing
-
-      - name: Check market data
-        run: python verify_snapshot.py terminal.html
-
-      - name: Research layout and after-tax gilt comparison
-        run: python terminal_research_upgrade.py terminal.html
-
-      - name: Market analysis, economics and data quality
-        run: python market_terminal_cleanup.py --post --html terminal.html
 
       - name: Prepare website and persistent cache
         run: |
