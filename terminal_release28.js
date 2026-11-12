@@ -147,7 +147,7 @@ renderCalendar=function(){
   b.onclick=()=>{r28CalendarMajorOnly=major;renderCalendar();};filters.append(b);
  }
  const pool=r28CalendarMajorOnly?r28MajorCalendar():r24CalendarEvents();
- const items=pool.filter(e=>state.calendarRegion==='ALL'||e.region===state.calendarRegion).slice(0,r28CalendarMajorOnly?18:70);
+ const items=pool.filter(e=>state.calendarRegion==='ALL'||e.region===state.calendarRegion).slice(0,r28CalendarMajorOnly?5:70);
  r28CalendarTable(host,items,false);
 };
 const r28PrevRenderMacro=renderMacro;
