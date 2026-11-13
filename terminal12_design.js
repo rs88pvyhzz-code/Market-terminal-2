@@ -8,8 +8,9 @@ function overviewOrder(){
  const host=get('view-overview'),news=get('r24-developments'),snapshot=get('overview-board');
  if(!host||!news||!snapshot)return;
  const title=host.querySelector(':scope > .workspace-title');
- if(title)title.after(news);else host.prepend(news);
- news.after(snapshot);
+ if(title)title.after(snapshot);else host.prepend(snapshot);
+ const conditions=get('r24-conditions');
+ if(conditions){snapshot.after(conditions);conditions.after(news);}else snapshot.after(news);
  const h=news.querySelector('h2');if(h)h.textContent='KEY MARKET NEWS';
  const label=snapshot.querySelector('h2');if(label)label.textContent='GLOBAL MARKET PULSE';
  // The watchlist has its own complete workspace; no repeated headlines in Overview.
@@ -22,7 +23,7 @@ r24Overview=function(){oldOverview();overviewOrder();};
 function companyOrder(){
  const host=get('research-view-0');if(!host)return;
  const risk=get('company-risk-panel'),news=get('company-news-panel');
- if(risk&&news&&risk.parentElement===host&&news.parentElement===host)host.insertBefore(risk,news);
+ if(risk&&news&&risk.parentElement===host&&news.parentElement===host)host.insertBefore(news,risk);
 }
 const oldResearchOrder=researchArrangeOverview;
 researchArrangeOverview=function(){oldResearchOrder();companyOrder();};
@@ -68,12 +69,6 @@ function peerMobileView(){
 }
 const origPeers=renderPeers;
 renderPeers=function(){origPeers();peerMobileView();};
-function compactValuation(){
- const panel=get('market-valuations');if(!panel||get('r212-valuation-fold'))return;
- const fold=document.createElement('details');fold.id='r212-valuation-fold';fold.className='r212-secondary';
- const summary=document.createElement('summary');summary.textContent='OPTIONAL — COVERED-CONSTITUENT MARKET VALUATIONS';
- panel.before(fold);fold.append(summary,panel);
-}
 function moveMethodNotes(){
  const quality=get('view-quality');if(!quality||get('r212-technical-notes'))return;
  const panel=document.createElement('section');panel.id='r212-technical-notes';panel.className='panel r212-technical-notes';
@@ -133,6 +128,6 @@ document.addEventListener('DOMContentLoaded',()=>{
  const sheet=get('terminal12-styles');if(sheet)document.head.append(sheet);
  overviewOrder();companyOrder();
  analyticsControls('analytics-rolling');analyticsControls('analytics-sectors');
- compactValuation();peerMobileView();moveMethodNotes();shortMarketNav();cleanGiltUI();scrollToActiveTab();
+ peerMobileView();moveMethodNotes();shortMarketNav();cleanGiltUI();scrollToActiveTab();
 });
 })();

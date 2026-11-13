@@ -24,13 +24,13 @@ const $L=id=>document.getElementById(id);
 // Tab membership for everything except Analytics and Data Quality, in display order.
 const TABS={
   // Key market news is the top-ranked stories; 'news' lists the rest without repeating them.
-  overview:['r24-developments','overview-board','news','r24-upcoming'],
+  overview:['overview-board','r24-conditions','r24-developments','news','r24-upcoming'],
   fx:['monitor'],
-  equities:['movers','constituents','equity-screener'],
+  equities:['equity-screener','constituents','movers'],
   companies:['companies'],
-  bonds:['gilts','us-treasuries','rates','real','sovereign','corporate-credit'],
+  bonds:['layout-yield-snapshot','gilts','us-treasuries','rates','real','sovereign','corporate-credit'],
   etfs:['etf-tracker-panel'],
-  economics:['macro','macro-surprise','calendar'],
+  economics:['macro','calendar','macro-surprise'],
   watchlist:['personal-watchlist-panel']
 };
 
@@ -41,8 +41,8 @@ const TABS={
 // `source` is the tab where the subject (company, gilt, ETF, watched security) is chosen.
 const ANALYTICS=[
   {key:'markets',title:'Markets',source:null,context:null,scopes:[['scope-view-fx'],[]],
-   items:['compare','mt-risk-comparison','score-panel','analytics-rolling','r23-market-conditions',
-          'analytics-breadth','analytics-sectors','r212-valuation-fold','market-valuations','r23-alerts']},
+   items:['score-panel','mt-risk-comparison','analytics-rolling','market-valuations','compare',
+          'analytics-breadth','analytics-sectors','r23-market-conditions','r23-alerts']},
   {key:'bonds',title:'Bonds & rates',source:'bonds',scopes:[['scope-view-bonds'],['scope-gilts']],
    context:()=>{const g=$L('gilt-selected')?.textContent.trim();return g?'Selected gilt: '+g:'';},
    items:['mt-gilt-tax','gilt-ladder','us-spread-panel','cross-rates']},
@@ -58,8 +58,8 @@ const ANALYTICS=[
 // in the research view where it is read. Listed panels are placed first, in order;
 // anything else in the view (e.g. the full metrics grid) follows them.
 const RESEARCH={
-  'research-view-0':['research-overview','company-price-block','company-benchmark-block','company-risk-panel',
-                     'company-advanced','research-executive','company-news-panel'],
+  'research-view-0':['research-overview','company-news-panel','company-advanced','company-price-block',
+                     'company-benchmark-block','company-risk-panel','research-executive'],
   'research-view-3':['peer-panel'],
   'research-view-5':['research-warning-priority','forensic-panel']
 };
@@ -68,7 +68,7 @@ const RESEARCH={
 const QUALITY=['r29-coverage','company-coverage'];
 
 // Duplicates and distractions. Kept in the DOM (hidden) so legacy renderers are safe.
-const RETIRED_IDS=['r24-conditions','r24-watch','r23-moves','r23-watch','headline','subview-fx-news'];
+const RETIRED_IDS=['r24-watch','r23-moves','r23-watch','headline','subview-fx-news'];
 const RETIRED_SELECTORS=[
   '.terminal-subnav','.r25-section-links','#mt-bond-nav','.r210-research-jump',
   '.t11-quality-shortcut','.mt-quality-link'
@@ -84,6 +84,56 @@ const ANALYTICS_PAINT=[
 ];
 
 const TAB_NAMES={companies:'Company Research',bonds:'Bonds & Rates',etfs:'ETF Trackers',watchlist:'My Watchlist'};
+
+// Match visual navigation to keyboard navigation; stable IDs preserve deep links.
+function orderNavigation(){
+ const nav=$L('workspace-tabs');if(!nav)return;
+ WORKSPACES.forEach((key,i)=>{const tab=$L('tab-'+key);if(tab&&nav.children[i]!==tab)nav.insertBefore(tab,nav.children[i]||null);});
+}
+function unwrapValuations(){
+ const fold=$L('r212-valuation-fold'),panel=$L('market-valuations');
+ if(fold&&panel){fold.before(panel);fold.remove();}
+}
+function sectionLinks(){
+ for(const key of ['overview','equities','companies','analytics','economics','watchlist']){
+  const view=$L('view-'+key),title=view?.querySelector(':scope > .workspace-title');if(!title)continue;
+  const ids=key==='analytics'?ANALYTICS[0].items:key==='companies'?RESEARCH['research-view-0']:TABS[key];
+  let nav=title.querySelector('.layout-jumps');if(!nav){nav=document.createElement('nav');nav.className='layout-jumps';nav.setAttribute('aria-label','Jump within '+key);title.append(nav);}
+  const targets=(ids||[]).map(id=>$L(id)).filter(n=>n&&n.querySelector('h2,h3'));
+  const sig=targets.map(n=>n.id).join('|');if(nav.dataset.targets===sig)continue;nav.dataset.targets=sig;nav.replaceChildren();
+  for(const node of targets){const b=document.createElement('button');b.type='button';b.textContent=node.querySelector('h2,h3').textContent.replace(/ · .*/,'');
+   b.onclick=()=>node.scrollIntoView({behavior:'smooth',block:'start'});nav.append(b);}
+ }
+}
+
+function renderYieldSnapshot(){
+ const view=$L('view-bonds');if(!view)return;
+ let host=$L('layout-yield-snapshot');if(!host){host=document.createElement('div');host.id='layout-yield-snapshot';host.className='panel';view.append(host);}
+ if(host.dataset.ready)return;host.dataset.ready='yes';
+ const heading=document.createElement('h2');heading.textContent='GOVERNMENT YIELD SNAPSHOT';host.append(heading);
+ const grid=document.createElement('div');grid.className='layout-yield-grid';host.append(grid);
+ for(const [name,rows,field] of [['UK 10Y · BoE spot',D.uk_rates,'gilt10y'],['US 10Y · Treasury par',D.us_rates,'DGS10'],['Euro area 10Y · spot',D.eu_rates,'eur10y']]){
+  const row=(rows||[]).filter(x=>Number.isFinite(x[field])).at(-1),cell=document.createElement('div');
+  const label=document.createElement('span');label.textContent=name;
+  const value=document.createElement('strong');value.textContent=row?fmt(row[field],2)+'%':'Unavailable';
+  const date=document.createElement('small');date.textContent=row?.date||'No observation';cell.append(label,value,date);grid.append(cell);
+ }
+}
+
+function orderDetailContent(){
+ // The price table answers the first Markets question; history follows selection.
+ const monitor=$L('monitor'),table=$L('watch-rows')?.closest('.scroll');
+ if(monitor&&table&&!$L('layout-market-prices')){
+  const group=$L('group-pills')?.closest('.inputs'),head=group?.previousElementSibling;
+  const prices=document.createElement('section');prices.id='layout-market-prices';
+  if(head&&group){prices.append(head,group,table);monitor.prepend(prices);}
+ }
+ const watch=$L('personal-watchlist-panel'),news=watch?.querySelector('.watchlist-bottom'),selected=watch?.querySelector('.watchlist-selected-header');
+ if(news&&selected&&selected.nextElementSibling!==news)selected.after(news);
+ // Selected bond cash returns precede the history chart, retaining all controls.
+ const stats=$L('gilt-stats'),chart=$L('gilt-chart');
+ if(stats&&chart&&stats.parentElement===chart.parentElement&&stats.compareDocumentPosition(chart)&Node.DOCUMENT_POSITION_PRECEDING)chart.before(stats);
+}
 
 function parking(){
   let p=$L('layout-retired');
@@ -392,10 +442,10 @@ function cleanReading(){
   const stage=$L('workspace-stage');if(!stage)return;
   document.querySelectorAll('footer.foot').forEach(f=>f.hidden=true);
   for(const id of DROP_SECTIONS){const n=$L(id);if(n)n.classList.add('layout-hidden');}
-  stage.querySelectorAll('.research-warning,.mt-inline-notice,.r24-calendar-key,.r28-gilt-advanced,.r28-more').forEach(n=>{if(!n.closest('#view-quality'))n.classList.add('layout-hidden');});
+  stage.querySelectorAll('.r24-calendar-key,.r28-gilt-advanced,.r28-more').forEach(n=>{if(!n.closest('#view-quality'))n.classList.add('layout-hidden');});
   stage.querySelectorAll('p,.note,.mini,small').forEach(n=>{
     if(n.dataset.cleanChecked===n.textContent)return;n.dataset.cleanChecked=n.textContent;
-    if(n.closest('#view-quality,table,label,button,select,summary,h1,h2,h3,h4,.news-item,.r24-item,.r23-observation,.layout-group-head,#layout-bond-tabs'))return;
+    if(n.closest('#view-quality,table,label,button,select,summary,h1,h2,h3,h4,.news-item,.r24-item,.r23-observation,.layout-group-head,#layout-bond-tabs,.mt-reading-note,.r213-company-evidence,.company-story,.research-warning,.mt-inline-notice'))return;
     const text=n.textContent.trim();if(!text)return;
     // Research write-ups (outlook, statements, issuer evidence) are content: there only
     // purely explanatory lines (no figure or date) are removed.
@@ -439,7 +489,10 @@ let applying=false;
 function applyLayout(){
   if(applying)return;applying=true;
   try{
+    const sheet=$L('terminal-layout-styles');if(sheet&&document.head.lastElementChild!==sheet)document.head.append(sheet);
     tagAnonymous();
+    orderNavigation();
+    unwrapValuations();
     const park=parking();
     for(const id of RETIRED_IDS){const n=$L(id);if(n&&n.parentElement!==park)park.append(n);}
     for(const sel of RETIRED_SELECTORS)document.querySelectorAll(sel).forEach(n=>{if(!park.contains(n))park.append(n);});
@@ -450,7 +503,7 @@ function applyLayout(){
     for(const [key,ids] of Object.entries(TABS)){const view=$L('view-'+key);if(view)place(view,ids);}
     for(const [id,ids] of Object.entries(RESEARCH)){const view=$L(id);if(view)place(view,ids);}
     mergeSnapshot(park);
-    for(const step of [orderPulse,tidyEtf,renderEtfAlternatives,renderWarnings,renderSovereignTable,renderBondTabs])
+    for(const step of [orderPulse,orderDetailContent,renderYieldSnapshot,tidyEtf,renderEtfAlternatives,renderWarnings,renderSovereignTable,renderBondTabs])
       {try{step();}catch(e){console.warn('Layout step skipped:',step.name,e&&e.message);}}
     const ws=$L('watchlist-summary');if(ws&&ws.parentElement!==park)park.append(ws);
     stripCaveats();
@@ -462,6 +515,7 @@ function applyLayout(){
     // The Markets sub-view wrapper is redundant once its sub-navigation is gone.
     const sub=$L('subview-fx-prices');if(sub&&!sub.children.length&&sub.parentElement!==park)park.append(sub);
     refreshContexts();
+    sectionLinks();
   }finally{applying=false;}
 }
 

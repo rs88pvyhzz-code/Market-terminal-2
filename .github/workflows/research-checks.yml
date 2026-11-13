@@ -58,3 +58,4 @@ jobs:
             /tmp/release210-*.png
             /tmp/release211-*.png
             /tmp/release212-*.png
+            /tmp/compact-*.png

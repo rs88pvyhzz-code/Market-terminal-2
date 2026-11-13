@@ -91,6 +91,7 @@ jobs:
             /tmp/release210-*.png
             /tmp/release211-*.png
             /tmp/release212-*.png
+            /tmp/compact-*.png
             .terminal_sources/requests.jsonl
             .terminal_sources/fresh_sec_verification.json
             /tmp/research-live-*.png

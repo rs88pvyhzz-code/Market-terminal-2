@@ -11,7 +11,7 @@ assert m
 data=json.JSONDecoder().raw_decode(html[m.end():])[0]
 assert len(data['etfTracker']['funds'])==132
 assert "terminal1-original-theme" in html and "terminal11-layout-adapter" in html
-tabs=['OVERVIEW','MARKETS','EQUITIES','COMPANY RESEARCH','BONDS & RATES','ANALYTICS','ETF TRACKERS','ECONOMICS','MY WATCHLIST','DATA QUALITY']
+tabs=['OVERVIEW','MY WATCHLIST','MARKETS','ANALYTICS','EQUITIES','COMPANY RESEARCH','ETF TRACKERS','BONDS & RATES','ECONOMICS','DATA QUALITY']
 keys=['overview','fx','equities','companies','bonds','analytics','etfs','economics','watchlist','quality']
 with sync_playwright() as p:
     browser=p.chromium.launch(**({'executable_path':os.environ['CHROMIUM_EXECUTABLE']} if os.environ.get('CHROMIUM_EXECUTABLE') else {}),headless=True,args=['--no-sandbox'])
@@ -23,7 +23,7 @@ with sync_playwright() as p:
     assert page.locator('#workspace-tabs [role=tab]').all_text_contents()==tabs
     # Original typography and palette; Release 3.1 panel geometry (terminal_layout.css).
     assert page.locator('.brand').evaluate('(e)=>getComputedStyle(e).fontFamily').lower().find('monospace')>=0
-    assert page.locator('#overview-board').evaluate('(e)=>getComputedStyle(e).borderRadius')=='10px'
+    assert page.locator('#overview-board').evaluate('(e)=>getComputedStyle(e).borderRadius')=='5px'
     assert page.locator('#tab-overview').evaluate('(e)=>getComputedStyle(e).backgroundColor')=='rgb(255, 160, 40)'
     assert page.locator('#market-pulse .r24-snapshot-item').count()==14
     for key in keys:

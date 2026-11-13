@@ -26,11 +26,11 @@ with sync_playwright() as p:
  for symbol in ['GBP/EUR','US 10Y','Gold','Bitcoin','Europe','Japan','Emerging']:
   assert any(symbol in a for a in items.all_text_contents()),symbol
  assert 'ETF proxy' in page.locator('#r210-snapshot-note').inner_text()
- assert page.locator('#r24-developments article').count()<=5
+ assert page.locator('#r24-developments article').count()<=8
  overview_names=page.locator('#r24-developments article a').all_text_contents()
  assert len(overview_names)==len(set(overview_names))
  page.locator('#tab-overview').click()  # further headlines sit below Key market news
- assert page.locator('#news-list article').count()<=6
+ assert page.locator('#news-list article').count()<=10
  names=page.locator('#news-list article a').all_text_contents()
  assert not set(overview_names)&set(names),'Key market news repeated in further headlines'
  assert len(names)==len(set(names)),'Repeated further headlines'

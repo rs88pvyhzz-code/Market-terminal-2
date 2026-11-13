@@ -1501,13 +1501,14 @@ function renderCompanyInsight(c){
     c.name+' '+pc(c.changePct)+' on '+when+' (price change, not dividend-adjusted).';
   if(c.changePct!=null&&Math.abs(c.changePct)>=8)message+=' Large moves may reflect announcements, corporate actions, or a pricing error; verify the source.';
   $('company-move-summary').textContent=message;
-  $('company-news-stamp').textContent=snapshot?'Collection attempted '+snapshot.retrievedAt+' · article retrieval dates below':'No stored company headlines';
+  $('company-news-stamp').textContent='Publisher dates shown below';
+  $('company-news-stamp').title=snapshot?'Collected '+snapshot.retrievedAt:'No stored company headlines';
   if(!rows.length)panel.append(el('p','note','No company-specific headlines are saved in this snapshot. Use the latest-news link below. This is not evidence that there was no news.'));
-  else for(const row of rows.slice(0,5)){
+  else for(const row of [...rows].sort((a,b)=>Number(/transaction in own shares|executes buyback/i.test(a.title))-Number(/transaction in own shares|executes buyback/i.test(b.title))).slice(0,5)){
     if(!String(row.url||'').startsWith('https://'))continue;
     const card=el('article','company-story');const link=el('a','',row.title);
     link.href=row.url;link.target='_blank';link.rel='noopener noreferrer';
-    card.append(link,el('span','',(row.source||'Publisher')+' · '+(row.published||'date unavailable')+' · retrieved '+(row.retrievedAt||'date not recorded')+((row.archived||row.restored||Date.now()-Date.parse((row.published||'').replace(' UTC','Z').replace(' ','T'))>48*3600000)?' · ARCHIVED':'')));panel.append(card);
+    card.append(link,el('span','',(row.source||'Publisher')+' · '+(row.published||'date unavailable')+((row.archived||row.restored||Date.now()-Date.parse((row.published||'').replace(' UTC','Z').replace(' ','T'))>48*3600000)?' · ARCHIVED':'')));panel.append(card);
   }
   renderCompanyChanges(c);
   $('company-google-news').href=companyNewsSearch(c.name);
@@ -2628,7 +2629,7 @@ function initWatchlist(){
  $('watchlist-basis').onchange=e=>{watchState.basis=e.target.value;const w=watchlistRecords.find(r=>r.symbol===watchState.symbol);if(w){renderWatchlistChart(w,watchQuoteMap.get(w.symbol));renderWatchlistRelative(w,watchQuoteMap.get(w.symbol));}};
 }
 
-const WORKSPACES=['overview','fx','equities','companies','bonds','analytics','etfs','economics','watchlist','quality'];
+const WORKSPACES=['overview','watchlist','fx','analytics','equities','companies','etfs','bonds','economics','quality'];
 let activeWorkspace='overview', searchHits=[], searchCursor=0;
 const workspaceForSection={'etf-tracker-panel':'etfs','personal-watchlist-panel':'watchlist','analytics-breadth':'analytics','analytics-sectors':'analytics','analytics-rolling':'analytics','market-valuations':'analytics','corporate-credit':'bonds','company-events-panel':'companies','us-treasuries':'bonds',gilts:'bonds',news:'fx:news',headline:'fx:prices',monitor:'fx:prices',movers:'fx:prices','equity-screener':'equities',constituents:'equities',companies:'companies','peer-panel':'companies',rates:'bonds',real:'bonds',sovereign:'bonds',macro:'economics',calendar:'economics',compare:'analytics','quality-panel':'quality',sources:'quality'};
 function paintWorkspace(key){

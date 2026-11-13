@@ -114,7 +114,7 @@ CSS=r'''/* Style normalization and compact data-focused views. No global value s
 JS=r'''// Market Terminal clarity: same tab count and source data; uses existing closure.
 // Period returns are local-currency PRICE changes; long-horizon figures are annualised.
 const mtMovePeriods=['1M','3M','6M','YTD','1Y','3Y','5Y'];
-let mtMovePeriod='YTD',mtMoveHistory=null;
+let mtMovePeriod='YTD',mtMoveHistory=null,mtMoveView='regions',mtMoveDirection=-1,mtMoveGroup='';
 function mtMoveIndex(){
  if(mtMoveHistory)return mtMoveHistory;
  mtMoveHistory=new Map();
@@ -155,57 +155,55 @@ function mtMoveFormat(v){return v==null?'—':(v>0?'+':'')+fmt(v,1)+'%';}
 function renderScore(){
  const host=$('score');if(!host)return;
  const parent=host.closest('#score-panel')||host.parentElement;
+ const heading=parent?.querySelector('h2');if(heading)heading.textContent='MARKET PERFORMANCE';
  let controls=$('mt-movers-periods');
  if(!controls){
   controls=el('div','mt-period-controls');controls.id='mt-movers-periods';
-  for(const period of mtMovePeriods){const b=el('button','btn',period);b.type='button';b.dataset.mtPeriod=period;
-   b.onclick=()=>{mtMovePeriod=period;renderScore();};controls.append(b);}
-  host.before(controls);
+  const label=el('label','','View '),pick=el('select','field');pick.id='mt-movers-view';
+  for(const [value,text] of [['regions','Regional groups'],['ranked','Ranked by return']]){const o=el('option','',text);o.value=value;pick.append(o);}
+  pick.onchange=()=>{mtMoveView=pick.value;renderScore();};label.append(pick);controls.append(label);
+  const groupLabel=el('label','','Asset class '),group=el('select','field');group.id='mt-movers-group';
+  for(const value of ['',...new Set((D.quotes||[]).filter(q=>!['yield','volatility'].includes(q.kind)).map(q=>q.group))]){
+   const o=el('option','',value||'All asset classes');o.value=value;group.append(o);
+  }
+  group.onchange=()=>{mtMoveGroup=group.value;renderScore();};groupLabel.append(group);controls.append(groupLabel);
+  controls.append(el('span','mt-reading-note','Tap a period heading to rank. Tap again to reverse.'));host.before(controls);
  }
- for(const b of controls.querySelectorAll('button'))b.classList.toggle('active',b.dataset.mtPeriod===mtMovePeriod);
- const heading=parent?.querySelector('h2');if(heading)heading.textContent='PRICE MOVES BY PERIOD';
- const note=parent?.querySelector('p.note');if(note)note.textContent='Local-currency price changes, excluding income; 3Y and 5Y figures are annualised. Futures and currencies are not directly comparable investment returns.';
- // Read by asset class (the Global prices sections: US, UK, Europe, Asia-Pacific indices,
- // equity and bond ETFs, currencies, commodities, crypto); major market first in each.
+ $('mt-movers-view').value=mtMoveView;
+ const note=parent?.querySelector('p.note');if(note){note.classList.add('mt-reading-note');note.textContent='Price returns in each instrument’s quoted currency, excluding income. 3Y and 5Y are annualised, not cumulative. Futures exclude roll costs. — means insufficient history.';}
  const sectionOf=q=>typeof watchSection==='function'?watchSection(q):q.group;
- const sectionRank=new Map((typeof WATCH_SECTIONS!=='undefined'?WATCH_SECTIONS:[]).map(([n],i)=>[n,i]));
- // ETFs that track a market whose index is already listed (S&P 500, Nasdaq 100, Europe,
- // Japan, UK, India, Brazil, Taiwan) repeat that index in dollars; they stay in Global
- // prices and ETF Trackers but are left out here. Sector, bond and world ETFs stay.
- const indexDuplicates=new Set(['SPY','QQQ','IEUR','EWJ','EWU','INDA','EWZ','EWT']);
- const list=(D.quotes||[]).filter(q=>(!state.group||q.group===state.group)&&q.kind!=='yield'&&q.kind!=='volatility'&&!indexDuplicates.has(q.symbol))
-  .map(q=>({q,value:mtMoveReturn(q,mtMovePeriod),section:sectionOf(q)})).filter(r=>Number.isFinite(r.value))
-  .sort((a,b)=>(sectionRank.get(a.section)??99)-(sectionRank.get(b.section)??99)||(typeof watchMajorRank==='function'?watchMajorRank(a.q)-watchMajorRank(b.q):0)||b.value-a.value);
+ const sections=(typeof WATCH_SECTIONS!=='undefined'?WATCH_SECTIONS:[]).map(([n])=>n);
+ const uk=sections.indexOf('UK equity indices');if(uk>=0)sections.unshift(...sections.splice(uk,1));
+ const ranks=new Map(sections.map((n,i)=>[n,i]));
+ const duplicates=new Set(['SPY','QQQ','IEUR','EWJ','EWU','INDA','EWZ','EWT']);
+ const list=(D.quotes||[]).filter(q=>(!mtMoveGroup||q.group===mtMoveGroup)&&!['yield','volatility'].includes(q.kind)&&!duplicates.has(q.symbol))
+  .map(q=>({q,values:mtMovePeriods.map(p=>mtMoveReturn(q,p)),section:sectionOf(q)})).filter(r=>r.values.some(Number.isFinite));
+ const pi=mtMovePeriods.indexOf(mtMovePeriod);
+ const rank=(a,b)=>{const av=a.values[pi],bv=b.values[pi];return !Number.isFinite(av)?(!Number.isFinite(bv)?0:1):!Number.isFinite(bv)?-1:mtMoveDirection*(av-bv);};
+ list.sort((a,b)=>mtMoveView==='ranked'?rank(a,b):(ranks.get(a.section)??99)-(ranks.get(b.section)??99)||(typeof watchMajorRank==='function'?watchMajorRank(a.q)-watchMajorRank(b.q):0)||rank(a,b));
+ // The full matrix replaces both the long bars and the duplicate hidden table.
+ $('mt-movers-table')?.remove();
  host.replaceChildren();
- if(!list.length){host.append(el('div','empty','No sufficient historical prices for this period.'));return;}
- const selected=list;
- const scale=Math.max(1,...selected.map(r=>Math.abs(r.value)));
- let currentSection=null;
- for(const {q,value,section} of selected){
-  if(section!==currentSection){currentSection=section;host.append(el('div','mt-mover-section',section));}
-  const row=el('div','mt-mover-row');const name=el('span','mt-mover-name',q.name);name.title=q.symbol;
-  const track=el('div','mt-mover-track');const neg=el('div','mt-mover-half mt-mover-negative');const pos=el('div','mt-mover-half mt-mover-positive');
-  const bar=el('span',value<0?'mt-mover-loss':'mt-mover-gain');bar.style.width=Math.max(.6,Math.abs(value)/scale*100).toFixed(2)+'%';
-  (value<0?neg:pos).append(bar);track.append(neg,pos);
-  const amount=el('span',value<0?'down':'up',mtMoveFormat(value));row.append(name,track,amount);host.append(row);
+ if(!list.length){host.append(el('div','empty','No sufficient historical prices for this selection.'));return;}
+ const wrap=el('div','mt-table-scroll mt-performance-scroll');wrap.tabIndex=0;wrap.setAttribute('role','region');wrap.setAttribute('aria-label','Market performance across seven periods');
+ const table=el('table','mt-return-table');table.id='mt-movers-table';
+ const head=el('thead'),hr=el('tr');hr.append(el('th','','Market / quoted currency'));
+ for(const period of mtMovePeriods){
+  const th=el('th'),button=el('button','mt-sort',period+(period==='3Y'||period==='5Y'?' p.a.':''));button.type='button';button.dataset.mtPeriod=period;
+  const active=period===mtMovePeriod;th.setAttribute('aria-sort',active&&mtMoveView==='ranked'?(mtMoveDirection<0?'descending':'ascending'):'none');
+  if(active)th.classList.add('mt-selected-period');
+  button.append(document.createTextNode(active&&mtMoveView==='ranked'?(mtMoveDirection<0?' ↓':' ↑'):''));
+  button.onclick=()=>{mtMoveDirection=active&&mtMoveView==='ranked'?-mtMoveDirection:-1;mtMovePeriod=period;mtMoveView='ranked';renderScore();};th.append(button);hr.append(th);
  }
- let details=$('mt-movers-table');
- if(!details){details=document.createElement('details');details.id='mt-movers-table';details.className='mt-period-table-wrap';
-  details.append(el('summary','','All period percentages for the selected instruments'));
-  const div=el('div','mt-table-scroll');const table=el('table','mt-return-table');
-  const thead=el('thead');const hr=el('tr');for(const label of ['Instrument',...mtMovePeriods])hr.append(el('th','',label));thead.append(hr);
-  table.append(thead);const tbody=el('tbody');tbody.id='mt-movers-matrix';table.append(tbody);div.append(table);details.append(div);host.after(details);
+ head.append(hr);table.append(head);const body=el('tbody');body.id='mt-movers-matrix';let section=null;
+ for(const {q,values,section:group} of list){
+  if(mtMoveView==='regions'&&section!==group){section=group;const tr=el('tr','watch-section'),th=el('th','',group);th.colSpan=8;th.scope='rowgroup';tr.append(th);body.append(tr);}
+  const tr=el('tr');tr.dataset.symbol=q.symbol;
+  const name=el('td','',q.name);name.append(el('span','mt-currency',' · '+(q.currency||'currency unspecified')));
+  const history=mtMoveIndex().get(q.symbol);name.title=q.symbol+' · through '+(history?.at(-1)?.date||q.asOf||'date unavailable');tr.append(name);
+  values.forEach((v,i)=>{const cell=el('td',v==null?'':v<0?'down':v>0?'up':'',mtMoveFormat(v));if(i===pi)cell.classList.add('mt-selected-period');tr.append(cell);});body.append(tr);
  }
- const tbody=$('mt-movers-matrix');tbody.replaceChildren();
- let tableSection=null;
- for(const {q,section} of selected){
-  if(section!==tableSection){tableSection=section;const hr=el('tr','watch-section');const th=el('th','',section);th.colSpan=mtMovePeriods.length+1;hr.append(th);tbody.append(hr);}
-  const tr=el('tr');tr.append(el('td','',q.name));
-  for(const period of mtMovePeriods){const v=mtMoveReturn(q,period);tr.append(el('td',v==null?'':v<0?'down':'up',mtMoveFormat(v)));}
-  tbody.append(tr);
- }
- const footer=details.querySelector('.mt-mover-footnote');if(footer)footer.remove();
- details.append(el('p','note mt-mover-footnote','3Y and 5Y percentages are compounded annual growth rates, not cumulative returns. Prices exclude dividends, roll costs and FX conversion.'));
+ table.append(body);wrap.append(table);host.append(wrap);
 }
 function mtCalendarTopic(title){
  const t=String(title).toLowerCase();
