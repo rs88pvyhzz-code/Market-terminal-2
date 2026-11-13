@@ -106,3 +106,8 @@ details.period-dates .time-box{margin-top:7px}
 /* 12. No fund comparison: Cmp column, compare ticks and the clear button are gone. */
 #etf-tracker-panel .etf-table :is(th,td):nth-child(8){display:none!important}
 #etf-tracker-panel .etf-card-actions label,#etf-clear-comparisons,#etf-selected-comparisons{display:none!important}
+.polish-retained{font:11px var(--font,ui-monospace,monospace);color:#f3bd6c}
+
+/* 13. Gilt, ETF and watchlist analysis now sit on their own tabs: give them panel framing. */
+#view-bonds #gilt-ladder,#view-bonds #mt-gilt-tax{background:var(--t-panel,#121215);border:1px solid var(--t-line,#2a2a30);border-radius:10px;padding:13px;margin-top:14px}
+#view-etfs .layout-subpanel{margin-top:14px}

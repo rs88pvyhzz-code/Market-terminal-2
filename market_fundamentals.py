@@ -153,6 +153,10 @@ def collect(movers, detailed_companies, directory, batch_size=40, offline=False,
             if market.get('id')==mid:
                 for q in market.get('constituents',[]):
                     seen.setdefault(q['symbol'],q.get('name',q['symbol']))
+    # Selected companies (watchlist, research) outside the indices are cached too,
+    # so a failed provider lookup can fall back to their last good summary.
+    for c in detailed_companies:
+        if c.get('symbol'):seen.setdefault(c['symbol'],c.get('name',c['symbol']))
     universe=list(seen)
     # Get financial summaries for the most important daily market movers FIRST.
     # The full indexed universe is still retained, but requests are bounded per run.
@@ -221,3 +225,31 @@ def collect(movers, detailed_companies, directory, batch_size=40, offline=False,
               'updatedAt':stamp,'attempts':attempts}
     path.write_text(json.dumps({'records':records,'attempts':attempts},separators=(',',':')),encoding='utf-8')
     return output,coverage,warnings
+
+
+RETAIN_FIELDS=('trailingPE','forwardPE','marketCap','priceToBook','dividendYieldPct','revenueTTM','netIncomeTTM',
+               'profitMarginPct','epsTTM','ebitda','enterpriseToEbitda','freeCashflow','totalDebt','roePct',
+               'earningsGrowthPct','revenueGrowthPct')
+
+
+def fill_missing(companies, summaries):
+    """When today's provider lookup came back empty, show the last good summary.
+
+    Only fields that are missing today are filled, and the company is marked
+    with the date the retained figures were observed. Nothing is estimated.
+    Returns the symbols that were filled.
+    """
+    saved={s.get('symbol'):s for s in summaries or [] if isinstance(s,dict)}
+    filled=[]
+    for c in companies:
+        if any(c.get(k) is not None for k in ('trailingPE','marketCap','dividendYieldPct','revenueTTM')):continue
+        old=saved.get(c.get('symbol'))
+        if not old:continue
+        used=[k for k in RETAIN_FIELDS if c.get(k) is None and old.get(k) is not None]
+        if not used:continue
+        for k in used:c[k]=old[k]
+        if not c.get('marketCapCurrency') and old.get('marketCapCurrency'):c['marketCapCurrency']=old['marketCapCurrency']
+        c['fundamentalsRetainedFrom']=str(old.get('asOf') or '')[:10]
+        c['fundamentalSource']=(c.get('fundamentalSource') or '')+' · ratios retained from '+c['fundamentalsRetainedFrom']
+        filled.append(c['symbol'])
+    return filled

@@ -155,10 +155,25 @@
     }
   }
 
+  // Company figures carried over from the last good provider lookup carry their date.
+  function retainedDates(){
+    const pick=document.getElementById('company-pick');if(!pick||typeof D==='undefined')return;
+    const c=(D.companies||[]).find(x=>x.symbol===pick.value);const day=c?.fundamentalsRetainedFrom;
+    if(!day)return;
+    for(const tile of document.querySelectorAll('#view-companies .research-stats > *, #view-companies .t11-ratios > *, #view-companies .research-dashboard > *')){
+      const k=tile.firstElementChild?.textContent||'';
+      if(!/P\/E|market cap|dividend yield|EV \/ EBITDA|price \/ book|margin|return on equity|free cash flow|total debt/i.test(k))continue;
+      const v=tile.children[1]?.textContent.trim();if(!v||v==='—'||/unavailable/i.test(v))continue;
+      let note=tile.querySelector('.polish-retained');
+      if(!note){note=document.createElement('div');note.className='polish-retained';tile.append(note);}
+      const t='as of '+day;if(note.textContent!==t)note.textContent=t;
+    }
+  }
+
   let busy=false,queued=false;
   function polish(){
     if(busy)return;busy=true;
-    try{etfDetail();etfCards();calendar();macroTable();gilt();longTables();scrubFilings();}
+    try{etfDetail();etfCards();calendar();macroTable();gilt();longTables();scrubFilings();retainedDates();}
     catch(err){console.warn('terminal polish:',err);}
     finally{busy=false;}
   }

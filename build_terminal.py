@@ -594,6 +594,8 @@ def build(opts):
         movers,companies, ROOT/'.terminal_fundamentals', batch_size=opts.fundamentals_batch,
         offline=opts.offline or opts.no_fundamentals)
     warnings.extend(fwarnings)
+    retained=market_fundamentals.fill_missing(companies,fundamentals)
+    if retained:warnings.append('Provider ratios unavailable today; last good figures shown for '+', '.join(retained))
     # Full profiles (accounts, valuation, calendar) for FTSE 100 + the 100 largest US
     # companies, refreshed in rotation and published for the next build to restore.
     profiles,profile_coverage,profile_warnings=company_profiles.collect(

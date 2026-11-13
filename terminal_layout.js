@@ -2,9 +2,9 @@
  *
  * Rules enforced here (and checked by tests/browser_layout.py):
  *   1. Every section sits on exactly one tab.
- *   2. Market-wide analytics (risk, volatility, correlation, breadth, spreads,
- *      valuation proxies, after-tax and ladder calculators, signals) live on the
- *      Analytics tab. Analysis of the selected company stays in Company Research.
+ *   2. Market-wide analytics (risk, volatility, correlation, breadth, valuation
+ *      proxies, signals) live on the Analytics tab. Analysis of a gilt, ETF or
+ *      watched security stays on that tab; company analysis in Company Research.
  *   3. Duplicated or distracting panels are retired, not deleted: they are parked
  *      in a hidden container so older render code that still writes to them by id
  *      cannot throw.
@@ -28,7 +28,7 @@ const TABS={
   fx:['monitor'],
   equities:['equity-screener','constituents','movers'],
   companies:['companies'],
-  bonds:['gilts','us-treasuries','rates','real','sovereign','corporate-credit'],
+  bonds:['gilts','mt-gilt-tax','gilt-ladder','us-treasuries','us-spread-panel','rates','real','cross-rates','sovereign','corporate-credit'],
   etfs:['etf-tracker-panel'],
   economics:['macro','calendar','macro-surprise'],
   watchlist:['personal-watchlist-panel']
@@ -42,16 +42,8 @@ const TABS={
 const ANALYTICS=[
   {key:'markets',title:'Markets',source:null,context:null,scopes:[['scope-view-fx'],[]],
    items:['score-panel','mt-risk-comparison','analytics-rolling','market-valuations','compare',
-          'analytics-breadth','analytics-sectors','r23-market-conditions','r23-alerts']},
-  {key:'bonds',title:'Bonds & rates',source:'bonds',scopes:[['scope-view-bonds'],['scope-gilts']],
-   context:()=>{const g=$L('gilt-selected')?.textContent.trim();return g?'Selected gilt: '+g:'';},
-   items:['mt-gilt-tax','gilt-ladder','us-spread-panel','cross-rates']},
-  {key:'etfs',title:'ETFs',source:'etfs',scopes:[['scope-view-etfs','scope-etf-tracker-panel'],['scope-etf-detail']],
-   context:()=>{const h=document.querySelector('#etf-tracker-panel .etf-detail h3');return h?h.textContent.trim():'No ETF selected';},
-   items:['layout-etf-performance','layout-etf-risk','etf-index-comparison','etf-cost-peers']},
-  {key:'watchlist',title:'Watchlist',source:'watchlist',scopes:[[],[]],
-   context:()=>{const w=$L('watchlist-selected-name')?.textContent.trim();return w||'No security selected';},
-   items:['watchlist-risk']}
+          'analytics-breadth','analytics-sectors','r23-market-conditions','r23-alerts']}
+  // Bonds, ETF and watchlist analysis now stay on their own tabs, beside the instrument.
 ];
 
 // Company Research: company-specific analysis stays with the company it describes,
@@ -417,7 +409,7 @@ function changeBp(pts,days){
 function renderSovereignTable(){
   const host=$L('sovereign');if(!host)return;
   const series=[];
-  const add=(name,rows,field,source)=>{const pts=(rows||[]).filter(r=>Number.isFinite(Number(r[field]))).map(r=>({date:r.date,v:Number(r[field])}));if(pts.length)series.push({name,pts,source});};
+  const add=(name,rows,field,source)=>{const pts=(rows||[]).filter(r=>r[field]!=null&&r[field]!==''&&Number.isFinite(Number(r[field]))).map(r=>({date:r.date,v:Number(r[field])}));if(pts.length)series.push({name,pts,source});};
   add('United Kingdom',D.uk_rates,'gilt10y','BoE spot');add('United States',D.us_rates,'DGS10','US Treasury');
   for(const [code,name] of [['DE','Germany'],['FR','France'],['IT','Italy'],['ES','Spain'],['NL','Netherlands']])add(name,D.sovereign_yields,code,'Eurostat monthly');
   if(!series.length)return;
@@ -441,7 +433,7 @@ function renderSovereignTable(){
 }
 
 // Bonds & Rates: five sub-tabs instead of one long page.
-const BOND_TABS=[['UK gilts',['gilts']],['US Treasuries',['us-treasuries']],['Yield curves',['rates','real']],['Credit spreads',['corporate-credit']],['Sovereign',['sovereign']]];
+const BOND_TABS=[['UK gilts',['gilts','mt-gilt-tax','gilt-ladder']],['US Treasuries',['us-treasuries','us-spread-panel']],['Yield curves',['rates','real','cross-rates']],['Credit spreads',['corporate-credit']],['Sovereign',['sovereign']]];
 let bondTab=0;
 function bondTabFor(id){return BOND_TABS.findIndex(([,ids])=>ids.some(x=>x===id||$L(x)?.querySelector('#'+CSS.escape(id))));}
 function renderBondTabs(){
@@ -526,6 +518,7 @@ function applyLayout(){
       const h=sec.querySelector('.r24-support-heading,h3,summary');
       if(h&&RETIRED_HEADINGS.includes(h.textContent.trim())&&!park.contains(sec))park.append(sec);
     });
+    for(const id of ['gilt-ladder','mt-gilt-tax']){const n=$L(id),g=$L('gilts');if(n&&g&&g.contains(n))g.after(n);} // gilt analysis sits under the gilt list
     for(const [key,ids] of Object.entries(TABS)){const view=$L('view-'+key);if(view)place(view,ids);}
     for(const [id,ids] of Object.entries(RESEARCH)){const view=$L(id);if(view)place(view,ids);}
     mergeSnapshot(park);
