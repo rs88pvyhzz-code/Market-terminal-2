@@ -92,10 +92,55 @@
   // Gilt block: keep warnings, drop the standing method explanation.
   function gilt(){for(const n of $$('#gilts .r28-gilt-single > p.note'))if(/^Gross cash figures are undiscounted/.test(n.textContent)&&!n.hidden)n.hidden=true;}
 
+  // Long tables: first rows in page flow, the rest behind "Show all" (no nested scroll boxes).
+  const LIMIT=20,expanded=new Set();
+  const WRAPS='.r28-table-scroll,.etf-table-scroll,.gilt-table-scroll,.mt-table-scroll,.constituents-scroll,.screener-scroll,.watchlist-table-scroll,.scroll,#ust-securities-scroll';
+  function wrapKey(w){return w.id||[...w.classList].join('.')+'@'+(w.closest('section[id],[id^=view-]')?.id||'');}
+  function longTables(){
+    for(const w of $$(WRAPS)){
+      if(w.closest('#view-quality')||w.parentElement?.closest(WRAPS))continue;
+      const body=w.querySelector('tbody');if(!body)continue;
+      const rows=[...body.rows].filter(r=>!/group|geo/.test(r.className));
+      const key=wrapKey(w),open=expanded.has(key),over=rows.length>LIMIT;
+      let n=0;
+      for(const r of body.rows){
+        const isGroup=/group|geo/.test(r.className);if(!isGroup)n++;
+        const keep=open||!over||n<=LIMIT||r.matches('.etf-active,.selected,.active,[aria-selected=true]');
+        if(r.classList.contains('polish-cut')===keep)r.classList.toggle('polish-cut',!keep);
+      }
+      let btn=w.nextElementSibling?.classList.contains('polish-more')?w.nextElementSibling:null;
+      if(!over){btn?.remove();continue;}
+      if(!btn){btn=document.createElement('button');btn.type='button';btn.className='polish-more';w.after(btn);}
+      btn.onclick=()=>{open?expanded.delete(key):expanded.add(key);longTables();if(open)w.scrollIntoView({block:'start'});};
+      const label=open?'Show fewer':'Show all '+rows.length;
+      if(btn.textContent!==label)btn.textContent=label;
+    }
+  }
+
+  // Search: gilts and US Treasuries are searchable, and every result lands on its detail.
+  function extendSearch(){
+    if(typeof fullSearchList==='undefined'||typeof chooseGlobalResult!=='function')return;
+    for(const g of (typeof giltList!=='undefined'?giltList:[]))
+      fullSearchList.push({kind:'gilt',label:g.name+(g.shortTicker?' ('+g.shortTicker+')':''),code:g.isin||g.ticker,ticker:g.ticker,detail:'UK gilt · matures '+g.maturity});
+    for(const b of (typeof ustList!=='undefined'?ustList:[]))
+      fullSearchList.push({kind:'ust',label:b.name,code:b.cusip,detail:'US Treasury · '+(b.type||'')+' · matures '+b.maturity});
+    const base=chooseGlobalResult;
+    const land=(id)=>setTimeout(()=>{const n=document.getElementById(id);if(n)n.scrollIntoView({behavior:'smooth',block:'start'});},120);
+    const bond=(i)=>{activateWorkspace('bonds',{scroll:false});if(typeof bondTab!=='undefined'){bondTab=i;renderBondTabs();}};
+    chooseGlobalResult=function(item){
+      if(!item)return;
+      if(item.kind==='gilt'){$('global-search').value='';closeGlobalResults();bond(0);giltState.symbol=item.ticker;renderGilts();land('gilt-stats');return;}
+      if(item.kind==='ust'){$('global-search').value='';closeGlobalResults();bond(1);ustState.selected=item.code;renderUST();land('ust-selected');return;}
+      base(item);
+      if(item.kind==='etfTracker')land('etf-selected');
+    };
+  }
+  try{extendSearch();}catch(err){console.warn('search extension:',err);}
+
   let busy=false,queued=false;
   function polish(){
     if(busy)return;busy=true;
-    try{etfDetail();etfCards();calendar();macroTable();gilt();}
+    try{etfDetail();etfCards();calendar();macroTable();gilt();longTables();}
     catch(err){console.warn('terminal polish:',err);}
     finally{busy=false;}
   }

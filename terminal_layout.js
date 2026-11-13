@@ -28,7 +28,7 @@ const TABS={
   fx:['monitor'],
   equities:['equity-screener','constituents','movers'],
   companies:['companies'],
-  bonds:['layout-yield-snapshot','gilts','us-treasuries','rates','real','sovereign','corporate-credit'],
+  bonds:['gilts','us-treasuries','rates','real','sovereign','corporate-credit'],
   etfs:['etf-tracker-panel'],
   economics:['macro','calendar','macro-surprise'],
   watchlist:['personal-watchlist-panel']
@@ -107,17 +107,43 @@ function sectionLinks(){
 }
 
 function renderYieldSnapshot(){
- const view=$L('view-bonds');if(!view)return;
- let host=$L('layout-yield-snapshot');if(!host){host=document.createElement('div');host.id='layout-yield-snapshot';host.className='panel';view.append(host);}
- if(host.dataset.ready)return;host.dataset.ready='yes';
- const heading=document.createElement('h2');heading.textContent='GOVERNMENT YIELD SNAPSHOT';host.append(heading);
- const grid=document.createElement('div');grid.className='layout-yield-grid';host.append(grid);
- for(const [name,rows,field] of [['UK 10Y · BoE spot',D.uk_rates,'gilt10y'],['US 10Y · Treasury par',D.us_rates,'DGS10'],['Euro area 10Y · spot',D.eu_rates,'eur10y']]){
-  const row=(rows||[]).filter(x=>Number.isFinite(x[field])).at(-1),cell=document.createElement('div');
-  const label=document.createElement('span');label.textContent=name;
-  const value=document.createElement('strong');value.textContent=row?fmt(row[field],2)+'%':'Unavailable';
-  const date=document.createElement('small');date.textContent=row?.date||'No observation';cell.append(label,value,date);grid.append(cell);
+ // Curve strip at the top of Yield curves only: level and day change by tenor, plus 2s10s.
+ const rates=$L('rates');if(!rates)return;
+ $L('layout-yield-snapshot')?.remove();
+ let host=$L('layout-curve-strip');if(host&&host.dataset.ready)return;
+ if(!host){host=document.createElement('div');host.id='layout-curve-strip';const head=rates.querySelector(':scope > .row');head?head.after(host):rates.prepend(host);}
+ host.dataset.ready='yes';
+ const TENORS=['2Y','5Y','10Y','20Y','30Y'];
+ const MARKETS=[['UK · BoE spot',D.uk_rates,{'5Y':'gilt5y','10Y':'gilt10y','20Y':'gilt20y'}],
+  ['US · Treasury',D.us_rates,{'2Y':'DGS2','5Y':'DGS5','10Y':'DGS10','20Y':'DGS20','30Y':'DGS30'}],
+  ['Euro area · ECB',D.eu_rates,{'2Y':'eur2y','5Y':'eur5y','10Y':'eur10y','20Y':'eur20y','30Y':'eur30y'}]];
+ const table=document.createElement('table');table.className='watch layout-curve-table';
+ const head=document.createElement('tr');for(const t of ['',...TENORS,'2s10s','As of']){const th=document.createElement('th');th.textContent=t;if(t&&t!=='As of')th.className='n';head.append(th);}
+ const thead=document.createElement('thead');thead.append(head);table.append(thead);
+ const body=document.createElement('tbody');
+ const bp=x=>{const r=Math.round(x);return (r>0?'+':r<0?'−':'')+Math.abs(r)+' bp';};
+ for(const [name,rows,fields] of MARKETS){
+  const tr=document.createElement('tr');const label=document.createElement('td');const [mk,src]=name.split(' · ');label.append(mk);if(src){const sp=document.createElement('span');sp.className='layout-curve-src';sp.textContent=' · '+src;label.append(sp);}tr.append(label);
+  const valid=(rows||[]).filter(r=>Object.values(fields).some(f=>Number.isFinite(r[f])));
+  const last=valid.at(-1),prev=valid.at(-2);
+  const cell=(level,change)=>{const td=document.createElement('td');td.className='n';
+   if(!Number.isFinite(level)){td.textContent='—';return td;}
+   const v=document.createElement('div');v.textContent=level.toFixed(2)+'%';td.append(v);
+   if(Number.isFinite(change)){const c=document.createElement('div');c.className='layout-curve-chg '+(change>0?'up':change<0?'down':'');c.textContent=bp(change);td.append(c);}
+   return td;};
+  for(const t of TENORS){const f=fields[t];tr.append(cell(f&&last?last[f]:NaN,f&&last&&prev&&Number.isFinite(prev[f])?(last[f]-prev[f])*100:NaN));}
+  const s2=fields['2Y'],s10=fields['10Y'];
+  const slope=r=>r&&s2&&Number.isFinite(r[s2])&&Number.isFinite(r[s10])?(r[s10]-r[s2])*100:NaN;
+  const sl=slope(last),sp=slope(prev);
+  const td=document.createElement('td');td.className='n';
+  if(Number.isFinite(sl)){const v=document.createElement('div');v.textContent=bp(sl);td.append(v);
+   if(Number.isFinite(sp)){const c=document.createElement('div');const d=sl-sp;c.className='layout-curve-chg '+(d>0?'up':d<0?'down':'');c.textContent=bp(d);td.append(c);}}
+  else td.textContent='—';
+  tr.append(td);
+  const date=document.createElement('td');date.textContent=last?.date||'—';tr.append(date);
+  body.append(tr);
  }
+ table.append(body);host.append(table);
 }
 
 function orderDetailContent(){

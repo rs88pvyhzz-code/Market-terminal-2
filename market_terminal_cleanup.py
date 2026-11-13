@@ -151,7 +151,7 @@ function mtMoveReturn(q,range){
  if(!Number.isFinite(gross)||gross<=0)return null;
  return 100*(years?Math.pow(gross,365.25/days)-1:gross-1);
 }
-function mtMoveFormat(v){return v==null?'—':(v>0?'+':'')+fmt(v,1)+'%';}
+function mtMoveFormat(v){return v==null?'—':(v>0?'+':'')+fmt(v,2)+'%';}
 function renderScore(){
  const host=$('score');if(!host)return;
  const parent=host.closest('#score-panel')||host.parentElement;

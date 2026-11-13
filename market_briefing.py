@@ -178,7 +178,7 @@ def enrich(payload):
         if len(rows)>=2:
             a,b=rows[-2:]; age=(now-timestamp(b['date'])).days; gap=(timestamp(b['date'])-timestamp(a['date'])).days;delta=b['bp']-a['bp']
             if 0<=age<=THRESHOLDS['criticalMaxAgeDays'] and 0<gap<=7 and abs(delta)>=THRESHOLDS['creditMoveBp']:
-                alerts.append({'title':f"{credit['name']}: {delta:+.1f} bp",'detail':f"Option-adjusted spread, {a['date']} → {b['date']}; threshold {THRESHOLDS['creditMoveBp']} bp.",'date':b['date'],'kind':'Calculated','url':credit.get('sourceUrl'),'source':'FRED / ICE BofA','assetClass':'Credit','severity':abs(delta)/THRESHOLDS['creditMoveBp']})
+                alerts.append({'title':f"{credit['name']}: {delta:+.0f} bp",'detail':f"Option-adjusted spread, {a['date']} → {b['date']}; threshold {THRESHOLDS['creditMoveBp']} bp.",'date':b['date'],'kind':'Calculated','url':credit.get('sourceUrl'),'source':'FRED / ICE BofA','assetClass':'Credit','severity':abs(delta)/THRESHOLDS['creditMoveBp']})
     critical=['^GSPC','^FTSE','^VIX','GBPUSD=X','BZ=F']
     unavailable=[]
     for symbol in critical:
@@ -194,7 +194,7 @@ def enrich(payload):
             a,b=rows[-2:]; date=timestamp(b['date']); prior=timestamp(a['date'])
             if date and prior and 0<=(now-date).days<=4 and 0<(date-prior).days<=7:
                 delta=(b[key]-a[key])*100
-                if abs(delta)>=THRESHOLDS['yieldMoveBp']:alerts.append({'title':f'{label}: {delta:+.1f} bp','detail':f"{a['date']} → {b['date']}; threshold {THRESHOLDS['yieldMoveBp']:g} bp",'date':b['date'],'kind':'Calculated','source':{'uk_rates':'Bank of England','us_rates':'FRED / US Treasury','eu_rates':'ECB'}[series],'assetClass':'Bonds','severity':abs(delta)/THRESHOLDS['yieldMoveBp']})
+                if abs(delta)>=THRESHOLDS['yieldMoveBp']:alerts.append({'title':f'{label}: {delta:+.0f} bp','detail':f"{a['date']} → {b['date']}; threshold {THRESHOLDS['yieldMoveBp']:g} bp",'date':b['date'],'kind':'Calculated','source':{'uk_rates':'Bank of England','us_rates':'FRED / US Treasury','eu_rates':'ECB'}[series],'assetClass':'Bonds','severity':abs(delta)/THRESHOLDS['yieldMoveBp']})
     today=now.date().isoformat()
     for event in payload.get('calendar',[]):
         if event.get('date')==today and any(word in event.get('title','').lower() for word in ['inflation','gdp','gross domestic','employment','monetary','interest','cpi','consumer price','producer price','payroll']):

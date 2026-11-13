@@ -58,3 +58,26 @@ footer.foot{display:none!important}
   #workspace-stage #gilts .r28-gilt-facts{grid-template-columns:repeat(2,minmax(0,1fr))!important}
   #workspace-stage #gilts .r28-gilt-yields>*,#workspace-stage #gilts .r28-gilt-facts>*{padding:10px!important}
 }
+
+/* 8. No scroll boxes inside the page: long tables run in page flow, first rows then "Show all". */
+#workspace-stage :is(.r28-table-scroll,.etf-table-scroll,.gilt-table-scroll,.mt-table-scroll,.constituents-scroll,.screener-scroll,.watchlist-table-scroll,.scroll,.small-scroll,#ust-securities-scroll,.calendar-list,#calendar-items){
+  max-height:none!important;height:auto!important;overflow-y:visible!important}
+tr.polish-cut{display:none!important}
+.polish-more{display:block;width:100%;margin:6px 0 2px;padding:9px;background:none;border:1px solid var(--line,#2a2a30);border-radius:6px;
+  font:12px var(--font,ui-monospace,monospace);color:var(--amber,#ffa028);letter-spacing:.04em;cursor:pointer}
+
+/* 9. ETF table on phones: use the full width, keep TER and P/S apart. */
+@media (max-width:600px){
+  #etf-tracker-panel .etf-table{table-layout:auto!important;width:100%!important}
+  #etf-tracker-panel .etf-table th:nth-child(1){width:auto!important}
+  #etf-tracker-panel .etf-table :is(th,td):nth-child(2){padding-right:8px!important;white-space:nowrap}
+  #etf-tracker-panel .etf-table :is(th,td):nth-child(3){text-align:center!important}
+  #etf-tracker-panel .etf-table :is(th,td):nth-child(5){white-space:nowrap}
+}
+
+/* 10. Custom chart dates sit behind one DATES button. */
+details.period-dates{display:inline-block}
+details.period-dates>summary{list-style:none;display:inline-block;cursor:pointer}
+details.period-dates>summary::-webkit-details-marker{display:none}
+details.period-dates[open]>summary{color:var(--amber,#ffa028)}
+details.period-dates .time-box{margin-top:7px}

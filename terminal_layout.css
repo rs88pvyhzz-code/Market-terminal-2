@@ -235,11 +235,6 @@
  .terminal1-design.release212 #view-overview #r24-conditions th:nth-child(n+3),
  .terminal1-design.release212 #view-overview #r24-conditions td:nth-child(n+3){display:table-cell}
 }
-.layout-yield-grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:12px}
-.layout-yield-grid>div{display:flex;flex-direction:column;gap:4px}
-.layout-yield-grid span,.layout-yield-grid small{font:12px/1.35 system-ui,sans-serif;color:var(--t-muted)}
-.layout-yield-grid strong{font:20px/1.3 var(--t-mono);font-variant-numeric:tabular-nums}
-#layout-yield-snapshot h2{font-size:12px;margin:0 0 8px}
 
 /* Let grid children shrink; contain long tables without widening the page. */
 #workspace-stage .workspace-view,#workspace-stage .layout-group-body,#workspace-stage .panel,#monitor>*{min-width:0}
@@ -262,3 +257,11 @@
 @media(max-width:600px){.watch-change-group{grid-template-columns:1fr}.watch-change-group>strong{grid-row:auto}}
 
 #company-coverage-gaps{padding:10px 0;border-bottom:1px solid var(--t-line);margin-bottom:10px;overflow-wrap:anywhere;font:13px/1.4 system-ui,sans-serif}#company-coverage-gaps>strong{color:var(--t-amber)}#company-coverage-gaps p{margin:5px 0}
+
+/* Yield curves: curve strip (level, day change in bp, 2s10s). */
+#layout-curve-strip{margin:4px 0 14px}
+#layout-curve-strip table{width:100%;min-width:0!important}
+@media (max-width:600px){#layout-curve-strip th:nth-child(5),#layout-curve-strip td:nth-child(5),#layout-curve-strip th:last-child,#layout-curve-strip td:last-child{display:none}#layout-curve-strip th,#layout-curve-strip td{padding:6px 3px!important;font-size:11px!important}#layout-curve-strip td.n>div:first-child{font-size:12px!important}.layout-curve-src{display:none}}
+#layout-curve-strip td:first-child{white-space:nowrap;color:var(--t-fg)}
+#layout-curve-strip td.n>div:first-child{font:500 14px/1.3 var(--t-mono,ui-monospace,monospace);font-variant-numeric:tabular-nums}
+.layout-curve-chg{font:11px/1.3 var(--t-mono,ui-monospace,monospace);color:var(--t-muted,#96969f);font-variant-numeric:tabular-nums}

@@ -22,6 +22,7 @@ function r24VisibleSection(detail) {
 function r24SelectivePresentation(root=document) {
   // Only exceptions and technical audits are disclosures. Facts, sources and models stay direct.
   for(const detail of [...root.querySelectorAll('details')]){
+    if(detail.classList.contains('period-dates'))continue; // custom chart dates stay behind their button
     // Restore the original ETF reference disclosure; selected fund details stay direct.
     if(detail.closest('#etf-tracker-panel'))continue;
     const title=detail.querySelector(':scope > summary')?.textContent||'';
@@ -118,7 +119,7 @@ function r24Conditions(host){
   const vix=qMap.get('^VIX'),breadth=D.marketAnalytics?.breadth||[],credit=(D.credit_spreads||[]).filter(x=>['US_IG','US_HY'].includes(x.key));
   const list=values=>{const box=el('div');if(!values.length)box.textContent='Unavailable';values.forEach(value=>box.append(el('div','r24-line',value)));return box;};
   const uk=(D.uk_rates||[]).filter(x=>Number.isFinite(x.gilt10y)),us=(D.us_rates||[]).filter(x=>Number.isFinite(x.DGS10)),u=uk.at(-1),p=uk.at(-2),s=us.at(-1),t=us.at(-2),two=latestField(D.us_rates,'DGS2');
-  const curve=s&&two&&s.date===two.date?((s.DGS10-two.DGS2)*100).toFixed(1)+' bp':'Unavailable';
+  const curve=s&&two&&s.date===two.date?((s.DGS10-two.DGS2)*100).toFixed(0)+' bp':'Unavailable';
   r24Table(host,['Indicator','Latest observation','Change / context','Observation date'],[
     ['Volatility',vix?'VIX '+fmt(vix.price,2):'Unavailable',vix?pc(vix.changePct):'Unavailable',vix?.asOf||'Unavailable'],
     ['Market breadth',list(breadth.map(b=>b.name+': '+b.advancers+' advancing / '+b.decliners+' declining')),list(breadth.map(b=>b.quoted+'/'+b.members+' quoted; above 200D '+b.above200+'/'+b.eligible200)),list(breadth.map(b=>b.name+' '+b.date))],

@@ -230,8 +230,8 @@ function r28GiltPairs(host,statRows,b,v,clean,manual){
   ['Initial dirty purchase cost',dirty!=null&&scale!=null?gbp(dirty*scale):'—'],
   ['All remaining coupon receipts',couponPer100!=null&&scale!=null?gbp(couponPer100*scale):'—'],
   ['Total cash received to maturity',couponPer100!=null&&scale!=null?gbp((100+couponPer100)*scale):'—'],
-  ['Clean purchase price / £100',clean!=null?fmt(clean,3):'—'],
-  ['Dirty purchase price / £100',dirty!=null?fmt(dirty,4):'—'],
+  ['Clean purchase price / £100',clean!=null?fmt(clean,2):'—'],
+  ['Dirty purchase price / £100',dirty!=null?fmt(dirty,2):'—'],
   ['Coupon rate',fmt(b.coupon,3)+'%'],
   ['Maturity date',b.maturity],
  ];

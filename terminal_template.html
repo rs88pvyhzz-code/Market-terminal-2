@@ -834,8 +834,8 @@ h2{font:600 15px/1.35 var(--font);color:var(--amber);margin:0}h3{font:500 13px v
     <label class="mini" for="credit-compare">COMPARE WITH</label><select id="credit-compare" class="field" aria-label="Credit spread comparison series"></select>
   </div>
   <div class="pills" id="credit-range" aria-label="Corporate credit history">
-    <button type="button" class="btn" data-credit-range="1M">1M</button><button type="button" class="btn" data-credit-range="3M">3M</button>
-    <button type="button" class="btn" data-credit-range="1Y">1Y</button><button type="button" class="btn active" data-credit-range="3Y">3Y</button><button type="button" class="btn" data-credit-range="MAX">MAX</button>
+    <button type="button" class="btn" data-credit-range="1M">1M</button>
+    <button type="button" class="btn" data-credit-range="1Y">1Y</button><button type="button" class="btn active" data-credit-range="3Y">3Y</button><button type="button" class="btn" data-credit-range="5Y">5Y</button><button type="button" class="btn" data-credit-range="MAX">MAX</button>
   </div>
   <div class="chart" id="credit-chart"></div><div id="credit-legend" class="legend"></div>
   <p class="research-hint" id="credit-status">The collector will show dated public observations when the feed succeeds. Missing regions remain missing.</p>
@@ -887,7 +887,7 @@ h2{font:600 15px/1.35 var(--font);color:var(--amber);margin:0}h3{font:500 13px v
   </tr></thead><tbody id="ladder-rows"></tbody></table></div>
   <p class="note" id="ladder-note">Indicative only, not advice. Costs use DMO dated offer (dirty) prices; your broker's prices and dealing charges will differ. Coupon tax is deducted in the year each coupon is paid; the gain to par is CGT-exempt. Holdings above £5,000 nominal fall within the accrued income scheme, which shifts some tax between years but is not modelled. The personal savings allowance is ignored.</p>
   </section>
-  <div class="row"><h3>INDIVIDUAL GILT PRICE HISTORY</h3><div class="pills" id="gilt-period"><button class="btn" data-gilt-range="1M">1M</button><button class="btn" data-gilt-range="3M">3M</button><button class="btn" data-gilt-range="1Y">1Y</button><button class="btn active" data-gilt-range="MAX">MAX</button></div></div>
+  <div class="row"><h3>INDIVIDUAL GILT PRICE HISTORY</h3><div class="pills" id="gilt-period"><button class="btn" data-gilt-range="1M">1M</button><button class="btn" data-gilt-range="1Y">1Y</button><button class="btn" data-gilt-range="3Y">3Y</button><button class="btn" data-gilt-range="5Y">5Y</button><button class="btn active" data-gilt-range="MAX">MAX</button></div></div>
   <div class="chart" id="gilt-chart"></div><p class="note">Individual price history starts with this upgrade and grows as daily snapshots are saved. Existing benchmark yield history remains in the panels below; these are different series.</p>
   <p class="note">Source: <a target="_blank" rel="noopener noreferrer" href="https://www.dmo.gov.uk/data/pdfdatareport?reportCode=D10B">UK Debt Management Office, D10B daily Gilt Purchase and Sale Service</a>. Crown copyright under the Open Government Licence. Prices are retained with their original report date; missing automatic updates never become invented current prices.</p>
 </section>
@@ -913,7 +913,7 @@ h2{font:600 15px/1.35 var(--font);color:var(--amber);margin:0}h3{font:500 13px v
  </div>
  <div class="research-stats" id="ust-stats"></div>
  <p class="note">*Estimated gross yield-to-maturity, accrued interest, duration and DV01 use a simplified semiannual valuation for fixed-rate notes/bonds, not the full Treasury settlement conventions. Bills show simple annualised investment yield and bank-discount yield. TIPS and floating-rate notes are <b>not</b> given a misleading nominal fixed-rate YTM. FedInvest quotations are not live broker quotes.</p>
- <div class="row"><h3>INDIVIDUAL US TREASURY PRICE HISTORY</h3><div class="pills" id="ust-period"><button class="btn" data-ust-range="1M">1M</button><button class="btn" data-ust-range="3M">3M</button><button class="btn" data-ust-range="1Y">1Y</button><button class="btn" data-ust-range="5Y">5Y</button><button class="btn active" data-ust-range="MAX">MAX</button></div></div>
+ <div class="row"><h3>INDIVIDUAL US TREASURY PRICE HISTORY</h3><div class="pills" id="ust-period"><button class="btn" data-ust-range="1M">1M</button><button class="btn" data-ust-range="1Y">1Y</button><button class="btn" data-ust-range="3Y">3Y</button><button class="btn" data-ust-range="5Y">5Y</button><button class="btn" data-ust-range="MAX">MAX</button></div></div>
  <div class="chart" id="ust-chart"></div>
  <p class="note">Price histories begin with verified snapshots saved by this terminal and grow over subsequent successful downloads. Official par Treasury yields (including long histories) remain available in the yield-curve section below.</p>
  <p class="note">Source: <a href="https://www.treasurydirect.gov/government/federal-investments-program/" target="_blank" rel="noopener noreferrer">US Treasury Federal Investments Program</a>; <a href="https://catalog.data.gov/dataset/federal-investments-program-rates-and-prices" target="_blank" rel="noopener noreferrer">data documentation</a>. Prices and actual source dates retained. If automatic retrieval fails, the display must say so.</p>
@@ -1094,7 +1094,7 @@ function loadCompanyHistory(symbol){
 const histMap=new Map();(D.history||[]).forEach(r=>{if(!histMap.has(r.symbol))histMap.set(r.symbol,[]);histMap.get(r.symbol).push({date:r.date,v:Number(r.close),adj:r.adjClose==null?null:Number(r.adjClose)});});
 for(const pts of histMap.values())pts.sort((a,b)=>a.date.localeCompare(b.date));
 const fmt=(x,d=2)=>x==null||!Number.isFinite(+x)?'—':Number(x).toLocaleString('en-GB',{minimumFractionDigits:d,maximumFractionDigits:d});
-const sign=x=>x>0?'+':'';const pc=x=>x==null?'—':sign(x)+fmt(x,2)+'%';const bp=x=>x==null?'—':sign(x)+fmt(x,1)+'bp';
+const sign=x=>x>0?'+':'';const pc=x=>x==null?'—':sign(x)+fmt(x,2)+'%';const bp=x=>x==null?'—':sign(x)+fmt(x,0)+' bp';
 const tone=x=>x>0?'up':x<0?'down':'neutral';
 const prec=q=>q.kind==='yield'?3:q.kind==='fx'?4:Math.abs(q.price)<2?4:Math.abs(q.price)<100?2:1;
 const price=q=>q?fmt(q.price,prec(q))+(q.kind==='yield'?'%':''):'—';
@@ -1112,8 +1112,8 @@ function options(select, selected, allowNone=false){select.replaceChildren();if(
     D.quotes.filter(q=>q.group===g).forEach(q=>og.append(new Option(q.name+' ['+q.symbol+']',q.symbol)));select.append(og);}
   if(qMap.has(selected)||allowNone&&selected==='')select.value=selected;else if(select.options.length)select.selectedIndex=0;
 }
-const ALL_RANGES=['1M','3M','6M','YTD','1Y','3Y','5Y','10Y','MAX'];
-const INTRADAY_RANGES=['1D','1W'];
+const ALL_RANGES=['1M','1Y','3Y','5Y','MAX'];
+const INTRADAY_RANGES=['1D'];
 const customDates={};
 function periods(pts,prop){
   if(!pts||!pts.length)return [];
@@ -1141,7 +1141,9 @@ function mountPeriod(id,prop,refresh,onlyCustom=false){
     go.textContent='CUSTOM ACTIVE';refresh();
   };
   controls.append(el('label','', 'FROM'),from,el('label','', 'TO'),to,go);
-  host.append(controls);
+  const dates=document.createElement('details');dates.className='period-dates';dates.append(el('summary','btn','DATES'),controls);
+  if(state[prop]==='CUSTOM')dates.open=true;
+  host.append(dates);
 }
 function makeRanges(id,prop){const choices=prop==='mainRange'?[...INTRADAY_RANGES,...ALL_RANGES]:ALL_RANGES;wipe(id);
   choices.forEach(r=>{const b=el('button','btn'+(state[prop]===r?' active':''),r);b.type='button';b.onclick=()=>{state[prop]=r;makeRanges(id,prop);const box=$(prop==='mainRange'?'main-custom':'compare-custom');const action=box?.querySelector('button');if(action)action.textContent='APPLY DATES';if(prop==='mainRange')renderMain();else renderCompare();};$(id).append(b);});}
@@ -1364,7 +1366,7 @@ function renderCompareAnalytics(prep,isYield){
     const avg=r.length?r.reduce((a,b)=>a+b.v,0)/r.length:0;
     const sd=r.length>1?Math.sqrt(r.reduce((a,b)=>a+(b.v-avg)**2,0)/(r.length-1)*252)*100:null;
     const period=s.pts.length>1?s.pts.at(-1).v/s.pts[0].v*100-100:null;
-    const row=el('tr');[s.name,pc(period),sd==null?'—':fmt(sd,1)+'%',fmt(maxDD,1)+'%'].forEach((v,i)=>row.append(el('td',i?'n':'',v)));table.append(row);
+    const row=el('tr');[s.name,pc(period),sd==null?'—':fmt(sd,2)+'%',fmt(maxDD,2)+'%'].forEach((v,i)=>row.append(el('td',i?'n':'',v)));table.append(row);
   }
   stat.append(table,el('div','mini','¹ Annualised standard deviation of daily log changes (252 trading days) in the selected return basis. Adjusted closes are only a total-return proxy. Futures rolls, costs and taxes are excluded.'));
   if(prep.length<2){corr.textContent='Select two or more markets.';return;}
@@ -1915,7 +1917,7 @@ function renderCredit(){
   const series=choices.map((s,i)=>{
     const points=(s.history||[]).filter(p=>p.date&&Number.isFinite(Number(p.bp))).map(p=>({date:p.date,v:Number(p.bp)}));
     const end=points.at(-1)?.date,cutoff=end?new Date(end+'T12:00:00Z'):null;
-    if(cutoff&&creditState.range!=='MAX'){const months=creditState.range==='1M'?1:creditState.range==='3M'?3:creditState.range==='1Y'?12:36;cutoff.setUTCMonth(cutoff.getUTCMonth()-months);}
+    if(cutoff&&creditState.range!=='MAX'){const months=creditState.range==='1M'?1:creditState.range==='1Y'?12:creditState.range==='5Y'?60:36;cutoff.setUTCMonth(cutoff.getUTCMonth()-months);}
     return {name:s.name,color:i===0?AMBER:BLUE,pts:cutoff?points.filter(p=>p.date>=cutoff.toISOString().slice(0,10)):points};
   });
   chart('credit-chart',series,{format:v=>fmt(v,0)+'bp',aria:'ICE BofA corporate option-adjusted credit spreads in basis points'});
@@ -2034,7 +2036,7 @@ function renderRolling(){
  if(primary===reference){$('rolling-note').textContent='Choose two different instruments.';empty('rolling-vol-chart','Choose different instruments.');empty('rolling-corr-chart','Choose different instruments.');return;}
  const result=calculateRollingAnalytics(primary,reference,analyticState.rollingBasis,analyticState.rollingWindow);
  if(result.error){$('rolling-note').textContent=result.error;empty('rolling-vol-chart',result.error);empty('rolling-corr-chart',result.error);return;}
- for(const [key,val,dec] of [['Primary annual volatility',result.latest.volA,1],['Reference annual volatility',result.latest.volB,1],['Rolling beta',result.latest.beta,2],['Rolling correlation',result.latest.corr,2]]){
+ for(const [key,val,dec] of [['Primary annual volatility',result.latest.volA,2],['Reference annual volatility',result.latest.volB,2],['Rolling beta',result.latest.beta,2],['Rolling correlation',result.latest.corr,2]]){
   const unit=key.includes('volatility')?'%':'';const item=el('div','analytic-stat');item.append(el('div','key',key),el('div','val',Number.isFinite(val)?fmt(val,dec)+unit:'—'));host.append(item);}
  chart('rolling-vol-chart',[{name:q1.name,color:AMBER,pts:result.volA},{name:q2.name,color:BLUE,pts:result.volB}],{format:v=>fmt(v,1)+'%',aria:'Rolling annualised price-return volatility'});
  chart('rolling-corr-chart',[{name:q1.name+' vs '+q2.name,color:AQUA,pts:result.correlation}],{format:v=>fmt(v,2),aria:'Rolling Pearson correlation of daily price returns'});
@@ -2197,7 +2199,7 @@ function renderSovereign(){
   chart('sovereign-chart',[{name:name[a]+' less '+name[b],color:AMBER,pts}],{format:v=>fmt(v,0)+'bp',zero:true,
       aria:name[a]+' government yield less '+name[b]+' in basis points'});
   const last=pts.at(-1);
-  $('sovereign-meta').textContent=last?name[a]+' minus '+name[b]+' · '+fmt(last.v,1)+' bp · '+datefmt(last.date)+
+  $('sovereign-meta').textContent=last?name[a]+' minus '+name[b]+' · '+fmt(last.v,0)+' bp · '+datefmt(last.date)+
    ' · monthly benchmark 10Y bond yields, not tick-by-tick data · Eurostat irt_lt_mcby_m':'No matching monthly published benchmark yields available for this selection.';
 }
 
@@ -2208,7 +2210,7 @@ const watchQuoteMap=new Map((D.watchlist_quotes||[]).map(q=>[q.symbol,q]));
 const watchHistoryMap=new Map((D.watchlist_history||[]).map(h=>[h.symbol,h.points||[]]));
 const watchNewsMap=new Map((D.watchlist_news||[]).map(n=>[n.symbol,n]));
 const watchState={symbol:watchlistRecords[0]?.symbol||'',query:'',kind:'all',sort:'original',range:'1Y',riskRange:'1Y',basis:'price_local'};
-const WATCH_RANGES=['1M','3M','6M','YTD','1Y','3Y','5Y','10Y','MAX'];
+const WATCH_RANGES=['1M','1Y','3Y','5Y','MAX'];
 function watchProfile(symbol){return companyMap.get(symbol)||fundamentalsMap.get(symbol)||null;}
 function watchFmtQuote(q){if(!q||q.price==null)return '—';return fmt(q.price,q.price>=1000?1:2)+' '+(q.currency||'');}
 function watchRows(){let rows=watchlistRecords.filter(w=>(watchState.kind==='all'||w.assetType===watchState.kind)&&
@@ -3903,9 +3905,9 @@ function forensicTests(c){
   const yrs=(c.annual||[]).filter(r=>r&&(r.revenue!=null||r.netProfit!=null)).slice().sort((a,b)=>String(b.fiscalEnd).localeCompare(String(a.fiscalEnd)));
   const L=yrs[0]||{},P=yrs[1]||{},fin=forensicIsFinancial(c),out=[];
   const g=(a,b)=>a!=null&&b!=null&&b!==0?(a/b-1)*100:null;
-  const pct=v=>v==null||!Number.isFinite(v)?'—':(v>0?'+':'')+fmt(v,1)+'%';
+  const pct=v=>v==null||!Number.isFinite(v)?'—':(v>0?'+':'')+fmt(v,2)+'%';
   const x=v=>v==null||!Number.isFinite(v)?'—':fmt(v,2)+'×';
-  const pp=v=>v==null||!Number.isFinite(v)?'—':fmt(v,1)+'%';
+  const pp=v=>v==null||!Number.isFinite(v)?'—':fmt(v,2)+'%';
   const add=(name,latest,prior,status,why)=>out.push({name,latest,prior,status,why});
   const grade=(v,watch,flag,higherIsWorse=true)=>v==null||!Number.isFinite(v)?'n/a':higherIsWorse?(v>flag?'FLAG':v>watch?'WATCH':'OK'):(v<flag?'FLAG':v<watch?'WATCH':'OK');
   const fcf=researchFCF;
@@ -4058,7 +4060,8 @@ function renderGilts(){
   const dates=raw.map(p=>({date:p.date,v:p.close}));
   const last=dates.at(-1)?.date,cutoff=last?new Date(last+'T12:00:00Z'):null;
   if(cutoff){if(giltState.range==='1M')cutoff.setUTCMonth(cutoff.getUTCMonth()-1);
-    if(giltState.range==='3M')cutoff.setUTCMonth(cutoff.getUTCMonth()-3);
+    if(giltState.range==='3Y')cutoff.setUTCFullYear(cutoff.getUTCFullYear()-3);
+    if(giltState.range==='5Y')cutoff.setUTCFullYear(cutoff.getUTCFullYear()-5);
     if(giltState.range==='1Y')cutoff.setUTCFullYear(cutoff.getUTCFullYear()-1);}
   const pts=dates.filter(p=>giltState.range==='MAX'||!cutoff||p.date>=cutoff.toISOString().slice(0,10));
   if(pts.length>=2)chart('gilt-chart',[{name:(b.shortTicker||b.isin)+' DMO offer clean',color:AMBER,pts}],{format:x=>'£'+fmt(x,2),aria:b.name+' DMO dated offer clean prices'});
@@ -4118,7 +4121,7 @@ function renderUST(){
   const backup=(D.us_treasury_history||[]).filter(x=>x.cusip===b.cusip).map(x=>({date:x.date,v:x.close}));
   const raw=all.length?all:backup;const now=raw.at(-1)?.date;
   let cutoff=now?new Date(now+'T12:00:00Z'):null;
-  if(cutoff&&ustState.range!=='MAX'){const n=ustState.range==='1M'?1:ustState.range==='3M'?3:ustState.range==='1Y'?12:60;cutoff.setUTCMonth(cutoff.getUTCMonth()-n);}
+  if(cutoff&&ustState.range!=='MAX'){const n=ustState.range==='1M'?1:ustState.range==='1Y'?12:ustState.range==='3Y'?36:60;cutoff.setUTCMonth(cutoff.getUTCMonth()-n);}
   const visible=raw.filter(x=>ustState.range==='MAX'||!cutoff||x.date>=cutoff.toISOString().slice(0,10));
   if(visible.length>=2)chart('ust-chart',[{name:b.cusip+' FedInvest reference price',color:AMBER,pts:visible}],{format:x=>'$'+fmt(x,3),aria:b.name+' dated FedInvest price history'});
   else empty('ust-chart',raw.length?'One valid observation. More dates will accumulate when the FedInvest download succeeds.':'No dated history for this security yet.');
