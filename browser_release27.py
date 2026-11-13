@@ -48,7 +48,7 @@ with sync_playwright() as p:
     page.goto('http://localhost:8765/',wait_until='domcontentloaded',timeout=120000);page.locator('#tab-etfs').dispatch_event('click');page.wait_for_timeout(100)
     assert page.locator('#workspace-tabs [role=tab]').count()==10
     assert len(data['etfTracker']['funds'])==132
-    assert page.locator('.etf-table thead th').all_text_contents()==['Fund / ticker','TER','P/S','Fund AUM (all classes)','1Y','3Y','5Y','Cmp']
+    assert page.locator('.etf-table thead th').all_text_contents()==['Fund / ticker','TER','P/S','Fund size','1Y','3Y','5Y','Cmp']
     assert page.locator('#etf-r26-pick,#etf-selected-comparisons').count()==0
     assert page.locator('#etf-same-index .etf-compare-card').count()<=3
     reference_disclosure=page.locator('#etf-tracker-panel [aria-label="US domiciled bond ETF references"] details')

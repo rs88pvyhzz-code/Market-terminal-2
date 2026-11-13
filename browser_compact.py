@@ -84,9 +84,8 @@ with sync_playwright() as p:
         assert ids.index('company-news-panel')<ids.index('company-price-block')<ids.index('company-risk-panel')
         if data.get('demo'):
             assert 'Quarterly results' in page.locator('#company-news-list article').first.inner_text()
-            assert page.locator('.r213-results-table tr').count()==3
-            assert page.locator('.r213-changes').is_visible()
-            assert 'different stated terms' in page.locator('.r213-changes').inner_text()
+            # Guidance changes and latest-results block retired: headlines only.
+            assert page.locator('.r213-changes,.r213-results,.r213-supporting').count()==0
             for row in page.locator('#company-news-list article').all():
                 assert row.bounding_box()['height']<180,(width,row.inner_text())
                 assert row.locator('a').get_attribute('href').startswith('https://')
