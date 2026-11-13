@@ -28,7 +28,7 @@ with sync_playwright() as p:
     page.locator('#tab-companies').dispatch_event('click')
     for symbol in ['SHEL.L','MSFT','HSBA.L']:
         if not any(c['symbol']==symbol for c in data['companies']):continue
-        page.locator('#company-pick').select_option(symbol);page.locator('#research-tab-0').click();assert page.locator('.r23-company-changes').count()==1
+        page.locator('#company-pick').select_option(symbol);page.locator('#research-tab-0').click();assert page.locator('.r23-company-changes').count()==0
         assert page.locator('#research-nav [role=tab]').count()==6
     page.locator('#tab-quality').dispatch_event('click');page.wait_for_timeout(120)
     assert page.locator('#mt-quality-focus').is_visible()

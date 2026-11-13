@@ -50,12 +50,12 @@ with sync_playwright() as p:
  assert table.locator('.etf-geo-group').count()>2
  assert 'two per market' in page.locator('#etf-result-count').inner_text()
  for selector in ['#etf-tracker-panel .etf-table-scroll']:
-  assert page.locator(selector).evaluate('(e)=>parseFloat(getComputedStyle(e).maxHeight)<=460')
-  assert page.locator(selector).evaluate('(e)=>getComputedStyle(e).overflowY')=='auto'
+  assert page.locator(selector).evaluate("(e)=>getComputedStyle(e).maxHeight==='none'&&e.scrollHeight<=e.clientHeight+2")
+  assert page.locator(selector).evaluate('(e)=>e.scrollHeight<=e.clientHeight+2')
  if not data.get('demo'):page.screenshot(path='/tmp/release210-etfs-ipad.png',full_page=True)
  page.locator('#tab-bonds').dispatch_event('click')
  for selector in ['#ust-securities-scroll','#gilts .gilt-table-scroll']:
-  assert page.locator(selector).evaluate('(e)=>Math.abs(parseFloat(getComputedStyle(e).maxHeight)-Math.min(innerHeight*.47,460))<1')
+  assert page.locator(selector).evaluate("(e)=>getComputedStyle(e).maxHeight==='none'&&e.scrollHeight<=e.clientHeight+2")
   assert page.locator(selector+' thead th').first.evaluate('(e)=>getComputedStyle(e).position')=='sticky'
  # The ladder builder is a calculator, so it lives in Analytics (terminal_layout.js).
  assert page.locator('#gilts #gilt-chart').count()==1 and page.locator('#view-analytics #gilt-ladder').count()==1

@@ -22,8 +22,13 @@ if not data.get('demo'):
         for y,p in (f.get('returnPeriods') or {}).items():
             start=next((x for x in observations if x[0]==p['start']),None)
             end=next((x for x in observations if x[0]==p['end']),None)
-            idx=2 if p['basis']=='Adjusted close proxy' else 1
-            assert start and end and p['startPrice']==start[idx] and p['endPrice']==end[idx],(f['symbol'],y)
+            idx=1 if p['basis'].startswith('Price only') else 2
+            assert start and end and p['startPrice']==start[idx],(f['symbol'],y)
+            if p.get('linkedEnd'):
+                prior=[x for x in observations if x[0]<p['end'] and x[2]][-1]
+                assert math.isclose(p['endPrice'],end[1]*prior[2]/prior[1],rel_tol=1e-6),(f['symbol'],y)
+            else:
+                assert math.isclose(p['endPrice'],end[idx],rel_tol=1e-6),(f['symbol'],y)
             duration=(datetime.date.fromisoformat(p['end'])-datetime.date.fromisoformat(p['start'])).days/365.25
             growth=p['endPrice']/p['startPrice']
             expected=round(100*(growth-1 if y=='1Y' else growth**(1/duration)-1),2)
@@ -31,7 +36,7 @@ if not data.get('demo'):
     # User-verified VWRP closing-price pair. Gate only the exact dated observation,
     # never hard-code these 2026 prices into the collector.
     if fund and raw and raw[-1][0]=='2026-11-10' and any(p[0]=='2025-11-10' and abs(p[1]-126.84)<.001 for p in raw) and abs(raw[-1][1]-140.36)<.001:
-        assert fund['return1Y']==10.66 and fund['returnBasis']=='Price only',fund
+        assert fund['return1Y']==10.66 and fund['returnBasis'].startswith('Total return'),fund
 # Closure access only for reconciliation; the market-data JSON is never changed.
 html=html.replace('function etfOriginalKey(f){','window.__etf={funds:ETF_FUNDS,state:etfState,key:etfOriginalKey,peers:etfOriginalPeers,conventional:etfIsConventional,marketGroup:etfMarketGroup,performance:(...a)=>etfPerformance(...a),rows:(...a)=>etfRows(...a)};\nfunction etfOriginalKey(f){')
 def choose(page,symbol):
@@ -43,12 +48,12 @@ with sync_playwright() as p:
     page.goto('http://localhost:8765/',wait_until='domcontentloaded',timeout=120000);page.locator('#tab-etfs').dispatch_event('click');page.wait_for_timeout(100)
     assert page.locator('#workspace-tabs [role=tab]').count()==10
     assert len(data['etfTracker']['funds'])==132
-    assert page.locator('.etf-table thead th').all_text_contents()==['Fund / ticker','TER','P/S','Fund AUM','1Y','3Y','5Y','Cmp']
+    assert page.locator('.etf-table thead th').all_text_contents()==['Fund / ticker','TER','P/S','Fund size','1Y','3Y','5Y','Cmp']
     assert page.locator('#etf-r26-pick,#etf-selected-comparisons').count()==0
     assert page.locator('#etf-same-index .etf-compare-card').count()<=3
     reference_disclosure=page.locator('#etf-tracker-panel [aria-label="US domiciled bond ETF references"] details')
     assert reference_disclosure.count()==1 and reference_disclosure.get_attribute('open') is None
-    assert page.locator('.etf-table-scroll').evaluate('(e)=>e.clientHeight<=600&&e.scrollHeight>e.clientHeight&&getComputedStyle(e).overflowY==="auto"')
+    assert page.locator('.etf-table-scroll').evaluate("(e)=>getComputedStyle(e).maxHeight==='none'&&e.scrollHeight<=e.clientHeight+2")
     assert page.locator('#etf-rows [data-etf-symbol]').evaluate_all('''rows=>{const counts={};for(const r of rows){const f=__etf.funds.find(f=>f.symbol===r.dataset.etfSymbol),key=__etf.key(f);counts[key]=(counts[key]||0)+1;}return Object.values(counts).every(n=>n<=2)&&new Set(rows.map(r=>r.dataset.etfSymbol)).size===rows.length;}''')
     # All original region headers remain, in the existing geographic order.
     groups=page.locator('#etf-rows .etf-geo-group').all_text_contents();assert groups[0]=='Global' and 'United States' in groups and 'United Kingdom' in groups,groups

@@ -52,10 +52,7 @@ with sync_playwright() as p:
     page.locator("#tab-bonds").click()
     page.wait_for_timeout(100)
     for selector in ["#ust-securities-scroll","#gilts .gilt-table-scroll"]:
-        height=page.locator(selector).evaluate("(x)=>parseFloat(getComputedStyle(x).maxHeight)")
-        expected=page.evaluate("Math.min(innerHeight*.47,460)")
-        assert abs(height-expected)<1,(selector,height,expected)
-        assert page.locator(selector+" thead th").first.evaluate("(e)=>getComputedStyle(e).position")=="sticky",selector
+        assert page.locator(selector).evaluate("(e)=>getComputedStyle(e).maxHeight==='none'&&e.scrollHeight<=e.clientHeight+2"),selector
     assert page.locator("#gilt-freshness").count()==1
     page.locator("#tab-etfs").click()
     assert page.locator("#etf-tracker-panel .etf-table thead th").count()==8

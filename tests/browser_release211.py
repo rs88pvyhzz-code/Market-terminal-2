@@ -50,10 +50,10 @@ with sync_playwright() as p:
     assert page.locator('#analytics-rolling').count()==1
     page.locator('#tab-etfs').dispatch_event('click')
     assert page.locator('#etf-tracker-panel .etf-table thead th').count()==8
-    assert page.locator('#etf-tracker-panel .etf-table-scroll').evaluate('(e)=>parseFloat(getComputedStyle(e).maxHeight)<=460')
+    assert page.locator('#etf-tracker-panel .etf-table-scroll').evaluate("(e)=>getComputedStyle(e).maxHeight==='none'&&e.scrollHeight<=e.clientHeight+2")
     page.locator('#tab-bonds').dispatch_event('click')
     for selector in ['#gilts .gilt-table-scroll','#ust-securities-scroll']:
-        assert page.locator(selector).evaluate('(e)=>parseFloat(getComputedStyle(e).maxHeight)<=460')
+        assert page.locator(selector).evaluate("(e)=>getComputedStyle(e).maxHeight==='none'&&e.scrollHeight<=e.clientHeight+2")
         assert page.locator(selector+' thead th').first.evaluate('(e)=>getComputedStyle(e).position')=='sticky'
     page.locator('#tab-quality').dispatch_event('click')
     assert page.locator('#terminal1-source-register').is_visible()

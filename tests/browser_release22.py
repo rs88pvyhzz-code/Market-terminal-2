@@ -7,6 +7,8 @@ from pathlib import Path
 import json,os,sys
 sys.path.insert(0,str(Path(__file__).resolve().parents[1]))
 from playwright.sync_api import sync_playwright
+sys.path.insert(0,str(Path(__file__).resolve().parent))
+from expand_tables import expand
 import gilt_market,gilt_freshness
 html=Path(sys.argv[1]).read_text();marker='window.MT_DATA = ';a=html.index(marker)+len(marker);b=html.index(';</script>',a);d=json.loads(html[a:b]);assert d['demo'] is True
 d['gilts'],day=gilt_market.parse_dmo_xlsx((Path(__file__).resolve().parents[1]/'dmo_prices/DMO_D10B_2026-11-09.xls').read_bytes())
@@ -47,6 +49,7 @@ with sync_playwright() as p:
     page.locator('#tab-bonds').dispatch_event('click');page.wait_for_timeout(80)
     restricted=['GB00BVP99566','GB00BWGDRG14']
     before=page.evaluate('JSON.stringify(window.MT_DATA.gilts)')
+    expand(page)
     for isin in restricted:
         row=page.locator('#gilt-rows tr[data-isin="'+isin+'"]')
         assert row.count()==1

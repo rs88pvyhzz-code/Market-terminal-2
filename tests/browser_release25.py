@@ -52,7 +52,7 @@ with sync_playwright() as p:
         page.set_viewport_size({'width':width,'height':height});page.locator('#tab-companies').dispatch_event('click')
         for view in [0,1,2,3,4,5]:
             page.locator('#research-tab-'+str(view)).click();page.wait_for_timeout(70)
-            assert page.locator('.research-view details:not([data-r25-disclosure])').count()==0
+            assert page.locator('.research-view details:not([data-r25-disclosure]):not(.period-dates)').count()==0
             assert page.evaluate('document.body.scrollWidth<=innerWidth')
         page.locator('#research-tab-1').click();page.wait_for_timeout(100)
         for id in ['research-financial-chart','research-cash-chart','research-margin-chart','research-return-chart']:

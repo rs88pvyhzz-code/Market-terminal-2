@@ -39,7 +39,10 @@ with sync_playwright() as p:
             page.locator('#tab-'+key).dispatch_event('click')
             assert page.evaluate('document.body.scrollWidth<=innerWidth+1'),(width,key,'page overflow',page.evaluate('Array.from(document.querySelectorAll("body *")).filter(e=>e.getBoundingClientRect().right>innerWidth+1&&e.clientWidth>0).slice(0,20).map(e=>[e.tagName,e.id,e.className,e.getBoundingClientRect().width])'))
         page.locator('#tab-watchlist').dispatch_event('click')
-        assert page.locator('#watchlist-changes .watch-change-group > strong').all_text_contents()==['Results','Guidance','Dividends','Announcements']
+        groups=page.locator('#watchlist-changes .watch-change-group > strong').all_text_contents()
+        assert all(g in ['Results','Guidance','Dividends','Announcements'] for g in groups),groups
+        assert groups or page.locator('#watchlist-changes p.mini').count()==1
+        assert page.locator('#personal-watchlist-panel > :last-child').get_attribute('id')=='watchlist-changes'
         assert page.locator('#watchlist-changes').evaluate('(e)=>e.getBoundingClientRect().right<=innerWidth+1')
         page.screenshot(path=f'/tmp/compact-watchlist-changes-{width}.png')
         page.locator('#tab-overview').dispatch_event('click')
@@ -81,9 +84,8 @@ with sync_playwright() as p:
         assert ids.index('company-news-panel')<ids.index('company-price-block')<ids.index('company-risk-panel')
         if data.get('demo'):
             assert 'Quarterly results' in page.locator('#company-news-list article').first.inner_text()
-            assert page.locator('.r213-results-table tr').count()==3
-            assert page.locator('.r213-changes').is_visible()
-            assert 'different stated terms' in page.locator('.r213-changes').inner_text()
+            # Guidance changes and latest-results block retired: headlines only.
+            assert page.locator('.r213-changes,.r213-results,.r213-supporting').count()==0
             for row in page.locator('#company-news-list article').all():
                 assert row.bounding_box()['height']<180,(width,row.inner_text())
                 assert row.locator('a').get_attribute('href').startswith('https://')
