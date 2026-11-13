@@ -18,9 +18,10 @@ if data.get('demo'):
         c['intelligence']=research_intelligence.compose(c,records[c['symbol']],companies,asof='2026-11-09')
     by_symbol={c['symbol']:c for c in companies}
     data['companies']=[by_symbol.get(c['symbol'],c) for c in data['companies']]
+    fixture_date=(datetime.datetime.now(datetime.timezone.utc)-datetime.timedelta(hours=2)).strftime('%Y-%m-%d %H:%M UTC')
     data['company_news']=[{'symbol':'SHEL.L','retrievedAt':'2026-11-09T23:00:00Z','articles':[
-        {'title':'UI fixture: Transaction in Own Shares','url':'https://example.org/buyback','source':'UI fixture','published':'2026-11-09 09:00 UTC'},
-        {'title':'UI fixture: Quarterly results and management outlook','url':'https://example.org/results','source':'UI fixture','published':'2026-11-09 08:00 UTC'}]}]
+        {'title':'UI fixture: Transaction in Own Shares','url':'https://example.org/buyback','source':'UI fixture','published':fixture_date},
+        {'title':'UI fixture: Quarterly results and management outlook','url':'https://example.org/results','source':'UI fixture','published':fixture_date}]}]
     html=html[:a]+json.dumps(data).replace('</','<\\/')+html[a+end:]
 keys=['overview','watchlist','fx','analytics','equities','companies','etfs','bonds','economics','quality']
 with sync_playwright() as p:
@@ -36,7 +37,7 @@ with sync_playwright() as p:
         assert page.locator('#tab-watchlist').get_attribute('aria-selected')=='true'
         for key in keys:
             page.locator('#tab-'+key).click()
-            assert page.evaluate('document.body.scrollWidth<=innerWidth+1'),(width,key,'page overflow')
+            assert page.evaluate('document.body.scrollWidth<=innerWidth+1'),(width,key,'page overflow',page.evaluate('Array.from(document.querySelectorAll("body *")).filter(e=>e.getBoundingClientRect().right>innerWidth+1&&e.clientWidth>0).slice(0,20).map(e=>[e.tagName,e.id,e.className,e.getBoundingClientRect().width])'))
         page.locator('#tab-overview').click()
         assert page.locator('#view-overview > section').evaluate_all('(xs)=>xs.map(x=>x.id)')[:3]==['overview-board','r24-conditions','r24-developments']
         page.screenshot(path=f'/tmp/compact-overview-{width}.png')

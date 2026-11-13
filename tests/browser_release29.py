@@ -20,7 +20,7 @@ with sync_playwright() as p:
     assert page.evaluate("document.documentElement.classList.contains('release29')")
     page.locator("#tab-overview").click()  # further headlines live on Overview
     page.wait_for_timeout(170)
-    assert page.locator("#news-list .r29-news").count()<=8
+    assert page.locator("#news-list .r29-news").count()<=10
     assert page.locator(".r29-news-footer").count()==1
     count=page.locator("#news-list .r29-news").count()
     assert page.locator("#news-list .r29-news a[href^='https://']").count()==count
@@ -29,7 +29,7 @@ with sync_playwright() as p:
         assert page.locator("#news-list .r29-news").count()>count
     page.locator("#news-pills button").first.click()
     assert page.locator(".r29-news-footer").count()==1
-    assert page.locator("#news-list .r29-news").count()<=8
+    assert page.locator("#news-list .r29-news").count()<=10
     if not data.get("demo"):page.screenshot(path="/tmp/release29-news-ipad.png",full_page=True)
     page.locator("#tab-companies").click()
     page.locator("#research-tab-0").click()

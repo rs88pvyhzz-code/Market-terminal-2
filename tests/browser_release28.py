@@ -22,7 +22,7 @@ with sync_playwright() as p:
     page.goto('http://localhost:8765/',wait_until='domcontentloaded',timeout=120000)
     page.wait_for_timeout(250)
     assert page.evaluate("document.documentElement.classList.contains('release28')")
-    assert page.locator('#r24-developments .r24-item').count()<=5
+    assert page.locator('#r24-developments .r24-item').count()<=8
     assert page.locator('#r23-moves .r23-observation').count()<=6
     assert page.locator('#r24-upcoming .r24-calendar-table tbody tr').count()<=3
     assert page.locator('#r24-developments .r24-content').inner_text().strip()

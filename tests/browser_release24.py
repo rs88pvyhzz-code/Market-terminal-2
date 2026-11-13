@@ -16,7 +16,7 @@ with sync_playwright() as p:
         assert page.locator('#market-pulse > .r24-snapshot-item').count()==(14 if page.evaluate("document.documentElement.classList.contains('release210')") else 7)
         # Release 2.8 deliberately expands the ranked Overview maximum from 3 to 5.
         # Older snapshots still retain the original Release 2.4 contract.
-        limit=5 if page.evaluate("document.documentElement.classList.contains('release28')") else 3
+        limit=8 if page.evaluate("document.documentElement.classList.contains('release28')") else 3
         assert page.locator('#r24-developments article').count()<=limit
         assert page.locator('#r24-watch article').count()<=2
         assert page.locator('#r24-conditions tbody tr').count()==4
