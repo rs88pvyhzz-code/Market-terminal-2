@@ -119,7 +119,7 @@ with sync_playwright() as p:
 
     page.locator('#tab-bonds').dispatch_event('click')
     assert page.locator('#gilts .gilt-table thead th').count()==6
-    assert page.locator('#gilt-ladder').is_hidden()
+    assert page.locator('#gilt-ladder').evaluate('(e)=>!e.closest("#gilts")&&e.closest("#view-bonds")!==null')  # ladder below the gilt list, not inside it
     assert not page.locator('#gilt-sort option[value="net"]').count()
     assert page.locator('#gilt-nominal-input').count()==1
     # The valuation helpers intentionally live inside the terminal IIFE. Evaluate

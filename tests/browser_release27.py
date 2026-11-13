@@ -78,9 +78,9 @@ with sync_playwright() as p:
     assert page.locator('#etf-same-index .etf-card-actions button').count()==3
     assert page.locator('#etf-same-index .etf-card-actions input[type=checkbox]').count()==3
     assert page.locator('#etf-same-index .etf-card-facts').evaluate_all('cards=>cards.every(c=>c.children.length===9)')
-    page.locator('#tab-analytics').dispatch_event('click');page.wait_for_timeout(80)  # same-index comparison lives in Analytics
-    for index in range(3):page.locator('#etf-same-index input').nth(index).check()
-    assert page.evaluate('__etf.state.selected')==primary and page.evaluate('__etf.state.compared.size')==3
+    # Fund comparison retired (v3.9): no compare ticks are visible; alternatives stay on the ETF tab.
+    assert page.locator('#etf-same-index input').evaluate_all('xs=>xs.every(x=>!x.getClientRects().length)')
+    assert page.evaluate('__etf.state.selected')==primary and page.evaluate('__etf.state.compared.size')==0
     if page.locator('#etf-chart svg').count():assert page.locator('#etf-chart svg path[fill=none]').count()<=4
     first_peer=page.locator('#etf-same-index [data-etf-alternative]').first.get_attribute('data-etf-alternative')
     page.locator('#etf-same-index [data-etf-alternative]').first.locator('button').first.click()

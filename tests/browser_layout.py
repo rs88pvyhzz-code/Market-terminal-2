@@ -1,6 +1,7 @@
 """Layout invariants for terminal_layout.js.
 
-1. Every market-wide analytics panel is on the Analytics tab and nowhere else;
+1. Every market-wide analytics panel is on the Analytics tab and nowhere else; gilt,
+   ETF and watchlist analysis stay on their own tabs;
    analysis of the selected company stays in Company Research.
 2. Every panel on every other tab is declared in the layout (nothing drifts in).
 3. Retired panels and jump-link bars are never visible.
@@ -69,11 +70,11 @@ with sync_playwright() as p:
 
         page.locator('#tab-bonds').dispatch_event('click')
         page.wait_for_timeout(120)
-        for label, ids in [('UK gilts', ['gilts']), ('US Treasuries', ['us-treasuries']), ('Yield curves', ['rates', 'real']),
+        for label, ids in [('UK gilts', ['gilts', 'mt-gilt-tax', 'gilt-ladder']), ('US Treasuries', ['us-treasuries', 'us-spread-panel']), ('Yield curves', ['rates', 'real', 'cross-rates']),
                            ('Credit spreads', ['corporate-credit']), ('Sovereign', ['sovereign'])]:
             page.locator('#layout-bond-tabs button', has_text=label).click()
             page.wait_for_timeout(120)
-            shown = page.evaluate("[...document.querySelectorAll('#view-bonds > section')].filter(s=>s.getClientRects().length).map(s=>s.id)")
+            shown = page.evaluate("[...document.querySelectorAll('#view-bonds > :is(section,.panel)')].filter(s=>s.getClientRects().length).map(s=>s.id)")
             assert shown == ids, (width, label, shown)
         page.locator('#tab-companies').dispatch_event('click')
         options = page.locator('#company-pick option').evaluate_all('(o)=>o.map(x=>x.value).filter(Boolean)')
@@ -99,7 +100,8 @@ with sync_playwright() as p:
         page.locator('#tab-analytics').dispatch_event('click')
         page.wait_for_timeout(150)
         check('analytics after ETF change')
-        assert page.locator('#view-analytics #etf-chart').count() == 1
+        # ETF analysis stays on the ETF tab, beside the fund.
+        assert page.locator('#view-etfs #etf-chart').count() == 1 and page.locator('#view-analytics #etf-chart').count() == 0
 
         page.locator('#tab-watchlist').dispatch_event('click')
         page.wait_for_timeout(120)
@@ -110,6 +112,8 @@ with sync_playwright() as p:
         page.locator('#tab-analytics').dispatch_event('click')
         page.wait_for_timeout(150)
         check('analytics after watchlist change')
+        assert page.locator('#view-watchlist #watchlist-risk').count() == 1
+        assert page.locator('#view-bonds #gilt-ladder').count() == 1
 
         assert not errors, (width, errors)
         page.close()

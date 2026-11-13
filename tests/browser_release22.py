@@ -68,7 +68,7 @@ with sync_playwright() as p:
         page.locator('#gilt-clean-input').fill('99');assert page.locator('#gilt-yield-review').text_content().startswith('DERIVED YIELDS REQUIRE REVIEW')
         assert peer.count()==0
         assert 'Unavailable' in page.locator('#gilt-stats .r28-gilt-yield').all_text_contents()[0] or page.locator('#gilt-stats .r28-gilt-yield').count()==3
-    assert page.locator('#gilt-ladder').is_hidden(),'Retired tax-focused ladder must not interrupt gross return summary'
+    assert page.locator('#gilt-ladder').evaluate('(e)=>!e.closest("#gilts")'),'Ladder must not interrupt gross return summary'
     assert page.locator('#gilt-rows tr').first.locator('td').count()==6
     page.locator('#gilt-sort').select_option('gross')
     assert page.locator('#gilt-rows tr').first.get_attribute('data-isin') not in restricted
