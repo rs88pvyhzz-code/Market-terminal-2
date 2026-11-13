@@ -245,3 +245,10 @@
 #workspace-stage .workspace-view,#workspace-stage .layout-group-body,#workspace-stage .panel,#monitor>*{min-width:0}
 #company-news-panel,#company-news-list,#company-news-panel .r213-company-evidence{min-width:0;max-width:100%;overflow-wrap:anywhere}
 @media(max-width:760px){#company-news-panel .r213-results-table{table-layout:fixed}#company-news-panel .r213-results-table th{width:62%}#company-news-panel .r213-results-table td{white-space:normal;overflow-wrap:anywhere}}
+/* Native selects and populated calendar content must shrink on phones. */
+#workspace-stage .inputs{min-width:0;max-width:100%}
+#workspace-stage select.field{min-width:0;max-width:100%;box-sizing:border-box}
+#calendar>.row,#calendar-filters,#calendar-items{min-width:0;max-width:100%}
+#calendar-filters{flex-wrap:wrap!important}
+#calendar-items{overflow-x:auto}
+#etf-tracker-panel .etf-detail .etf-stat .v{font-family:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace}
