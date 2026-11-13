@@ -253,3 +253,10 @@
 #calendar-items{overflow-x:auto}
 #workspace-stage #etf-tracker-panel .etf-detail .etf-stat .v{font-family:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace!important}
 #workspace-stage #etf-tracker-panel .etf-table td{font-size:12px!important}
+
+#watchlist-changes{margin:10px 0;padding:12px;border:1px solid var(--t-line);border-radius:5px;min-width:0;overflow-wrap:anywhere}
+#watchlist-changes h3{color:var(--t-amber);font-size:13px;margin:0 0 6px}
+.watch-change-group{display:grid;grid-template-columns:110px minmax(0,1fr);gap:6px 12px;border-top:1px solid var(--t-line);padding:8px 0}
+.watch-change-group>strong{grid-row:span 3;font-size:13px}
+.watch-change-row{font:13px/1.4 system-ui,sans-serif}.watch-change-row small{display:block}.watch-change-row a{font-size:12px}
+@media(max-width:600px){.watch-change-group{grid-template-columns:1fr}.watch-change-group>strong{grid-row:auto}}
