@@ -53,7 +53,7 @@ with sync_playwright() as p:
     assert page.locator('#etf-same-index .etf-compare-card').count()<=3
     reference_disclosure=page.locator('#etf-tracker-panel [aria-label="US domiciled bond ETF references"] details')
     assert reference_disclosure.count()==1 and reference_disclosure.get_attribute('open') is None
-    assert page.locator('.etf-table-scroll').evaluate('(e)=>e.clientHeight<=600&&e.scrollHeight>e.clientHeight&&getComputedStyle(e).overflowY==="auto"')
+    assert page.locator('.etf-table-scroll').evaluate("(e)=>getComputedStyle(e).maxHeight==='none'&&e.scrollHeight<=e.clientHeight+2")
     assert page.locator('#etf-rows [data-etf-symbol]').evaluate_all('''rows=>{const counts={};for(const r of rows){const f=__etf.funds.find(f=>f.symbol===r.dataset.etfSymbol),key=__etf.key(f);counts[key]=(counts[key]||0)+1;}return Object.values(counts).every(n=>n<=2)&&new Set(rows.map(r=>r.dataset.etfSymbol)).size===rows.length;}''')
     # All original region headers remain, in the existing geographic order.
     groups=page.locator('#etf-rows .etf-geo-group').all_text_contents();assert groups[0]=='Global' and 'United States' in groups and 'United Kingdom' in groups,groups
