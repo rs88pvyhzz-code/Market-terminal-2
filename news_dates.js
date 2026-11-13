@@ -24,12 +24,12 @@ function newsDateControls(host){
  host.prepend(nav);
 }
 function refreshDatedNews(){
- r210NewsOverview();renderIntelligenceNews();
+ r24Overview();renderIntelligenceNews();
  if(newsSelectedCompany)renderCompanyInsight(newsSelectedCompany);
  if(newsSelectedWatch)watchlistNews(...newsSelectedWatch);
 }
-const datedOverview=r210NewsOverview;
-r210NewsOverview=function(){datedOverview();newsDateControls(document.querySelector('#r24-developments .r24-content'));};
+const datedOverview=r24Overview;
+r24Overview=function(){datedOverview();newsDateControls(document.querySelector('#r24-developments .r24-content'));};
 const datedNews=renderIntelligenceNews;
 renderIntelligenceNews=function(){datedNews();newsDateControls(document.getElementById('news-pills'));};
 const datedCompany=renderCompanyInsight;
