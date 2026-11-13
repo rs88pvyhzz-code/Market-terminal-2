@@ -707,7 +707,7 @@ def build(opts):
 FRONTEND_EARLY_JS = ['equity_research.js', 'equity_research_r2.js', 'terminal_navigation.js', 'market_briefing.js']
 FRONTEND_LATE_JS = ['terminal_redesign.js', 'terminal_etf_presentation.js', 'etf_original_presentation.js',
                     'terminal_release28.js', 'terminal_release29.js', 'terminal_release210.js',
-                    'terminal11_restoration.js', 'terminal12_design.js']
+                    'terminal11_restoration.js', 'terminal12_design.js', 'news_dates.js']
 FRONTEND_CSS = [('release24-styles', 'terminal_redesign.css'),
                 ('etf-original-styles', 'etf_original_presentation.css'),
                 ('release28-styles', 'terminal_release28.css'),
