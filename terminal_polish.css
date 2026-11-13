@@ -1,0 +1,48 @@
+/* Terminal polish — injected last. Presentation only; no market data changed. */
+
+/* 1. Explanations and repeated provenance off. Material warnings stay. */
+#calendar > .row p.note,
+#macro-surprise > p.note,
+#macro-method,
+#mt-calendar-tip,
+#etf-chart-note,
+#etf-warning,
+#etf-same-index-note,
+#etf-structure-notes,
+.mt-inline-notice,
+.polish-hidden,
+footer.foot{display:none!important}
+
+/* 2. Data Quality leaves the tab bar; reached from a small link at the foot. */
+#tab-quality{display:none!important}
+.polish-quality-link{display:block;margin:18px 2px 28px;font:11px var(--font,ui-monospace,monospace);color:var(--muted,#96969f);text-decoration:none;letter-spacing:.5px}
+.polish-quality-link:hover{color:var(--amber,#ffa028)}
+
+/* 3. Metric tiles become compact label | value rows (Treasuries style). */
+.etf-stat-grid{display:block!important;border-top:1px solid var(--line,#2a2a30)}
+.etf-stat-grid .etf-stat{display:grid!important;grid-template-columns:minmax(0,1fr) auto;align-items:baseline;gap:2px 12px;
+  background:none!important;border:0!important;border-bottom:1px solid var(--line,#2a2a30)!important;border-radius:0!important;padding:8px 2px!important;box-shadow:none!important}
+.etf-stat-grid .etf-stat .k{font:13px/1.35 -apple-system,BlinkMacSystemFont,"Segoe UI",Arial,sans-serif!important;color:var(--fg,#ececef)!important;text-transform:none!important;letter-spacing:0!important}
+.etf-stat-grid .etf-stat .v{font:500 14px/1.35 var(--font,ui-monospace,monospace)!important;text-align:right;font-variant-numeric:tabular-nums;color:var(--fg,#ececef)!important}
+.etf-stat-grid .etf-stat .d{grid-column:1/-1;font:11px/1.35 var(--font,ui-monospace,monospace)!important;color:var(--muted,#96969f)!important}
+.polish-basis{font:11px var(--font,ui-monospace,monospace);color:var(--muted,#96969f);margin:4px 2px 6px}
+
+/* 4. Calendar: a flat dated list, no box per row. */
+#calendar-items .mt-cal-row,#calendar-items .calendar-item{background:none!important;border:0!important;border-bottom:1px solid var(--line,#2a2a30)!important;
+  border-radius:0!important;padding:9px 2px!important;margin:0!important;display:grid;grid-template-columns:8.5em minmax(0,1fr);gap:2px 12px;align-items:baseline}
+#calendar-items .mt-cal-row .day{font:13px var(--font,ui-monospace,monospace);color:var(--amber,#ffa028);white-space:nowrap}
+#calendar-items .mt-cal-row>a,#calendar-items .mt-cal-row>strong{font:14px/1.4 -apple-system,BlinkMacSystemFont,"Segoe UI",Arial,sans-serif;color:var(--fg,#ececef);text-decoration:none}
+#calendar-items .mt-cal-row .mini{grid-column:2;font:11px var(--font,ui-monospace,monospace);color:var(--muted,#96969f)}
+@media (max-width:420px){#calendar-items .mt-cal-row,#calendar-items .calendar-item{grid-template-columns:1fr}
+  #calendar-items .mt-cal-row .mini{grid-column:1}}
+
+/* 5. Economics actuals table: indicator column stays put on phones. */
+@media (max-width:600px){
+  #macro-surprise table.watch th:first-child,#macro-surprise table.watch td:first-child{position:sticky!important;left:0;z-index:2;background:var(--panel,#121215)!important;box-shadow:1px 0 0 var(--line,#2a2a30)}
+  #macro-surprise table.watch th:first-child{z-index:3}
+}
+.polish-stale{display:inline-block;margin-left:6px;padding:0 4px;border:1px solid #8a5a1c;border-radius:2px;font:10px var(--font,ui-monospace,monospace);color:#f3bd6c;vertical-align:1px}
+.polish-section-source{font:11px var(--font,ui-monospace,monospace);color:var(--muted,#96969f);margin:6px 2px 0}
+
+/* 6. ETF cards: lose the inner box look. */
+.etf-compare-card{box-shadow:none!important}

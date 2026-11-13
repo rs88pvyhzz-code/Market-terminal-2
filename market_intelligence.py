@@ -326,8 +326,11 @@ def parse_ecb_meetings(raw,today=None):
         results.append({'date':date.isoformat(),'region':'EU',
             'title':'ECB '+('monetary policy decision and press conference' if 'press conference' in description.lower() else 'monetary policy meeting'),
             'url':'https://www.ecb.europa.eu/press/calendars/mgcgc/html/index.en.html',
-            'source':'ECB meeting calendar','time':'Check ECB schedule'})
-    return results
+            'source':'ECB meeting calendar','time':''})
+    # A two-day meeting ends with the decision; list the decision day only.
+    decisions={r['date'] for r in results if 'press conference' in r['title']}
+    def _next(day):return (dt.date.fromisoformat(day)+dt.timedelta(days=1)).isoformat()
+    return [r for r in results if 'press conference' in r['title'] or _next(r['date']) not in decisions]
 
 
 def parse_ons_api_releases(raw,today=None):
