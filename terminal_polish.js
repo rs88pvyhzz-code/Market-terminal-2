@@ -8,6 +8,7 @@
   const fund=()=>(typeof ETF_BY_SYMBOL!=='undefined'&&typeof etfState!=='undefined')?ETF_BY_SYMBOL.get(etfState.selected):null;
   const today=()=>{const g=(typeof D!=='undefined'&&D.generatedAt)||'';return /^\d{4}-\d{2}-\d{2}/.test(g)?g.slice(0,10):new Date().toISOString().slice(0,10);};
 
+  const PS=t=>{t=String(t||'').trim();if(/^[PS]$/.test(t))return t;if(/^S\b|synthetic|swap/i.test(t))return 'S';if(/^P\b|physical/i.test(t))return 'P';return '?';};
   // ETF detail: the 1Y/3Y/5Y shown in the detail are the same figures as the card and table.
   function etfDetail(){
     const f=fund();
@@ -16,6 +17,9 @@
         const k=$q('.k',stat),v=$q('.v',stat),d=$q('.d',stat);if(!k||!v)continue;
         const m=k.textContent.trim().match(/^([135])Y annualised$/i);
         if(m&&f){const val=pct(f['return'+m[1]+'Y']);if(v.textContent!==val)v.textContent=val;if(d)d.remove();k.textContent=m[1]+'Y total return'+(m[1]==='1'?'':' (annualised)');}
+        const label=k.textContent.trim();
+        if(/^fund assets \(aum\)$/i.test(label)){stat.remove();continue;}
+        if(/^replication$/i.test(label)){const kind=(f&&typeof etfV5Kind==='function')?etfV5Kind(f)[0]:'';const ps=/^[PS]$/.test(kind)?kind:PS(v.textContent);if(v.textContent!==ps)v.textContent=ps;if(d)d.remove();continue;}
         if(EMPTY.test(v.textContent.trim())){stat.remove();continue;}
         if(d&&!DATED.test(d.textContent))d.remove();
       }
@@ -34,6 +38,8 @@
   function etfCards(){
     for(const meta of $$('.etf-compare-card .etf-card-meta'))if(/^not in main table$/i.test(meta.textContent.trim()))meta.remove();
     for(const span of $$('.etf-card-facts span'))if(span.textContent==='Fund AUM')span.textContent='Fund AUM (all classes)';
+    for(const box of $$('.etf-card-facts > div')){const k=box.querySelector('span'),v=box.querySelector('strong');
+      if(k&&v&&/^structure$/i.test(k.textContent.trim())){k.textContent='Replication';const ps=PS(v.textContent);if(v.textContent!==ps)v.textContent=ps;}}
     for(const th of $$('th'))if(th.textContent.trim()==='Fund AUM')th.textContent='Fund AUM (all classes)';
   }
 
@@ -83,18 +89,13 @@
     }
   }
 
-  // Data Quality: off the tab bar, one quiet link at the foot of the page.
-  function qualityLink(){
-    const tab=$q('#tab-quality');if(!tab||$q('.polish-quality-link'))return;
-    const a=document.createElement('a');a.href='#quality';a.className='polish-quality-link';a.textContent='DATA QUALITY →';
-    a.onclick=e=>{e.preventDefault();tab.click();window.scrollTo(0,0);};
-    (document.querySelector('main')||document.body).append(a);
-  }
+  // Gilt block: keep warnings, drop the standing method explanation.
+  function gilt(){for(const n of $$('#gilts .r28-gilt-single > p.note'))if(/^Gross cash figures are undiscounted/.test(n.textContent)&&!n.hidden)n.hidden=true;}
 
   let busy=false,queued=false;
   function polish(){
     if(busy)return;busy=true;
-    try{etfDetail();etfCards();calendar();macroTable();qualityLink();}
+    try{etfDetail();etfCards();calendar();macroTable();gilt();}
     catch(err){console.warn('terminal polish:',err);}
     finally{busy=false;}
   }

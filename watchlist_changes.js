@@ -31,18 +31,20 @@ function watchChangesData(company,articles=[],now=Date.now()){
 function renderWatchChanges(w){
  const parent=document.getElementById('personal-watchlist-panel');if(!parent)return;
  let host=document.getElementById('watchlist-changes');
- if(!host){host=el('section','watchlist-changes');host.id='watchlist-changes';const anchor=parent.querySelector('.watchlist-selected-header');if(anchor)anchor.after(host);else parent.prepend(host);}
+ if(!host){host=el('section','watchlist-changes');host.id='watchlist-changes';}
+ parent.append(host); // always the last block on the tab
  host.replaceChildren(el('h3','','WHAT CHANGED? · '+w.name));
- host.append(el('p','mini','Latest available issuer evidence; publisher announcements follow the selected news date. Missing evidence does not mean nothing changed.'));
  const c=watchProfile(w.symbol),stored=(D.company_news||[]).find(x=>x.symbol===w.symbol);
  const articles=watchNewsMap.get(w.symbol)?.articles||stored?.articles||[];
  const groups=watchChangesData(c,articles);
+ let shown=0;
  for(const [name,rows] of Object.entries(groups)){
+  if(!rows.length)continue;shown++;
   const group=el('div','watch-change-group');group.append(el('strong','',name));
-  if(!rows.length)group.append(el('p','mini',name==='Announcements'?'No matching material report in the selected news period.':'No sourced '+name.toLowerCase()+' evidence or comparable change available.'));
-  for(const row of rows){const item=el('div','watch-change-row');item.append(el('div','',row.text),el('small','mini',row.note+' · '+row.date));const a=el('a','','Source');a.href=row.url;a.target='_blank';a.rel='noopener noreferrer';item.append(a);group.append(item);}
+  for(const row of rows){const item=el('div','watch-change-row');item.append(el('div','',row.text),el('small','mini',row.date));const a=el('a','','Source');a.href=row.url;a.target='_blank';a.rel='noopener noreferrer';item.append(a);group.append(item);}
   host.append(group);
  }
+ if(!shown)host.append(el('p','mini','No sourced changes.'));
 }
 const previousWatchChangesNews=watchlistNews;
 watchlistNews=function(w,q){previousWatchChangesNews(w,q);renderWatchChanges(w);};

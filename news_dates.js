@@ -14,14 +14,8 @@ function newsDateMatches(item,now=Date.now(),range=newsDateRange){
 function newsEmptyText(){return newsDateRange==='today'?'No news today in the available feeds.':newsDateRange==='yesterday'?'No news yesterday in the available feeds.':'No news in the last 7 days in the available feeds.';}
 let newsSelectedCompany=null,newsSelectedWatch=null;
 function newsDateControls(host){
- if(!host)return;
- const nav=el('div','pills news-date-controls');nav.setAttribute('aria-label','News publication date (UK time)');
- for(const [key,label] of [['today','Today'],['yesterday','Yesterday'],['week','7 days']]){
-  const b=el('button','btn'+(newsDateRange===key?' active':''),label);b.type='button';b.setAttribute('aria-pressed',String(newsDateRange===key));
-  b.onclick=()=>{newsDateRange=key;refreshDatedNews();};nav.append(b);
- }
- nav.append(el('span','mini','UK publication date · available snapshot '+(D.generatedAt||'unknown')));
- host.prepend(nav);
+ // Today only: the Yesterday / 7 days switch is retired.
+ newsDateRange='today';
 }
 function refreshDatedNews(){
  r24Overview();renderIntelligenceNews();

@@ -13,18 +13,18 @@
 .polish-hidden,
 footer.foot{display:none!important}
 
-/* 2. Data Quality leaves the tab bar; reached from a small link at the foot. */
+/* 2. Data Quality is off the tab bar and has no link. */
 #tab-quality{display:none!important}
-.polish-quality-link{display:block;margin:18px 2px 28px;font:11px var(--font,ui-monospace,monospace);color:var(--muted,#96969f);text-decoration:none;letter-spacing:.5px}
-.polish-quality-link:hover{color:var(--amber,#ffa028)}
 
-/* 3. Metric tiles become compact label | value rows (Treasuries style). */
+/* 3. ETF metrics: US Treasuries tiles on wide screens; label | value rows on phones. */
+@media (max-width:600px){
 .etf-stat-grid{display:block!important;border-top:1px solid var(--line,#2a2a30)}
-.etf-stat-grid .etf-stat{display:grid!important;grid-template-columns:minmax(0,1fr) auto;align-items:baseline;gap:2px 12px;
+.etf-stat-grid .etf-stat{display:grid!important;grid-template-columns:minmax(7em,45%) minmax(0,1fr);align-items:baseline;gap:2px 12px;
   background:none!important;border:0!important;border-bottom:1px solid var(--line,#2a2a30)!important;border-radius:0!important;padding:8px 2px!important;box-shadow:none!important}
 .etf-stat-grid .etf-stat .k{font:13px/1.35 -apple-system,BlinkMacSystemFont,"Segoe UI",Arial,sans-serif!important;color:var(--fg,#ececef)!important;text-transform:none!important;letter-spacing:0!important}
-.etf-stat-grid .etf-stat .v{font:500 14px/1.35 var(--font,ui-monospace,monospace)!important;text-align:right;font-variant-numeric:tabular-nums;color:var(--fg,#ececef)!important}
+.etf-stat-grid .etf-stat .v{font:500 14px/1.35 var(--font,ui-monospace,monospace)!important;text-align:right;font-variant-numeric:tabular-nums;color:var(--fg,#ececef)!important;margin:0!important}
 .etf-stat-grid .etf-stat .d{grid-column:1/-1;font:11px/1.35 var(--font,ui-monospace,monospace)!important;color:var(--muted,#96969f)!important}
+}
 .polish-basis{font:11px var(--font,ui-monospace,monospace);color:var(--muted,#96969f);margin:4px 2px 6px}
 
 /* 4. Calendar: a flat dated list, no box per row. */
@@ -46,3 +46,15 @@ footer.foot{display:none!important}
 
 /* 6. ETF cards: lose the inner box look. */
 .etf-compare-card{box-shadow:none!important}
+
+/* 7. UK gilt buy-and-hold: full-width landscape tiles, as the US Treasuries block. */
+#gilts #gilt-stats{display:block!important;width:100%!important;max-width:none!important}
+#gilts #gilt-stats .r28-gilt-single{width:100%!important;max-width:none!important}
+#workspace-stage #gilts .r28-gilt-yields{grid-template-columns:repeat(3,minmax(0,1fr))!important}
+#workspace-stage #gilts .r28-gilt-facts{grid-template-columns:repeat(4,minmax(0,1fr))!important}
+#workspace-stage #gilts .r28-gilt-yields>:last-child{grid-column:auto!important}
+@media (max-width:600px){
+  #workspace-stage #gilts .r28-gilt-yields>*>:nth-child(2){font-size:18px!important}
+  #workspace-stage #gilts .r28-gilt-facts{grid-template-columns:repeat(2,minmax(0,1fr))!important}
+  #workspace-stage #gilts .r28-gilt-yields>*,#workspace-stage #gilts .r28-gilt-facts>*{padding:10px!important}
+}

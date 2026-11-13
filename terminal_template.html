@@ -1504,7 +1504,7 @@ function renderCompanyInsight(c){
   $('company-news-stamp').textContent='Publisher dates shown below';
   $('company-news-stamp').title=snapshot?'Collected '+snapshot.retrievedAt:'No stored company headlines';
   if(!rows.length)panel.append(el('p','note',newsEmptyText()));
-  else for(const row of [...rows].sort((a,b)=>Number(/transaction in own shares|executes buyback/i.test(a.title))-Number(/transaction in own shares|executes buyback/i.test(b.title))).slice(0,5)){
+  else for(const row of [...rows].sort((a,b)=>Number(/transaction in own shares|executes buyback/i.test(a.title))-Number(/transaction in own shares|executes buyback/i.test(b.title))).slice(0,7)){
     if(!String(row.url||'').startsWith('https://'))continue;
     const card=el('article','company-story');const link=el('a','',row.title);
     link.href=row.url;link.target='_blank';link.rel='noopener noreferrer';
@@ -2525,7 +2525,7 @@ function watchlistNews(w,q){
  $('watchlist-news-time').textContent=saved?'Retrieved '+(saved.retrievedAt||'date unavailable'):'No stored company news';
  $('watchlist-news-context').textContent=(q?.changePct!=null?w.name+' '+pc(q.changePct)+' on '+(q.asOf||'unknown date')+'. ':'')+
   'Related articles are search matches, not evidence that a story caused the share-price move. Verify company announcements and corporate actions.';
- for(const article of articles.filter(x=>newsDateMatches(x)).slice(0,4)){
+ for(const article of articles.filter(x=>newsDateMatches(x)).slice(0,7)){
   if(!String(article.url||'').startsWith('https://'))continue;
   const item=el('article','company-story'),a=el('a','',article.title||'Open news source');a.href=article.url;a.target='_blank';a.rel='noopener noreferrer';
   item.append(a,el('span','',(article.source||'Publisher')+' · '+(article.published||'Date unavailable')));host.append(item);

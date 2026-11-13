@@ -32,9 +32,8 @@ function renderIntelligenceNews(){
  const regions=el('div','r23-regions');for(const region of ['All','UK','US','Europe','Global']){const b=el('button','btn'+(region===intelligenceRegion?' active':''),region==='All'?'All regions':region);b.onclick=()=>{intelligenceRegion=region;renderIntelligenceNews();};regions.append(b);}pills.append(regions);
  const leadingNewsIds=new Set((D.marketBriefing?.leadingItems||[]).map(x=>x.newsId).filter(Boolean));
  const all=(D.news||[]).filter(x=>!leadingNewsIds.has(x.id)&&(x.categories||[]).includes(intelligenceCategory)&&(intelligenceRegion==='All'||(x.regions||[]).includes(intelligenceRegion)));
- const current=all.filter(x=>!intelligenceArchived(x)),archived=all.filter(x=>intelligenceArchived(x));current.slice(0,5).forEach(x=>host.append(intelligenceCard(x)));
+ const current=all.filter(x=>!intelligenceArchived(x)&&(typeof newsDateMatches!=='function'||newsDateMatches(x))),archived=[];current.slice(0,7).forEach(x=>host.append(intelligenceCard(x)));
  if(!current.length)host.append(el('div','empty',intelligenceCategory==='market_moving'?'No additional story meets the strict Market Moving evidence criteria. Browse subject categories for general coverage.':'No additional current headlines in this selection. Leading briefing items and archived coverage are separate.'));
- if(current.length>5){const more=document.createElement('details');more.append(el('summary','',`More developments (${current.length-5})`));current.slice(5,25).forEach(x=>more.append(intelligenceCard(x)));host.append(more);}
  if(archived.length){const more=document.createElement('details');more.append(el('summary','',`Archived coverage (${archived.length}) · not current`));archived.slice(0,15).forEach(x=>more.append(intelligenceCard(x)));host.append(more);}
  const successful=(D.newsDiagnostics||[]).filter(x=>x.retrievedAt&&!x.archived).map(x=>x.retrievedAt).sort().pop();$('news-stamp').textContent='Scheduled snapshot '+D.generatedAt+' · latest recorded feed retrieval '+(successful||'see article dates');
  const title=$('news').querySelector('h2');if(title)title.textContent='NEWS BY SUBJECT';
@@ -57,15 +56,21 @@ function renderMarketBriefing(){
  let body=intelligencePanel('r23-alerts','DAILY MARKET BRIEFING',parent);$('r23-alerts').firstElementChild.textContent='DAILY MARKET BRIEFING';
  const buildAge=Date.now()-Date.parse(String(D.generatedAt).replace(' UTC','Z').replace(' ','T')),recent=buildAge<=(briefing.thresholds?.criticalMaxAgeDays||5)*86400000;
  const leading=recent?(briefing.leadingItems||[]):[],leadingAlertIds=new Set(leading.map(x=>x.alertId).filter(Boolean));
- for(const item of leading){const row=el('div','r23-observation');row.dataset.briefingId=item.id;if(item.alertId)row.dataset.alertId=item.alertId;
- row.append(intelligenceTitle(item),el('div','mini',({confirmed_event:'Confirmed event',observed_market_movement:'Observed market movement',general_news:'General news'})[item.classification]+' · '+item.published+' · '+(item.source||'Source unavailable')));
- row.append(el('div','mini',item.selectionReasons.join(' · ')));body.append(row);}
- if(!recent)body.append(el('div','mini','Market snapshot is stale; historical briefing items are suppressed.'));
- else if(!briefing.verifiedSignificantCount)body.append(el('div','mini','No significant event verified in the available snapshot. General coverage is not labelled Market Moving.'));
- const currentAlerts=recent?(briefing.alerts||[]).filter(a=>!leadingAlertIds.has(a.id)):[];
- const remaining=document.createElement('details');remaining.append(el('summary','','Additional research alerts ('+currentAlerts.length+')'));
- for(const a of currentAlerts){const row=el('div','r23-observation');row.dataset.alertId=a.id;row.append(intelligenceTitle(a),el('div','mini',a.kind+' · '+a.date+' · '+a.detail));remaining.append(row);}body.append(remaining);
- const detail=document.createElement('details');detail.append(el('summary','','Thresholds & coverage'));detail.append(el('div','mini',JSON.stringify(briefing.thresholds||{})));for(const text of briefing.limitations||[])detail.append(el('div','mini',text));body.append(detail);
+ // One tidy list: title, then date · source. Duplicates (same subject) and anything past seven are dropped.
+ const items=[...leading.map(x=>({item:x,date:x.published,source:x.source})),
+   ...(recent?(briefing.alerts||[]).filter(a=>!leadingAlertIds.has(a.id)):[]).map(a=>({item:a,date:a.date,source:a.source}))];
+ const seen=new Set(),subject=t=>String(t||'').toLowerCase().split(':')[0].replace(/[^a-z0-9]+/g,' ').trim();
+ const words=t=>new Set(String(t||'').toLowerCase().replace(/[^a-z0-9£$.]+/g,' ').split(' ').filter(w=>w.length>3));
+ const kept=[];
+ for(const x of items){
+  const key=subject(x.item.title);if(seen.has(key))continue;
+  const w=words(x.item.title);if(kept.some(k=>{const o=words(k.item.title);let n=0;for(const v of w)if(o.has(v))n++;return n>=3&&n>=Math.min(w.size,o.size)*.5;}))continue;
+  seen.add(key);kept.push(x);if(kept.length>=7)break;
+ }
+ for(const x of kept){const row=el('div','r23-observation');row.dataset.briefingId=x.item.id||'';if(x.item.alertId||x.item.id)row.dataset.alertId=x.item.alertId||x.item.id;
+  row.append(intelligenceTitle(x.item),el('div','mini',[String(x.date||'').replace(' UTC',''),x.source].filter(Boolean).join(' · ')));body.append(row);}
+ if(!recent)body.append(el('div','mini','Market snapshot is stale.'));
+ else if(!kept.length)body.append(el('div','mini','Nothing material today.'));
  body=intelligencePanel('r23-moves','TODAY’S MAJOR OBSERVED MOVEMENTS',parent);for(const q of briefing.movements||[])body.append(el('div','r23-observation',(q.name||q.symbol)+' '+(q.changePct>=0?'+':'')+q.changePct.toFixed(2)+'% · '+q.asOf));if(!(briefing.movements||[]).length)body.append(el('div','mini','No sufficiently recent comparable quote timestamps.'));
  body=intelligencePanel('r23-calendar','ECONOMIC ANNOUNCEMENTS · TODAY & TOMORROW',parent);const today=D.generatedAt.slice(0,10),tomorrow=new Date(Date.parse(today)+86400000).toISOString().slice(0,10);const events=(D.calendar||[]).filter(x=>x.date===today||x.date===tomorrow);for(const x of events.slice(0,8)){const row=el('div','r23-observation');row.append(intelligenceLink({...x,title:x.title+' · '+x.date+' · '+x.region}),el('div','mini','Scheduled · '+x.source+' · '+(x.time||'See official source for time')));body.append(row);}if(!events.length)body.append(el('div','mini','No verified announcements retrieved for today or tomorrow. Official calendars remain in Economics.'));
  body=intelligencePanel('r23-conditions','MARKET CONDITIONS',parent);intelligenceConditions(body);
