@@ -15,7 +15,7 @@
       for(const stat of $$('.etf-stat',host)){
         const k=$q('.k',stat),v=$q('.v',stat),d=$q('.d',stat);if(!k||!v)continue;
         const m=k.textContent.trim().match(/^([135])Y annualised$/i);
-        if(m&&f){const val=pct(f['return'+m[1]+'Y']);if(v.textContent!==val)v.textContent=val;if(d)d.remove();k.textContent=m[1]+'Y return'+(m[1]==='1'?'':' (annualised)');}
+        if(m&&f){const val=pct(f['return'+m[1]+'Y']);if(v.textContent!==val)v.textContent=val;if(d)d.remove();k.textContent=m[1]+'Y total return'+(m[1]==='1'?'':' (annualised)');}
         if(EMPTY.test(v.textContent.trim())){stat.remove();continue;}
         if(d&&!DATED.test(d.textContent))d.remove();
       }

@@ -104,23 +104,44 @@ def include_completed_quote(points, quote):
     return points+[[day,price,None]],True
 
 
-def _annualised_detail(points, years):
-    """Use the closest actual trading date to the exact anniversary.
+TOTAL_RETURN='Total return (adjusted close)'
+TOTAL_RETURN_LINKED='Total return (adjusted close, last day price-linked)'
+PRICE_ONLY='Price only (no adjusted closes)'
 
-    The final observation is one actual dated price. Do not interpolate a
-    market holiday, substitute missing FX or convert a quote into an adjusted
-    close. A seven-day maximum distance makes stale endpoints unavailable.
+
+def _adjusted(row):
+    return row[2] if len(row)>2 and isinstance(row[2],(int,float)) and row[2]>0 else None
+
+
+def _annualised_detail(points, years):
+    """Total return using dividend-adjusted closes, nearest actual anniversary.
+
+    Adjusted closes reinvest distributions on the ex-date, so Dist and Acc
+    share classes are comparable. When the final observation is an after-close
+    quote with no adjusted value yet, it is chain-linked to the previous
+    adjusted close: adjusted_end = quote x (adjusted/close of the prior day).
+    Only an ex-dividend on that final day would be missed. Price-only returns
+    are used only when the fund has no adjusted history at all. No holiday is
+    interpolated and a seven-day maximum distance makes stale endpoints unavailable.
     """
     if len(points)<2 or years not in (1,3,5):
         return None,'',None
     rows=sorted(points,key=lambda p:p[0])
     last=rows[-1]
-    # If the most recent close is only a verified market quote, there is no
-    # adjusted-close observation for that date: compare raw closes instead.
-    idx=2 if len(last)>2 and isinstance(last[2],(int,float)) and last[2]>0 else 1
-    label='Adjusted close proxy' if idx==2 else 'Price only'
-    if not isinstance(last[idx],(int,float)) or last[idx]<=0:
-        return None,'',None
+    end_value,label,linked=_adjusted(last),TOTAL_RETURN,False
+    if end_value is None:
+        prior=next((r for r in reversed(rows[:-1]) if _adjusted(r) and isinstance(r[1],(int,float)) and r[1]>0),None)
+        if prior and isinstance(last[1],(int,float)) and last[1]>0 and \
+                (dt.date.fromisoformat(last[0])-dt.date.fromisoformat(prior[0])).days<=5:
+            end_value,label,linked=last[1]*prior[2]/prior[1],TOTAL_RETURN_LINKED,True
+    idx=2
+    if end_value is None:
+        if any(_adjusted(r) for r in rows):
+            return None,'',None
+        idx,label=1,PRICE_ONLY
+        end_value=last[1] if isinstance(last[1],(int,float)) and last[1]>0 else None
+        if end_value is None:
+            return None,'',None
     end=dt.date.fromisoformat(last[0])
     try:
         target=end.replace(year=end.year-years)
@@ -140,15 +161,15 @@ def _annualised_detail(points, years):
     span=(end-start).days/365.25
     if span<years*.95 or span>years*1.07:
         return None,'',None
-    growth=last[idx]/first[idx]
+    growth=end_value/first[idx]
     value=round(100*(growth-1 if years==1 else growth**(1/span)-1),2)
     return value,label,{'start':start.isoformat(),'end':end.isoformat(),
-                        'startPrice':first[idx],'endPrice':last[idx],
-                        'basis':label}
+                        'startPrice':first[idx],'endPrice':round(end_value,6),
+                        'basis':label,'linkedEnd':linked}
 
 
 def annualised_performance(points, years):
-    """Trailing CAGR using actual closes nearest the matching anniversary."""
+    """Trailing total-return CAGR using adjusted closes nearest the anniversary."""
     value,basis,_=_annualised_detail(points,years)
     return value,basis
 
@@ -172,7 +193,7 @@ def attach(fund, quote, points, quote_as_history=False):
             periods[str(years)+'Y']=period
     fund['returnBasis'] = ', '.join(dict.fromkeys(bases))
     fund['returnPeriods']=periods
-    fund['returnEndSource']='Yahoo after-close quote, price only' if quote_as_history else 'Yahoo dated historical chart'
+    fund['returnEndSource']='Yahoo after-close quote, chain-linked to last adjusted close' if quote_as_history else 'Yahoo dated historical chart'
 
 def demo(path):
     funds, warnings = read_catalog(path)
