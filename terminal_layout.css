@@ -252,3 +252,4 @@
 #calendar-filters{flex-wrap:wrap!important}
 #calendar-items{overflow-x:auto}
 #workspace-stage #etf-tracker-panel .etf-detail .etf-stat .v{font-family:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace!important}
+#workspace-stage #etf-tracker-panel .etf-table td{font-size:12px!important}
