@@ -38,6 +38,10 @@ with sync_playwright() as p:
         for key in keys:
             page.locator('#tab-'+key).click()
             assert page.evaluate('document.body.scrollWidth<=innerWidth+1'),(width,key,'page overflow',page.evaluate('Array.from(document.querySelectorAll("body *")).filter(e=>e.getBoundingClientRect().right>innerWidth+1&&e.clientWidth>0).slice(0,20).map(e=>[e.tagName,e.id,e.className,e.getBoundingClientRect().width])'))
+        page.locator('#tab-watchlist').click()
+        assert page.locator('#watchlist-changes .watch-change-group > strong').all_text_contents()==['Results','Guidance','Dividends','Announcements']
+        assert page.locator('#watchlist-changes').evaluate('(e)=>e.getBoundingClientRect().right<=innerWidth+1')
+        page.screenshot(path=f'/tmp/compact-watchlist-changes-{width}.png')
         page.locator('#tab-overview').click()
         assert page.locator('#view-overview > section').evaluate_all('(xs)=>xs.map(x=>x.id)')[:3]==['overview-board','r24-conditions','r24-developments']
         page.screenshot(path=f'/tmp/compact-overview-{width}.png')
