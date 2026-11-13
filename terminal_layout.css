@@ -260,3 +260,5 @@
 .watch-change-group>strong{grid-row:span 3;font-size:13px}
 .watch-change-row{font:13px/1.4 system-ui,sans-serif}.watch-change-row small{display:block}.watch-change-row a{font-size:12px}
 @media(max-width:600px){.watch-change-group{grid-template-columns:1fr}.watch-change-group>strong{grid-row:auto}}
+
+#company-coverage-gaps{padding:10px 0;border-bottom:1px solid var(--t-line);margin-bottom:10px;overflow-wrap:anywhere;font:13px/1.4 system-ui,sans-serif}#company-coverage-gaps>strong{color:var(--t-amber)}#company-coverage-gaps p{margin:5px 0}
