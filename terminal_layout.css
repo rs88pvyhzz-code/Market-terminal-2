@@ -251,4 +251,4 @@
 #calendar>.row,#calendar-filters,#calendar-items{min-width:0;max-width:100%}
 #calendar-filters{flex-wrap:wrap!important}
 #calendar-items{overflow-x:auto}
-#etf-tracker-panel .etf-detail .etf-stat .v{font-family:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace!important}
+#workspace-stage #etf-tracker-panel .etf-detail .etf-stat .v{font-family:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace!important}
