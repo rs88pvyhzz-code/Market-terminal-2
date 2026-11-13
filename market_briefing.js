@@ -108,15 +108,15 @@ function renderCompanyChanges(c){
  }
  if(rows.length){table.append(body);results.append(table);if(bases.length===1)results.append(el('p','mt-reading-note',bases[0]));}
  else results.append(el('p','mt-reading-note','No reported results available in this snapshot.'));
- wrap.append(results);panel.prepend(wrap);
- const heading=el('h4','r213-headlines-title','COMPANY HEADLINES');wrap.after(heading);
+ // Guidance changes and latest-results block retired (v3.9): headlines only.
+ const heading=el('h4','r213-headlines-title','COMPANY HEADLINES');panel.prepend(heading);
  const supporting=el('section','r213-supporting r213-company-evidence');supporting.append(el('h4','','SUPPORTING EVIDENCE'));
  const topics=intel.topics||{},developments=[...(topics.acquisitions||[]),...(topics.capitalAllocation||[]),...(topics.catalysts||[])].filter(x=>sources.has(x.sourceId)&&(!latest||x.sourceId===latest.id)).slice(0,2);
  for(const x of developments){const source=sources.get(x.sourceId),row=el('div','r23-observation');
   row.append(el('div','',(x.classification==='management_expectation'?'Management expectation: ':'Issuer statement: ')+x.excerpt),intelligenceLink({title:'Source · '+source.published,url:source.url}));supporting.append(row);
  }
  supporting.append(el('p','mt-reading-note','Issuer evidence and publisher headlines are separate. A matching headline is not a verified change.'));
- panel.append(supporting);
+ // Supporting issuer evidence retired from this panel (v3.9).
  // Full retrieval details remain available in Data Quality, scoped to this company.
  let audit=$('company-evidence-audit');if(!audit){audit=el('section','panel');audit.id='company-evidence-audit';$('view-quality')?.append(audit);}
  audit.replaceChildren(el('h2','','COMPANY EVIDENCE · '+c.name));

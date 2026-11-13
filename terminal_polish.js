@@ -37,10 +37,11 @@
   // ETF cards: drop filler tags; AUM is the whole fund, so say so.
   function etfCards(){
     for(const meta of $$('.etf-compare-card .etf-card-meta'))if(/^not in main table$/i.test(meta.textContent.trim()))meta.remove();
-    for(const span of $$('.etf-card-facts span'))if(span.textContent==='Fund AUM')span.textContent='Fund AUM (all classes)';
+    for(const span of $$('.etf-card-facts span'))if(/^Fund AUM/.test(span.textContent))span.textContent='Fund size';
     for(const box of $$('.etf-card-facts > div')){const k=box.querySelector('span'),v=box.querySelector('strong');
       if(k&&v&&/^structure$/i.test(k.textContent.trim())){k.textContent='Replication';const ps=PS(v.textContent);if(v.textContent!==ps)v.textContent=ps;}}
-    for(const th of $$('th'))if(th.textContent.trim()==='Fund AUM')th.textContent='Fund AUM (all classes)';
+    for(const th of $$('th')){const t=th.textContent.trim();if(/^Fund (AUM|assets)/.test(t)&&t!=='Fund size')th.textContent='Fund size';}
+    for(const k of $$('.etf-stat .k'))if(/^Fund assets|^Fund AUM/.test(k.textContent.trim()))k.textContent='Fund size';
   }
 
   // Calendar: keep a release time only when it is a real time; otherwise no sub-line.
@@ -136,11 +137,28 @@
     };
   }
   try{extendSearch();}catch(err){console.warn('search extension:',err);}
+  try{if(typeof etfState!=='undefined'&&etfState.compared?.size){etfState.compared.clear();if(typeof renderEtfTracker==='function')renderEtfTracker();}}catch(err){}
+
+  // No references to SEC filings, EDGAR, XBRL or form numbers outside Data Quality.
+  const FILING=/\bSEC\b|EDGAR|XBRL|\b(?:10-K|10-Q|20-F|6-K|8-K)\b/;
+  function scrubFilings(){
+    const stage=document.getElementById('workspace-stage');if(!stage)return;
+    for(const a of stage.querySelectorAll('a[href*="sec.gov"]'))if(!a.closest('#view-quality'))a.remove();
+    for(const h of stage.querySelectorAll('summary,h3,h4,.r24-support-heading'))
+      if(/filing dates|Field-level sources/i.test(h.textContent)&&!h.closest('#view-quality')){const box=h.closest('details,section.r24-support')||h;box.hidden=true;}
+    const walk=document.createTreeWalker(stage,NodeFilter.SHOW_TEXT);const hits=[];let n;
+    while(n=walk.nextNode())if(FILING.test(n.textContent)&&!n.parentElement.closest('#view-quality,script,style'))hits.push(n);
+    for(const t of hits){
+      const v=t.textContent.replace(/SEC issuer filings?/gi,'issuer accounts').replace(/\(?SEC XBRL\)?\s*/gi,'').replace(/SEC (?:EDGAR )?(?:filings?|companyfacts)/gi,'issuer accounts')
+        .replace(/\b(?:EDGAR|XBRL)\b\s*/g,'').replace(/\b(?:10-K|10-Q|20-F|6-K|8-K)\b/g,'annual report').replace(/\bSEC\b\s*/g,'').replace(/\s{2,}/g,' ');
+      if(v!==t.textContent)t.textContent=v;
+    }
+  }
 
   let busy=false,queued=false;
   function polish(){
     if(busy)return;busy=true;
-    try{etfDetail();etfCards();calendar();macroTable();gilt();longTables();}
+    try{etfDetail();etfCards();calendar();macroTable();gilt();longTables();scrubFilings();}
     catch(err){console.warn('terminal polish:',err);}
     finally{busy=false;}
   }

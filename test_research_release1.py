@@ -27,7 +27,7 @@ class ReleaseOneTests(unittest.TestCase):
             for key,millions in fields.items():
                 if key in report.get('secondaryFields',[]): continue
                 self.assertEqual(rows[date][key],millions*1e6,(date,key))
-                self.assertEqual(rows[date]['provenance'][key]['source'],'SEC issuer filing')
+                self.assertEqual(rows[date]['provenance'][key]['source'],'Issuer accounts')
                 self.assertTrue(rows[date]['provenance'][key]['url'].startswith('https://www.sec.gov/'))
         self.assertEqual(len(rows),5)
         # Neither total income (including minorities) nor total revenue plus other income.
@@ -108,7 +108,7 @@ class ReleaseOneTests(unittest.TestCase):
             info,rows,status,_=company_data.financials_for('MSFT')
         self.assertEqual(len(rows),5)
         self.assertEqual(info['financialCurrency'],'USD')
-        self.assertIn('Issuer filings',status)
+        self.assertIn('Issuer accounts',status)
         ticker=SimpleNamespace(get_info=lambda:{'financialCurrency':'USD','longName':'Microsoft'},
             income_stmt=Frame({'2026-06-30':{'Total Revenue':100}}),balance_sheet=None,
             quarterly_balance_sheet=None,cashflow=None,calendar={})

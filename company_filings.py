@@ -86,7 +86,7 @@ def parse_facts(data, symbol, retrieved, asof=None):
         for end, (_, fact, tag) in selected.items():
             row = periods.setdefault(end, {'fiscalYear': end[:4], 'fiscalEnd': end, 'provenance': {}})
             row[key] = -abs(fact['val']) if key in OUTFLOWS else fact['val']
-            row['provenance'][key] = {'source': 'SEC issuer filing', 'tag': namespace+':'+tag,
+            row['provenance'][key] = {'source': 'Issuer accounts', 'tag': namespace+':'+tag,
                 'period': end, 'start': fact.get('start'), 'filed': fact.get('filed'),
                 'retrievedAt': retrieved, 'currency': 'shares' if key == 'sharesOutstanding' else currency,
                 'url': f'https://www.sec.gov/Archives/edgar/data/{int(cik)}/{fact["accn"].replace("-", "")}/',

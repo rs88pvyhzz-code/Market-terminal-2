@@ -3957,7 +3957,7 @@ function forensicPrompt(c,res){
   return 'Act as a forensic accountant. Company: '+c.name+' ('+c.symbol+').\n'+
     'Search for the latest annual report and most recent interim or quarterly results, and cite sources with page or section references.\n'+sector+'\n'+
     'My terminal\'s automated screen (Yahoo Finance data, may be wrong) shows:\n'+lines+'\n'+
-    'Verify these against the filings. Separate confirmed facts from potential concerns, give confidence levels, compare with the prior period, and finish with what evidence would change your view.';
+    'Verify these against the company accounts. Separate confirmed facts from potential concerns, give confidence levels, compare with the prior period, and finish with what evidence would change your view.';
 }
 function renderForensic(){
   const sym=forensicState.symbol||state.companySymbol||((D.companies||[])[0]||{}).symbol;

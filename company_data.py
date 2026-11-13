@@ -127,6 +127,25 @@ def latest_balance(ticker, symbol, currency, stamp):
     return max(candidates,key=lambda r:r['period']) if candidates else None
 
 
+def recommendation_trend(frame):
+    """Current-month count of analyst ratings (Yahoo recommendationTrend, period '0m').
+
+    Returns {'strongBuy','buy','hold','sell','strongSell','total'} or None. Counts
+    are reported, never inferred from the mean score.
+    """
+    if frame is None or getattr(frame,'empty',True):return None
+    rows=frame.to_dict('records') if hasattr(frame,'to_dict') else list(frame)
+    row=next((r for r in rows if str(r.get('period','')).strip()=='0m'),rows[0] if rows else None)
+    if not row:return None
+    out={}
+    for key in ('strongBuy','buy','hold','sell','strongSell'):
+        v=_num(row.get(key))
+        if v is None or v<0 or v>1000 or v!=int(v):return None
+        out[key]=int(v)
+    out['total']=sum(out.values())
+    return out if out['total']>0 else None
+
+
 def analyst_consensus(info):
     """Provider-reported analyst consensus, not an investment recommendation.
 
@@ -162,6 +181,7 @@ def analyst_consensus(info):
         'targetLow':target_low,
         'targetHigh':target_high,
         'quoteCurrency':currency,
+        'ratings':info.get('_recommendationTrend') if isinstance(info.get('_recommendationTrend'),dict) else None,
         'source':'Yahoo Finance analyst aggregation (unofficial)',
     }
 
@@ -227,6 +247,8 @@ def financials_for(symbol, offline=False):
         info['_researchBalance']=latest_balance(t,symbol,currency,stamp)
         try: calendar=_calendar_events(t.calendar)
         except Exception: pass
+        try: info['_recommendationTrend']=recommendation_trend(t.recommendations)
+        except Exception: info['_recommendationTrend']=None
     except Exception as exc:
         client_warning='Yahoo unavailable: '+str(exc)[:100]
     currency=info.get('financialCurrency') or (company_filings.ISSUERS.get(symbol) or ('','',''))[2]
@@ -240,7 +262,7 @@ def financials_for(symbol, offline=False):
             if issuer_warnings: primary_warning='; '.join(filter(None,[primary_warning,*issuer_warnings]))
         except Exception as exc: primary_warning='Shell supplemental sources unavailable: '+str(exc)[:100]
     info['_filingWarning']=primary_warning
-    status='Issuer filings (SEC XBRL) preferred; Yahoo Finance fallback by field' if primary else 'Yahoo Finance via yfinance (unofficial; figures unverified)'
+    status='Issuer accounts preferred; Yahoo Finance fallback by field' if primary else 'Yahoo Finance via yfinance (unofficial; figures unverified)'
     for warning in (primary_warning,client_warning):
         if warning: status+=' · '+warning
     if not rows and not info.get('_researchBalance') and not any(info.get(k) is not None for k in ('longName','shortName','marketCap','totalRevenue')):

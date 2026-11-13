@@ -81,3 +81,28 @@ details.period-dates>summary{list-style:none;display:inline-block;cursor:pointer
 details.period-dates>summary::-webkit-details-marker{display:none}
 details.period-dates[open]>summary{color:var(--amber,#ffa028)}
 details.period-dates .time-box{margin-top:7px}
+
+/* 11. Analyst consensus: labelled tiles and a ratings split. */
+.r28-analyst-panel .r28-analyst-grid{display:grid!important;grid-template-columns:repeat(3,minmax(0,1fr))!important}
+.r28-analyst-kpi .r28-k{display:block;font:500 12px/1.35 var(--font,ui-monospace,monospace);color:var(--amber,#ffa028);margin-bottom:6px}
+.r28-analyst-kpi strong{font:500 18px/1.3 var(--font,ui-monospace,monospace);font-variant-numeric:tabular-nums}
+.r28-rating-caption{font:12px var(--font,ui-monospace,monospace);color:var(--muted,#96969f);margin:4px 0 8px}
+.r28-rating-split{margin:0 0 14px}
+.r28-rating-bar{display:flex;height:12px;border-radius:3px;overflow:hidden;gap:2px;margin-bottom:10px}
+.r28-seg{display:block;min-width:4px}
+.r28-sb{background:#1f9d5a}.r28-b{background:#5fd39a}.r28-h{background:#8a8a94}.r28-s{background:#ff8a7a}.r28-ss{background:#e0453a}
+.r28-rating-legend{display:grid;grid-template-columns:repeat(5,minmax(0,1fr));gap:8px}
+.r28-rating-item{display:grid;grid-template-columns:10px 1fr;column-gap:6px;align-items:baseline}
+.r28-rating-item .r28-dot{width:8px;height:8px;border-radius:2px;grid-row:span 3;align-self:start;margin-top:4px}
+.r28-rating-name{font:12px -apple-system,BlinkMacSystemFont,"Segoe UI",Arial,sans-serif;color:var(--fg,#ececef)}
+.r28-rating-item strong{font:500 18px var(--font,ui-monospace,monospace)}
+.r28-rating-pct{font:11px var(--font,ui-monospace,monospace);color:var(--muted,#96969f)}
+.r28-analyst-source{display:inline-block;margin-top:8px;font:11px var(--font,ui-monospace,monospace)}
+@media (max-width:600px){
+  .r28-analyst-panel .r28-analyst-grid{grid-template-columns:repeat(2,minmax(0,1fr))!important}
+  .r28-rating-legend{grid-template-columns:repeat(3,minmax(0,1fr))}
+}
+
+/* 12. No fund comparison: Cmp column, compare ticks and the clear button are gone. */
+#etf-tracker-panel .etf-table :is(th,td):nth-child(8){display:none!important}
+#etf-tracker-panel .etf-card-actions label,#etf-clear-comparisons,#etf-selected-comparisons{display:none!important}

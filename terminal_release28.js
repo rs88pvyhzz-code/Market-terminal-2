@@ -261,33 +261,40 @@ function r28AnalystPanel(c){
  const box=el('section','r28-analyst-panel');box.id='r28-analyst-consensus';
  box.append(el('h3','', 'ANALYST CONSENSUS'));
  const a=c?.analystConsensus;
- if(!a){
-  box.append(el('p','note','No sourced analyst aggregation is available for this company in the saved provider snapshot. Missing ratings and price targets are not estimated.'));
-  host.append(box);return;
+ if(!a){box.append(el('p','note','No analyst data for this company.'));host.append(box);return;}
+ const ratingName={strong_buy:'Strong buy',buy:'Buy',hold:'Hold',underperform:'Underperform',sell:'Sell',strong_sell:'Strong sell'}[a.rating]||'—';
+ const ccy=a.quoteCurrency||'';
+ const target=v=>r28Finite(v)?fmt(v,2)+(ccy?' '+ccy:''):'—';
+ // Ratings split: how many analysts say strong buy, buy, hold, sell, strong sell (this month).
+ const r=a.ratings;
+ if(r&&r.total>0){
+  const split=el('div','r28-rating-split');
+  const bar=el('div','r28-rating-bar');
+  const rows=[['Strong buy','strongBuy','sb'],['Buy','buy','b'],['Hold','hold','h'],['Sell','sell','s'],['Strong sell','strongSell','ss']];
+  for(const [,k,cls] of rows){if(!r[k])continue;const seg=el('span','r28-seg r28-'+cls);seg.style.flexGrow=String(r[k]);seg.title=r[k];bar.append(seg);}
+  split.append(bar);
+  const legend=el('div','r28-rating-legend');
+  for(const [name,k,cls] of rows){const item=el('div','r28-rating-item');
+   item.append(el('span','r28-dot r28-'+cls),el('span','r28-rating-name',name),el('strong','',String(r[k])),el('span','r28-rating-pct',fmt(100*r[k]/r.total,0)+'%'));legend.append(item);}
+  split.append(legend);
+  box.append(el('div','r28-rating-caption',r.total+' analyst ratings this month'+(r28Finite(a.score)?' · average score '+fmt(a.score,1)+' (1 = strong buy, 5 = strong sell)':'')));
+  box.append(split);
  }
- const label={strong_buy:'Strong buy',buy:'Buy',hold:'Hold',underperform:'Underperform',sell:'Sell',strong_sell:'Strong sell'}[a.rating]||'Not available';
  const facts=el('div','r28-analyst-grid');
- const fmtValue=(x,d=2)=>r28Finite(x)?fmt(x,d):'—';
- const targetCurrency=a.quoteCurrency||'currency unverified';
- const target=v=>r28Finite(v)?fmt(v,2)+' '+targetCurrency:'—';
- for(const [key,val] of [['Provider consensus',label],['Analyst count',a.analysts!=null?String(a.analysts):'—'],
-   ['Mean 12-month target',target(a.targetMean)],['Target low / high',target(a.targetLow)+' / '+target(a.targetHigh)],
-   ['Median target',target(a.targetMedian)]]){
-  const t=el('div','r28-analyst-kpi');t.append(el('span','mini',key),el('strong','',val));facts.append(t);
- }
- // Target upside is only valid when the source's quoted units match today's quote.
- const q=(c.priceCurrency||'').replace('GBX','GBp'),u=(a.quoteCurrency||'').replace('GBX','GBp');
+ const tile=(k,v,cls='')=>{const t=el('div','r28-analyst-kpi');t.append(el('span','r28-k',k),el('strong',cls,v));facts.append(t);};
+ tile('Consensus rating',ratingName);
+ tile('Analysts with a price target',a.analysts!=null?String(a.analysts):'—');
+ tile('Mean 12-month target',target(a.targetMean));
+ tile('Median target',target(a.targetMedian));
+ tile('Lowest / highest target',target(a.targetLow)+' / '+target(a.targetHigh));
+ const q=(c.priceCurrency||'').replace('GBX','GBp'),u=ccy.replace('GBX','GBp');
  if(r28Finite(a.targetMean)&&r28Finite(c.price)&&c.price>0&&q&&q===u&&a.targetMean/c.price>=0.2&&a.targetMean/c.price<=5){
-  const upside=100*(a.targetMean/c.price-1);
-  const t=el('div','r28-analyst-kpi');t.append(el('span','mini','Implied price-only upside'),el('strong',upside>=0?'r28-positive':'r28-negative',(upside>=0?'+':'')+fmt(upside,1)+'%'));facts.append(t);
- }else{
-  const t=el('div','r28-analyst-kpi');t.append(el('span','mini','Implied price-only upside'),el('strong','','Unavailable — quote/target units or scale not verified'));facts.append(t);
- }
+  const up=100*(a.targetMean/c.price-1);tile('Mean target vs today’s price',(up>=0?'+':'')+fmt(up,1)+'%',up>=0?'r28-positive':'r28-negative');
+ }else tile('Mean target vs today’s price','—');
  box.append(facts);
- const source=el('a','', 'Yahoo Finance analyst data');source.href='https://finance.yahoo.com/quote/'+encodeURIComponent(c.symbol)+'/analysis/';source.target='_blank';source.rel='noopener noreferrer';
- const date=r28Text(c.asOf||c.financialAsOf||'');
- box.append(el('p','mini','Provider-reported aggregation, not our rating · retrieved '+(date||'date unavailable')+' · '),source);
- box.append(el('p','note','Analyst target periods and coverage may differ. Targets are not certified or guaranteed, and historical price targets may be stale. Unavailable observations stay blank.'));
+ const source=el('a','r28-analyst-source','Yahoo Finance · '+(r28Text(c.asOf||c.financialAsOf||'').slice(0,10)||'date unavailable'));
+ source.href='https://finance.yahoo.com/quote/'+encodeURIComponent(c.symbol)+'/analysis/';source.target='_blank';source.rel='noopener noreferrer';
+ box.append(source);
  host.append(box);
 }
 const r28OriginalResearchOverview=renderResearchOverview;
