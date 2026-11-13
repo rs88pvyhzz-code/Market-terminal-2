@@ -1494,7 +1494,7 @@ function companyNewsSearch(name){return 'https://news.google.com/search?'+new UR
 function renderCompanyInsight(c){
   const panel=$('company-news-list');panel.replaceChildren();
   const snapshot=(D.company_news||[]).find(item=>item.symbol===c.symbol);
-  const rows=snapshot?.articles?.length?snapshot.articles:(watchNewsMap.get(c.symbol)?.articles||[]);
+  const rows=(snapshot?.articles?.length?snapshot.articles:(watchNewsMap.get(c.symbol)?.articles||[])).filter(x=>newsDateMatches(x));
   const q=indexedStocks.get(c.symbol);
   const when=c.priceAsOf||q?.asOf||'date unavailable';
   let message=c.changePct==null?'No confirmed daily share-price move in this snapshot.':
@@ -1503,7 +1503,7 @@ function renderCompanyInsight(c){
   $('company-move-summary').textContent=message;
   $('company-news-stamp').textContent='Publisher dates shown below';
   $('company-news-stamp').title=snapshot?'Collected '+snapshot.retrievedAt:'No stored company headlines';
-  if(!rows.length)panel.append(el('p','note','No company-specific headlines are saved in this snapshot. Use the latest-news link below. This is not evidence that there was no news.'));
+  if(!rows.length)panel.append(el('p','note',newsEmptyText()));
   else for(const row of [...rows].sort((a,b)=>Number(/transaction in own shares|executes buyback/i.test(a.title))-Number(/transaction in own shares|executes buyback/i.test(b.title))).slice(0,5)){
     if(!String(row.url||'').startsWith('https://'))continue;
     const card=el('article','company-story');const link=el('a','',row.title);
@@ -2525,12 +2525,12 @@ function watchlistNews(w,q){
  $('watchlist-news-time').textContent=saved?'Retrieved '+(saved.retrievedAt||'date unavailable'):'No stored company news';
  $('watchlist-news-context').textContent=(q?.changePct!=null?w.name+' '+pc(q.changePct)+' on '+(q.asOf||'unknown date')+'. ':'')+
   'Related articles are search matches, not evidence that a story caused the share-price move. Verify company announcements and corporate actions.';
- for(const article of articles.slice(0,4)){
+ for(const article of articles.filter(x=>newsDateMatches(x)).slice(0,4)){
   if(!String(article.url||'').startsWith('https://'))continue;
   const item=el('article','company-story'),a=el('a','',article.title||'Open news source');a.href=article.url;a.target='_blank';a.rel='noopener noreferrer';
   item.append(a,el('span','',(article.source||'Publisher')+' · '+(article.published||'Date unavailable')));host.append(item);
  }
- if(!host.children.length)host.append(el('p','note','No verified company-specific headlines were retrieved. Use the latest-news search.'));
+ if(!host.children.length)host.append(el('p','note',newsEmptyText()));
  $('watchlist-news-live').href=companyNewsSearch(w.name);
  $('watchlist-quote-link').href=w.assetType==='fund'?'https://www.vanguardinvestor.co.uk/investments':'https://finance.yahoo.com/quote/'+encodeURIComponent(w.symbol)+'/';
 }

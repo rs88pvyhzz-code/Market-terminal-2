@@ -78,7 +78,7 @@ function eventWeight(x){
  return n;
 }
 function validNews(x){
- return x&&x.title&&x.source&&x.published&&/^https:\/\//.test(str(x.url))&&r24Fresh(x)&&
+ return x&&x.title&&x.source&&x.published&&/^https:\/\//.test(str(x.url))&&newsDateMatches(x)&&
  !/stock price, news, quote|quote & history|seasonal returns chart|historical data|price forecast:|stock price & news/i.test(x.title);
 }
 function sortedNews(){
@@ -99,7 +99,7 @@ function r210NewsOverview(){
  const host=$r('r24-developments')?.querySelector('.r24-content');if(!host)return;
  host.replaceChildren();overviewHeadlines=distinctNews(sortedNews()).filter(x=>eventWeight(x)>=23).slice(0,8);  // Release 3.2: 8 key stories (was 5)
  if(!overviewHeadlines.length){
-  host.append(el('p','note','No major sourced market development in this snapshot. Further dated headlines are listed below.'));
+  host.append(el('p','note',newsEmptyText()));
   return;
  }
  for(const x of overviewHeadlines){
@@ -135,7 +135,7 @@ renderIntelligenceNews=function(){
   article.append(title,el('div','r29-news-meta',x.source+' · '+x.published+(x.official?' · official':'')));
   host.append(article);
  }
- if(!distinct.length)host.append(el('p','note','No further dated headlines for the selected filters; the top stories are under Key market news.'));
+ if(!distinct.length)host.append(el('p','note',newsEmptyText()+' Leading stories may be shown under Key market news.'));
  for(const old of host.parentElement.querySelectorAll('.r29-news-footer'))old.remove();
  const foot=el('div','r29-news-footer','Showing '+Math.min(newsLimit,distinct.length)+' of '+distinct.length+' further headlines');
  if(distinct.length>newsLimit){
