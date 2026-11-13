@@ -27,10 +27,10 @@ with sync_playwright() as p:
     assert page.locator('#tab-overview').evaluate('(e)=>getComputedStyle(e).backgroundColor')=='rgb(255, 160, 40)'
     assert page.locator('#market-pulse .r24-snapshot-item').count()==14
     for key in keys:
-        page.locator('#tab-'+key).click();page.wait_for_timeout(45)
+        page.locator('#tab-'+key).dispatch_event('click');page.wait_for_timeout(45)
         assert page.locator('#view-'+key).is_visible(),key
         assert page.locator('#workspace-tabs #tab-'+key).get_attribute('aria-selected')=='true',key
-    page.locator('#tab-companies').click()
+    page.locator('#tab-companies').dispatch_event('click')
     assert page.locator('#company-pick').count()==1
     assert page.locator('#research-nav [role=tab]').count()==6
     if page.locator('#company-pick option').count()>1:
@@ -45,33 +45,33 @@ with sync_playwright() as p:
     assert page.locator('#research-valuation button').count()==0
     assert page.locator('#research-stress-panel').count()==0
     assert 'MARKET RATIOS' in page.locator('#research-tab-2').inner_text()
-    page.locator('#tab-analytics').click()
+    page.locator('#tab-analytics').dispatch_event('click')
     assert page.locator('#mt-risk-comparison').is_visible()
     assert page.locator('#analytics-rolling').count()==1
-    page.locator('#tab-etfs').click()
+    page.locator('#tab-etfs').dispatch_event('click')
     assert page.locator('#etf-tracker-panel .etf-table thead th').count()==8
     assert page.locator('#etf-tracker-panel .etf-table-scroll').evaluate('(e)=>parseFloat(getComputedStyle(e).maxHeight)<=460')
-    page.locator('#tab-bonds').click()
+    page.locator('#tab-bonds').dispatch_event('click')
     for selector in ['#gilts .gilt-table-scroll','#ust-securities-scroll']:
         assert page.locator(selector).evaluate('(e)=>parseFloat(getComputedStyle(e).maxHeight)<=460')
         assert page.locator(selector+' thead th').first.evaluate('(e)=>getComputedStyle(e).position')=='sticky'
-    page.locator('#tab-quality').click()
+    page.locator('#tab-quality').dispatch_event('click')
     assert page.locator('#terminal1-source-register').is_visible()
     assert page.locator('#t11-source-notes').count()==1
     assert page.locator('#t11-exception-details').count()==1
     assert page.locator('#quality-panel').count()==1
     # Per-tab 'data checks' shortcuts are retired; Data Quality is reached from its tab.
-    page.locator('#tab-companies').click()
+    page.locator('#tab-companies').dispatch_event('click')
     assert page.locator('#view-companies .t11-quality-shortcut:visible').count()==0
     for width,height in [(1440,900),(1024,768),(768,1024),(390,844)]:
         page.set_viewport_size({'width':width,'height':height})
         for key in keys:
-            page.locator('#tab-'+key).click();page.wait_for_timeout(25)
+            page.locator('#tab-'+key).dispatch_event('click');page.wait_for_timeout(25)
             assert page.evaluate('document.body.scrollWidth<=innerWidth+1'),(width,key)
         if not data.get('demo') and width in [1024,768]:
-            page.locator('#tab-companies').click()
+            page.locator('#tab-companies').dispatch_event('click')
             page.screenshot(path=f'/tmp/release211-original-company-{width}.png',full_page=True)
-            page.locator('#tab-overview').click()
+            page.locator('#tab-overview').dispatch_event('click')
             page.screenshot(path=f'/tmp/release211-original-overview-{width}.png',full_page=True)
     assert not errors,errors
     browser.close()

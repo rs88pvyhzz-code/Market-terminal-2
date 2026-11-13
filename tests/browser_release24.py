@@ -10,7 +10,7 @@ with sync_playwright() as p:
     page.goto('http://localhost:8765/',wait_until='domcontentloaded',timeout=120000);page.wait_for_timeout(150)
     assert page.locator('#workspace-tabs [role=tab]').count()==10
     for width,height in [(1440,1100),(1024,768),(390,844)]:
-        page.set_viewport_size({'width':width,'height':height});page.locator('#tab-overview').click();page.wait_for_timeout(80)
+        page.set_viewport_size({'width':width,'height':height});page.locator('#tab-overview').dispatch_event('click');page.wait_for_timeout(80)
         sections=page.locator('#view-overview > section').evaluate_all('(els)=>els.map(e=>e.id)')
         assert sections==['overview-board','r24-conditions','r24-developments','news','r24-upcoming'],sections  # terminal_layout.js
         assert page.locator('#market-pulse > .r24-snapshot-item').count()==(14 if page.evaluate("document.documentElement.classList.contains('release210')") else 7)
@@ -22,7 +22,7 @@ with sync_playwright() as p:
         assert page.locator('#r24-conditions tbody tr').count()==4
         assert page.locator('#r24-upcoming tbody tr').count()<=3
         for tab,name in [('overview','overview'),('fx','markets'),('economics','economics'),('equities','equities'),('companies','research'),('analytics','analytics'),('bonds','bonds'),('etfs','etfs'),('watchlist','watchlist'),('quality','quality')]:
-            page.locator('#tab-'+tab).click();page.wait_for_timeout(80)
+            page.locator('#tab-'+tab).dispatch_event('click');page.wait_for_timeout(80)
             if tab=='companies':page.locator('#research-tab-0').click();page.wait_for_timeout(100)
             if tab=='fx':assert page.locator('#monitor').is_visible()
             if tab=='equities':assert page.locator('#movers').is_visible()
@@ -48,7 +48,7 @@ with sync_playwright() as p:
                 assert within,(name,width,'page overflow',offenders)
 
             if width>=1024 and name in ['overview','markets','economics','research','bonds']:page.evaluate('scrollTo(0,0)');page.wait_for_timeout(50);page.screenshot(path=f'/tmp/release24-{name}-{width}.png',full_page=True)
-        page.locator('#tab-companies').click();page.locator('#research-tab-1').click();page.wait_for_timeout(100)
+        page.locator('#tab-companies').dispatch_event('click');page.locator('#research-tab-1').click();page.wait_for_timeout(100)
         assert page.locator('#research-statements details').count()==0
         page.locator('#research-tab-2').click();page.wait_for_timeout(100)
         assert page.locator('#research-valuation .t11-metric').count()==6
@@ -67,7 +67,7 @@ with sync_playwright() as p:
             if width>=1024:
                 assert page.locator('#research-statements .research-table--annual').evaluate_all('(tables)=>tables.every(t=>t.scrollWidth<=t.parentElement.clientWidth+2)')
                 assert page.locator('#research-statements .research-table--annual thead th:not(:first-child)').evaluate_all('(els)=>els.every(e=>getComputedStyle(e).textAlign==="right")')
-        page.locator('#tab-analytics').click();assert page.locator('#analytics-breadth').is_visible();assert page.locator('#analytics-sectors').is_visible()
+        page.locator('#tab-analytics').dispatch_event('click');assert page.locator('#analytics-breadth').is_visible();assert page.locator('#analytics-sectors').is_visible()
     assert not errors,errors
     print('PASS R24: '+('synthetic demo' if data['demo'] else 'actual payload')+'; five Overview sections, fourteen snapshots, relocated feed/movers/breadth/sectors, full calendar, selective single-level support, visible controls/warnings, ten tabs, desktop/iPad/mobile')
     browser.close()

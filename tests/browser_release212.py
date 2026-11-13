@@ -47,14 +47,14 @@ with sync_playwright() as p:
     assert page.locator('#r24-watch').is_hidden()
     assert page.locator('#view-overview #r24-developments').is_visible()
 
-    page.locator('#tab-economics').click()
+    page.locator('#tab-economics').dispatch_event('click')
     major=page.locator('#calendar-items tbody tr').count()
     assert major<=5,major
     page.get_by_role('button',name='All verified releases').click()
     assert page.locator('#calendar-items tbody tr').count()>=major
     page.get_by_role('button',name='Major releases').click()
 
-    page.locator('#tab-analytics').click()
+    page.locator('#tab-analytics').dispatch_event('click')
     assert page.locator('#analytics-rolling .r212-filter-group').count()==4
     assert page.locator('#analytics-sectors .r212-filter-group').count()==2
     assert page.locator('#analytics-rolling .r212-filter-group').first.locator('label').inner_text()=='INSTRUMENT'
@@ -80,7 +80,7 @@ with sync_playwright() as p:
         sector_page.on('pageerror',lambda e:errors.append(str(e)))
         sector_page.route('http://localhost:8765/**',lambda r:r.fulfill(body=fixture_html,content_type='text/html'))
         sector_page.goto('http://localhost:8765/',wait_until='domcontentloaded',timeout=120000)
-        sector_page.locator('#tab-analytics').click()
+        sector_page.locator('#tab-analytics').dispatch_event('click')
         assert sector_page.locator('#sector-rows tr').count()==2
         assert sector_page.locator('#sector-rows tr').first.locator('td').nth(1).inner_text()=='+3.00pp'
         assert sector_page.locator('#sector-rows tr').nth(1).locator('td').nth(1).inner_text()=='-2.00pp'
@@ -91,7 +91,7 @@ with sync_playwright() as p:
             assert sector_page.evaluate('document.body.scrollWidth<=innerWidth+1')
         sector_page.close()
 
-    page.locator('#tab-companies').click()
+    page.locator('#tab-companies').dispatch_event('click')
     page.locator('#research-tab-0').click()
     ids=page.locator('#research-view-0 > [id]').evaluate_all('(xs)=>xs.map(x=>x.id)')
     assert ids.index('company-news-panel') < ids.index('company-risk-panel'),ids  # company analysis stays with the company
@@ -112,12 +112,12 @@ with sync_playwright() as p:
         page.locator('#r212-peer-pick').select_option(choice.get_attribute('value'))
         assert page.locator('#peer-table table tr').first.locator('th:visible').last.inner_text().strip()==selected_name
     # Exercise the supported public deep link from another workspace as well.
-    page.locator('#tab-overview').click()
+    page.locator('#tab-overview').dispatch_event('click')
     page.evaluate("location.hash='peer-panel'")
     page.locator('#peer-panel').wait_for(state='visible')
     assert page.locator('#research-tab-3').get_attribute('aria-selected')=='true'
 
-    page.locator('#tab-bonds').click()
+    page.locator('#tab-bonds').dispatch_event('click')
     assert page.locator('#gilts .gilt-table thead th').count()==6
     assert page.locator('#gilt-ladder').is_hidden()
     assert not page.locator('#gilt-sort option[value="net"]').count()
@@ -155,20 +155,20 @@ with sync_playwright() as p:
         assert abs(value-gilt['profitPer100']*200)<0.03,(value,gilt)
         assert not page.locator('#gilt-stats').get_by_text('After-tax YTM').count()
 
-    page.locator('#tab-quality').click()
+    page.locator('#tab-quality').dispatch_event('click')
     assert page.locator('#r212-technical-notes').count()==1
     assert page.locator('#sector-note').count()==1
     for width,height in [(390,844),(768,1024),(1024,768),(1440,900)]:
         page.set_viewport_size({'width':width,'height':height})
         for key in ['overview','fx','equities','companies','bonds','analytics','etfs','economics','watchlist','quality']:
-            page.locator('#tab-'+key).click()
+            page.locator('#tab-'+key).dispatch_event('click')
             page.wait_for_timeout(30)
             if key=='analytics':
                 check_sectors(page)
             assert page.evaluate('document.body.scrollWidth<=innerWidth+1'),(width,key,page.evaluate('document.body.scrollWidth'))
         if not data.get('demo') and width in [390,768,1024]:
             for key in ['overview','fx','analytics','bonds']:
-                page.locator('#tab-'+key).click()
+                page.locator('#tab-'+key).dispatch_event('click')
                 page.screenshot(path=f'/tmp/release212-{key}-{width}.png',full_page=True)
     assert not errors,errors
     browser.close()

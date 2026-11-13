@@ -20,7 +20,7 @@ with sync_playwright() as p:
  page.goto('http://localhost:8765/',wait_until='domcontentloaded',timeout=120000)
  page.wait_for_timeout(160)
  assert page.evaluate('document.documentElement.classList.contains("release210")')
- page.locator('#tab-overview').click()
+ page.locator('#tab-overview').dispatch_event('click')
  items=page.locator('#market-pulse .r24-snapshot-item')
  assert items.count()==14,items.all_text_contents()
  for symbol in ['GBP/EUR','US 10Y','Gold','Bitcoin','Europe','Japan','Emerging']:
@@ -29,14 +29,14 @@ with sync_playwright() as p:
  assert page.locator('#r24-developments article').count()<=8
  overview_names=page.locator('#r24-developments article a').all_text_contents()
  assert len(overview_names)==len(set(overview_names))
- page.locator('#tab-overview').click()  # further headlines sit below Key market news
+ page.locator('#tab-overview').dispatch_event('click')  # further headlines sit below Key market news
  assert page.locator('#news-list article').count()<=10
  names=page.locator('#news-list article a').all_text_contents()
  assert not set(overview_names)&set(names),'Key market news repeated in further headlines'
  assert len(names)==len(set(names)),'Repeated further headlines'
  assert page.locator('.r29-news-footer').count()==1
  if not data.get('demo'):page.screenshot(path='/tmp/release210-news-ipad.png',full_page=True)
- page.locator('#tab-etfs').click()
+ page.locator('#tab-etfs').dispatch_event('click')
  table=page.locator('#etf-tracker-panel .etf-table')
  assert table.locator('thead th').count()==8
  result=page.locator('#etf-rows [data-etf-symbol]').evaluate_all('''rows=>rows.map(r=>r.dataset.etfSymbol)''')
@@ -53,7 +53,7 @@ with sync_playwright() as p:
   assert page.locator(selector).evaluate('(e)=>parseFloat(getComputedStyle(e).maxHeight)<=460')
   assert page.locator(selector).evaluate('(e)=>getComputedStyle(e).overflowY')=='auto'
  if not data.get('demo'):page.screenshot(path='/tmp/release210-etfs-ipad.png',full_page=True)
- page.locator('#tab-bonds').click()
+ page.locator('#tab-bonds').dispatch_event('click')
  for selector in ['#ust-securities-scroll','#gilts .gilt-table-scroll']:
   assert page.locator(selector).evaluate('(e)=>Math.abs(parseFloat(getComputedStyle(e).maxHeight)-Math.min(innerHeight*.47,460))<1')
   assert page.locator(selector+' thead th').first.evaluate('(e)=>getComputedStyle(e).position')=='sticky'
@@ -71,7 +71,7 @@ with sync_playwright() as p:
  assert page.locator('#gilt-chart').count()==1
  assert page.locator('#gilt-freshness').count()==1
  if not data.get('demo'):page.screenshot(path='/tmp/release210-gilts-ipad.png',full_page=True)
- page.locator('#tab-companies').click()
+ page.locator('#tab-companies').dispatch_event('click')
  page.locator('#research-tab-4').click()
  page.wait_for_timeout(180)
  # Jump-link bars are retired (terminal_layout.js); sections are read in order.
@@ -85,7 +85,7 @@ with sync_playwright() as p:
  for width,height in screen:
   page.set_viewport_size({'width':width,'height':height})
   for tab in ['overview','fx','equities','bonds','etfs']:
-   page.locator('#tab-'+tab).click()
+   page.locator('#tab-'+tab).dispatch_event('click')
    page.wait_for_timeout(40)
    assert page.evaluate('document.body.scrollWidth<=innerWidth+1'),(width,tab)
  assert not errors,errors

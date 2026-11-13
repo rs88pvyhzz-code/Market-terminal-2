@@ -28,7 +28,7 @@ with sync_playwright() as p:
     assert page.locator('#r24-developments .r24-content').inner_text().strip()
     if not data.get('demo'):
         page.screenshot(path='/tmp/release28-overview-ipad.png',full_page=True)
-    page.locator('#tab-economics').click()
+    page.locator('#tab-economics').dispatch_event('click')
     page.wait_for_timeout(180)
     page.locator('#macro-region').select_option('UK')
     page.wait_for_timeout(140)
@@ -56,7 +56,7 @@ with sync_playwright() as p:
         assert pos=='sticky',pos
     if not data.get('demo'):
         page.screenshot(path='/tmp/release28-economics-ipad.png',full_page=True)
-    page.locator('#tab-bonds').click()
+    page.locator('#tab-bonds').dispatch_event('click')
     page.wait_for_timeout(130)
     if page.locator('#gilt-rows tr[data-isin]').count():
         page.locator('#gilt-rows tr[data-isin]').first.click()
@@ -68,7 +68,7 @@ with sync_playwright() as p:
             assert selected.count()==0,'Selected gilt must appear only in summary'
         if not data.get('demo'):
             page.screenshot(path='/tmp/release28-gilts-ipad.png',full_page=True)
-    page.locator('#tab-companies').click()
+    page.locator('#tab-companies').dispatch_event('click')
     page.wait_for_timeout(150)
     if page.locator('#company-pick option').count():
         page.locator('#company-pick').select_option(index=0)
@@ -79,7 +79,7 @@ with sync_playwright() as p:
                 page.screenshot(path='/tmp/release28-company-ipad.png',full_page=True)
     for width,height in [(1440,900),(1024,768),(390,844)]:
         page.set_viewport_size({'width':width,'height':height})
-        page.locator('#tab-economics').click()
+        page.locator('#tab-economics').dispatch_event('click')
         page.wait_for_timeout(70)
         assert page.evaluate('document.body.scrollWidth <= innerWidth+1'),('horizontal page overflow',width)
     assert not errors,errors

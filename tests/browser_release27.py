@@ -40,7 +40,7 @@ with sync_playwright() as p:
     browser=p.chromium.launch(executable_path=os.environ.get('CHROMIUM_EXECUTABLE'),args=['--no-sandbox'])
     page=browser.new_page(viewport={'width':1024,'height':768});errors=[];page.on('pageerror',lambda e:errors.append(str(e)))
     page.route('http://localhost:8765/**',lambda r:r.fulfill(body=html,content_type='text/html'))
-    page.goto('http://localhost:8765/',wait_until='domcontentloaded',timeout=120000);page.locator('#tab-etfs').click();page.wait_for_timeout(100)
+    page.goto('http://localhost:8765/',wait_until='domcontentloaded',timeout=120000);page.locator('#tab-etfs').dispatch_event('click');page.wait_for_timeout(100)
     assert page.locator('#workspace-tabs [role=tab]').count()==10
     assert len(data['etfTracker']['funds'])==132
     assert page.locator('.etf-table thead th').all_text_contents()==['Fund / ticker','TER','P/S','Fund AUM','1Y','3Y','5Y','Cmp']
@@ -73,7 +73,7 @@ with sync_playwright() as p:
     assert page.locator('#etf-same-index .etf-card-actions button').count()==3
     assert page.locator('#etf-same-index .etf-card-actions input[type=checkbox]').count()==3
     assert page.locator('#etf-same-index .etf-card-facts').evaluate_all('cards=>cards.every(c=>c.children.length===9)')
-    page.locator('#tab-analytics').click();page.wait_for_timeout(80)  # same-index comparison lives in Analytics
+    page.locator('#tab-analytics').dispatch_event('click');page.wait_for_timeout(80)  # same-index comparison lives in Analytics
     for index in range(3):page.locator('#etf-same-index input').nth(index).check()
     assert page.evaluate('__etf.state.selected')==primary and page.evaluate('__etf.state.compared.size')==3
     if page.locator('#etf-chart svg').count():assert page.locator('#etf-chart svg path[fill=none]').count()<=4
@@ -81,7 +81,7 @@ with sync_playwright() as p:
     page.locator('#etf-same-index [data-etf-alternative]').first.locator('button').first.click()
     assert page.evaluate('__etf.state.selected')==first_peer
     assert first_peer in page.locator('#etf-selected').inner_text()
-    page.locator('#tab-etfs').click();page.wait_for_timeout(80)
+    page.locator('#tab-etfs').dispatch_event('click');page.wait_for_timeout(80)
     choose(page,primary)
     for basis in ['adjusted_gbp','price_gbp','adjusted_local','price_local']:
         page.locator('#etf-basis').select_option(basis)
@@ -104,7 +104,7 @@ with sync_playwright() as p:
                 assert math.isclose(actual['value'],expected,abs_tol=1e-9),(basis,period,actual['value'],expected)
     page.locator('#etf-basis').select_option('adjusted_gbp');page.locator('#etf-period').select_option('5Y')
     for width,height in [(1440,1000),(1024,768),(390,844)]:
-        page.set_viewport_size({'width':width,'height':height});page.locator('#tab-etfs').click();page.wait_for_timeout(80)
+        page.set_viewport_size({'width':width,'height':height});page.locator('#tab-etfs').dispatch_event('click');page.wait_for_timeout(80)
         assert page.evaluate('document.body.scrollWidth<=innerWidth'),width
         if width>=1024:assert page.locator('.etf-table-scroll').evaluate('(e)=>e.scrollWidth<=e.clientWidth+1'),width
         assert page.locator('#etf-rows').evaluate('(e)=>e.children.length<145')

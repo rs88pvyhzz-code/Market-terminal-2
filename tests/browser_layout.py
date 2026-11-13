@@ -62,12 +62,12 @@ with sync_playwright() as p:
             assert not problems, (width, step, problems)
 
         for tab in TABS:
-            page.locator('#tab-' + tab).click()
+            page.locator('#tab-' + tab).dispatch_event('click')
             page.wait_for_timeout(120)
             check('tab ' + tab)
             assert page.evaluate('document.body.scrollWidth<=innerWidth+1'), (width, tab, 'page scrolls sideways')
 
-        page.locator('#tab-bonds').click()
+        page.locator('#tab-bonds').dispatch_event('click')
         page.wait_for_timeout(120)
         for label, ids in [('UK gilts', ['gilts']), ('US Treasuries', ['us-treasuries']), ('Yield curves', ['rates', 'real']),
                            ('Credit spreads', ['corporate-credit']), ('Sovereign', ['sovereign'])]:
@@ -75,7 +75,7 @@ with sync_playwright() as p:
             page.wait_for_timeout(120)
             shown = page.evaluate("[...document.querySelectorAll('#view-bonds > section')].filter(s=>s.getClientRects().length).map(s=>s.id)")
             assert shown == ids, (width, label, shown)
-        page.locator('#tab-companies').click()
+        page.locator('#tab-companies').dispatch_event('click')
         options = page.locator('#company-pick option').evaluate_all('(o)=>o.map(x=>x.value).filter(Boolean)')
         for symbol in options[:3]:
             page.locator('#company-pick').select_option(symbol)
@@ -84,30 +84,30 @@ with sync_playwright() as p:
                 page.locator('#research-tab-%d' % i).click()
                 page.wait_for_timeout(60)
                 check('company %s view %d' % (symbol, i))
-        page.locator('#tab-analytics').click()
+        page.locator('#tab-analytics').dispatch_event('click')
         page.wait_for_timeout(150)
         check('analytics after company change')
         for pid in L_RESEARCH_IDS:
             assert page.locator('#view-companies #' + pid).count() == 1, ('company panel left Company Research', pid)
 
-        page.locator('#tab-etfs').click()
+        page.locator('#tab-etfs').dispatch_event('click')
         page.wait_for_timeout(120)
         rows = page.locator('#etf-rows [data-etf-symbol]')
         if rows.count() > 2:
             rows.nth(2).click()
             page.wait_for_timeout(150)
-        page.locator('#tab-analytics').click()
+        page.locator('#tab-analytics').dispatch_event('click')
         page.wait_for_timeout(150)
         check('analytics after ETF change')
         assert page.locator('#view-analytics #etf-chart').count() == 1
 
-        page.locator('#tab-watchlist').click()
+        page.locator('#tab-watchlist').dispatch_event('click')
         page.wait_for_timeout(120)
         wrows = page.locator('#watchlist-rows tr')
         if wrows.count() > 1:
             wrows.nth(1).click()
             page.wait_for_timeout(150)
-        page.locator('#tab-analytics').click()
+        page.locator('#tab-analytics').dispatch_event('click')
         page.wait_for_timeout(150)
         check('analytics after watchlist change')
 

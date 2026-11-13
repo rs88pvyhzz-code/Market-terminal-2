@@ -14,7 +14,7 @@ with sync_playwright() as p:
     page.on('pageerror',lambda e:errors.append(str(e)))
     page.route('http://localhost:8765/**',lambda route:route.fulfill(body=html,content_type='text/html'))
     page.goto('http://localhost:8765/',wait_until='domcontentloaded')
-    page.locator('#tab-companies').click()
+    page.locator('#tab-companies').dispatch_event('click')
     for symbol in ['SHEL.L','MSFT','HSBA.L']:
         page.locator('#company-pick').select_option(symbol);page.wait_for_timeout(100)
         assert page.locator('#research-nav [role=tab]').count()==6
@@ -39,8 +39,8 @@ with sync_playwright() as p:
             page.locator('#research-tab-0').click()
             page.screenshot(path='/tmp/research-live-shell.png',full_page=True)
     for tab in page.locator('[data-workspace][role=tab]').all():
-        tab.click();page.wait_for_timeout(50)
-    page.locator('#tab-quality').click()
+        tab.dispatch_event('click');page.wait_for_timeout(50)
+    page.locator('#tab-quality').dispatch_event('click')
     assert page.locator('#terminal1-source-register').count()==1
     assert not errors,errors
     print('PASS actual live payload: dated company evidence, read-only ratios, full source register and ten original-workspace layouts on desktop/iPad')

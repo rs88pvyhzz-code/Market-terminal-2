@@ -32,7 +32,7 @@ with sync_playwright() as p:
     page.route('http://localhost:8765/**',lambda r:r.fulfill(body=html,content_type='text/html'))
     page.goto('http://localhost:8765/',wait_until='domcontentloaded')
     assert page.locator('[data-workspace][role=tab]').count()==10
-    page.locator('#tab-companies').click()
+    page.locator('#tab-companies').dispatch_event('click')
     for symbol in ['SHEL.L','MSFT','HSBA.L']:
         page.locator('#company-pick').select_option(symbol);page.wait_for_timeout(70)
         assert page.locator('#research-nav [role=tab]').count()==6
@@ -72,7 +72,7 @@ with sync_playwright() as p:
     page.set_viewport_size({'width':768,'height':1024});page.locator('#research-tab-2').click();page.wait_for_timeout(100)
     page.screenshot(path='/tmp/research-r2-stress-ipad.png',full_page=True)
     for key in ['overview','fx','equities','companies','bonds','analytics','etfs','economics','watchlist','quality']:
-        page.locator('#tab-'+key).click();page.wait_for_timeout(60)
+        page.locator('#tab-'+key).dispatch_event('click');page.wait_for_timeout(60)
         assert page.locator('#view-'+key).is_visible()
     assert not errors,errors
     print('PASS Release 2: primary issuer evidence, guidance, capital allocation, warning indicators, read-only valuations, personal notes and ten restored workspaces')

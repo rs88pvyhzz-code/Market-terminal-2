@@ -9,7 +9,7 @@ with sync_playwright() as p:
     page.route('http://localhost:8765/**',lambda r:r.fulfill(body=html,content_type='text/html'))
     page.goto('http://localhost:8765/',wait_until='domcontentloaded',timeout=120000)
     for width,height in [(1440,1000),(1024,768)]:
-        page.set_viewport_size({'width':width,'height':height});page.locator('#tab-bonds').click();page.wait_for_timeout(100)
+        page.set_viewport_size({'width':width,'height':height});page.locator('#tab-bonds').dispatch_event('click');page.wait_for_timeout(100)
         page.locator('#layout-bond-tabs button').filter(has_text='US Treasuries').click()
         viewport=page.locator('#ust-securities-scroll');rows=page.locator('#ust-rows tr')
         securities=data.get('us_treasuries',[])

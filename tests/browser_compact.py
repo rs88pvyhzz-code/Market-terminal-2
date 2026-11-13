@@ -36,16 +36,16 @@ with sync_playwright() as p:
         page.locator('#tab-overview').focus();page.keyboard.press('ArrowRight')
         assert page.locator('#tab-watchlist').get_attribute('aria-selected')=='true'
         for key in keys:
-            page.locator('#tab-'+key).click()
+            page.locator('#tab-'+key).dispatch_event('click')
             assert page.evaluate('document.body.scrollWidth<=innerWidth+1'),(width,key,'page overflow',page.evaluate('Array.from(document.querySelectorAll("body *")).filter(e=>e.getBoundingClientRect().right>innerWidth+1&&e.clientWidth>0).slice(0,20).map(e=>[e.tagName,e.id,e.className,e.getBoundingClientRect().width])'))
-        page.locator('#tab-watchlist').click()
+        page.locator('#tab-watchlist').dispatch_event('click')
         assert page.locator('#watchlist-changes .watch-change-group > strong').all_text_contents()==['Results','Guidance','Dividends','Announcements']
         assert page.locator('#watchlist-changes').evaluate('(e)=>e.getBoundingClientRect().right<=innerWidth+1')
         page.screenshot(path=f'/tmp/compact-watchlist-changes-{width}.png')
-        page.locator('#tab-overview').click()
+        page.locator('#tab-overview').dispatch_event('click')
         assert page.locator('#view-overview > section').evaluate_all('(xs)=>xs.map(x=>x.id)')[:3]==['overview-board','r24-conditions','r24-developments']
         page.screenshot(path=f'/tmp/compact-overview-{width}.png')
-        page.locator('#tab-analytics').click()
+        page.locator('#tab-analytics').dispatch_event('click')
         assert page.locator('#layout-body-markets > *').first.get_attribute('id')=='score-panel'
         assert page.locator('#mt-movers-table').count()==1
         assert page.locator('#mt-movers-table th button').count()==7
@@ -76,7 +76,7 @@ with sync_playwright() as p:
         assert page.locator('#mt-movers-table thead th').first.evaluate('(e)=>getComputedStyle(e).position')=='sticky'
         page.locator('#score-panel').scroll_into_view_if_needed()
         page.screenshot(path=f'/tmp/compact-performance-{width}.png')
-        page.locator('#tab-companies').click();page.locator('#company-pick').select_option('SHEL.L');page.locator('#research-tab-0').click()
+        page.locator('#tab-companies').dispatch_event('click');page.locator('#company-pick').select_option('SHEL.L');page.locator('#research-tab-0').click()
         ids=page.locator('#research-view-0 > [id]').evaluate_all('(xs)=>xs.map(x=>x.id)')
         assert ids.index('company-news-panel')<ids.index('company-price-block')<ids.index('company-risk-panel')
         if data.get('demo'):

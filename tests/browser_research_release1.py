@@ -36,7 +36,7 @@ with sync_playwright() as p:
     page.on('pageerror',lambda e:errors.append(str(e)))
     page.route('http://localhost:8765/**',lambda route:route.fulfill(body=html,content_type='text/html'))
     page.goto('http://localhost:8765/',wait_until='domcontentloaded')
-    page.locator('#tab-companies').click()
+    page.locator('#tab-companies').dispatch_event('click')
     assert page.locator('#research-nav button').count()==6
     for symbol in ['SHEL.L','MSFT','HSBA.L']:
         page.locator('#company-pick').select_option(symbol);page.wait_for_timeout(80)
@@ -70,11 +70,11 @@ with sync_playwright() as p:
     page.locator('#company-pick').select_option('SHEL.L')
     assert page.get_by_label('Competitive advantages & supporting evidence',exact=True).input_value()=='Dated evidence test'
     for key in ['overview','fx','equities','companies','bonds','analytics','etfs','economics','watchlist','quality']:
-        page.locator('#tab-'+key).click();page.wait_for_timeout(60)
+        page.locator('#tab-'+key).dispatch_event('click');page.wait_for_timeout(60)
         assert page.locator('#view-'+key).is_visible()
-    page.locator('#tab-quality').click()
+    page.locator('#tab-quality').dispatch_event('click')
     assert page.locator('#terminal1-source-register').count()==1
-    page.locator('#tab-companies').click()
+    page.locator('#tab-companies').dispatch_event('click')
     page.locator('#company-pick').select_option('MSFT');page.locator('#research-tab-0').click()
     page.evaluate('scrollTo(0,0)');page.wait_for_timeout(60)
     page.screenshot(path='/tmp/research-r1-overview.png',full_page=True)

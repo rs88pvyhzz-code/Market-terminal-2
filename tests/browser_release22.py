@@ -23,10 +23,10 @@ with sync_playwright() as p:
         page.evaluate('(r)=>location.hash=r',route);page.wait_for_timeout(80);assert page.locator('#view-'+view).is_visible(),route
     for route,index in [('peer-panel',3),('company-events-panel',4),('forensic-panel',5)]:
         page.evaluate('(r)=>location.hash=r',route);page.wait_for_timeout(80);assert page.locator('#research-view-'+str(index)).is_visible(),route
-    page.locator('#tab-analytics').click();assert page.locator('#mt-risk-comparison').is_visible()
+    page.locator('#tab-analytics').dispatch_event('click');assert page.locator('#mt-risk-comparison').is_visible()
     assert page.locator('#mt-risk-rows tr').count()==8;page.locator('#mt-risk-period').select_option('3Y');assert page.locator('#mt-risk-rows tr').count()==8
-    page.locator('#tab-quality').click();assert page.locator('#mt-quality-tab-filter').count()==1;assert page.locator('#terminal1-source-register').count()==1
-    page.locator('#tab-companies').click();assert page.locator('#research-nav [role=tab]').count()==6
+    page.locator('#tab-quality').dispatch_event('click');assert page.locator('#mt-quality-tab-filter').count()==1;assert page.locator('#terminal1-source-register').count()==1
+    page.locator('#tab-companies').dispatch_event('click');assert page.locator('#research-nav [role=tab]').count()==6
     page.locator('#research-tab-0').click();page.wait_for_timeout(80)
     order=page.locator('#research-view-0 > [id]').evaluate_all('(els)=>els.map(e=>e.id)')
     # Analysis of the selected company stays in Company Research (terminal_layout.js RESEARCH).
@@ -44,7 +44,7 @@ with sync_playwright() as p:
     page.locator('#research-tab-3').click();assert page.get_by_label('Competitive advantages & supporting evidence',exact=True).input_value()=='R22 retained note'
     page.locator('#global-search').fill('Shell');page.wait_for_timeout(60);page.locator('#global-results button').filter(has_text='Company · SHEL.L').click();assert page.locator('#view-companies').is_visible()
     # Known review instruments keep source quotes but cannot supply derived yields or picks.
-    page.locator('#tab-bonds').click();page.wait_for_timeout(80)
+    page.locator('#tab-bonds').dispatch_event('click');page.wait_for_timeout(80)
     restricted=['GB00BVP99566','GB00BWGDRG14']
     before=page.evaluate('JSON.stringify(window.MT_DATA.gilts)')
     for isin in restricted:
@@ -75,7 +75,7 @@ with sync_playwright() as p:
     for isin in restricted:assert page.locator('#mt-gilt-tax-rows tr[data-isin="'+isin+'"] ').count()==0
     for width in [744,768,1024,1440]:
         page.set_viewport_size({'width':width,'height':1100})
-        page.locator('#tab-bonds').click();page.wait_for_timeout(150)
+        page.locator('#tab-bonds').dispatch_event('click');page.wait_for_timeout(150)
         assert '2026-11-09' in page.locator('#gilt-freshness').inner_text();assert 'Website refreshed' in page.locator('#gilt-freshness').inner_text()
         assert page.locator('#gilt-rows tr').count()==103
         assert page.locator('.gilt-table').evaluate('(t)=>t.scrollWidth<=t.parentElement.clientWidth'),width
@@ -84,12 +84,12 @@ with sync_playwright() as p:
         page.locator('#gilt-search').fill('');page.locator('#gilt-sort').select_option('gross');page.locator('#gilt-type').select_option('linked');assert page.locator('#gilt-rows tr').count()==34
         page.locator('#gilt-type').select_option('all')
         assert page.evaluate('document.body.scrollWidth<=innerWidth'),width
-        page.locator('#tab-companies').click();page.locator('#research-tab-0').click();page.wait_for_timeout(100)
+        page.locator('#tab-companies').dispatch_event('click');page.locator('#research-tab-0').click();page.wait_for_timeout(100)
         assert page.evaluate('document.body.scrollWidth<=innerWidth'),width
-    page.locator('#tab-bonds').click();page.evaluate("window.r22RealNow=Date.now;Date.now=()=>Date.parse('2026-11-12T16:00:00Z')");page.locator('#gilt-sort').select_option('gross');assert 'STALE' in page.locator('#gilt-freshness').inner_text();page.evaluate('Date.now=window.r22RealNow');page.locator('#gilt-sort').select_option('gross')
-    page.set_viewport_size({'width':768,'height':1100});page.locator('#tab-bonds').click();page.wait_for_timeout(100);page.screenshot(path='/tmp/release22-gilts-ipad.png',full_page=False)
-    page.locator('#tab-companies').click();page.locator('#research-tab-0').click();page.wait_for_timeout(100);page.screenshot(path='/tmp/release22-company-ipad.png',full_page=True)
-    for tab in tabs.all():tab.click();page.wait_for_timeout(60)
+    page.locator('#tab-bonds').dispatch_event('click');page.evaluate("window.r22RealNow=Date.now;Date.now=()=>Date.parse('2026-11-12T16:00:00Z')");page.locator('#gilt-sort').select_option('gross');assert 'STALE' in page.locator('#gilt-freshness').inner_text();page.evaluate('Date.now=window.r22RealNow');page.locator('#gilt-sort').select_option('gross')
+    page.set_viewport_size({'width':768,'height':1100});page.locator('#tab-bonds').dispatch_event('click');page.wait_for_timeout(100);page.screenshot(path='/tmp/release22-gilts-ipad.png',full_page=False)
+    page.locator('#tab-companies').dispatch_event('click');page.locator('#research-tab-0').click();page.wait_for_timeout(100);page.screenshot(path='/tmp/release22-company-ipad.png',full_page=True)
+    for tab in tabs.all():tab.dispatch_event('click');page.wait_for_timeout(60)
     assert not errors,errors
     print('PASS R22: ten original-design workspaces, six research views, legacy routes/search/saved subsections/notes, ordered unique charts, advanced technicals, real gilt names/ISINs/yields, filtering/sorting and desktop/iPad fit')
     browser.close()

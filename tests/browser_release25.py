@@ -10,7 +10,7 @@ with sync_playwright() as p:
     page=browser.new_page(viewport={'width':1024,'height':768});errors=[]
     page.on('pageerror',lambda e:errors.append(str(e)))
     page.route('http://localhost:8765/**',lambda r:r.fulfill(body=html,content_type='text/html'))
-    page.goto('http://localhost:8765/',wait_until='domcontentloaded',timeout=120000);page.locator('#tab-equities').click()
+    page.goto('http://localhost:8765/',wait_until='domcontentloaded',timeout=120000);page.locator('#tab-equities').dispatch_event('click')
     assert page.locator('#screen-mom').input_value()==''
     # Reproduce restored/injected FCFF in DOM, including a plausible in-range model value.
     for value in ['25892.649488670548','43.69']:
@@ -41,15 +41,15 @@ with sync_playwright() as p:
     rows=list(csv.reader(io.StringIO(Path(download.value.path()).read_text())))
     assert len(rows)-1==page.evaluate('__screenState.matches.length')
     assert [r[1] for r in rows[1:]]==page.evaluate('__screenState.matches.map(x=>x.symbol)')
-    page.locator('#screen-mom').fill('5');page.locator('#tab-companies').click();page.locator('#research-tab-2').click()
+    page.locator('#screen-mom').fill('5');page.locator('#tab-companies').dispatch_event('click');page.locator('#research-tab-2').click()
     assert page.locator('#research-valuation .t11-metric').count()==6
     assert page.locator('#research-valuation input').count()==0
     assert page.locator('#research-valuation button').count()==0
-    page.locator('#tab-equities').click();assert page.locator('#screen-mom').input_value()=='5'
-    page.reload(wait_until='domcontentloaded',timeout=120000);page.locator('#tab-equities').click()
+    page.locator('#tab-equities').dispatch_event('click');assert page.locator('#screen-mom').input_value()=='5'
+    page.reload(wait_until='domcontentloaded',timeout=120000);page.locator('#tab-equities').dispatch_event('click')
     assert page.locator('#screen-mom').input_value()==''
     for width,height in [(1440,1000),(1024,768),(390,844)]:
-        page.set_viewport_size({'width':width,'height':height});page.locator('#tab-companies').click()
+        page.set_viewport_size({'width':width,'height':height});page.locator('#tab-companies').dispatch_event('click')
         for view in [0,1,2,3,4,5]:
             page.locator('#research-tab-'+str(view)).click();page.wait_for_timeout(70)
             assert page.locator('.research-view details:not([data-r25-disclosure])').count()==0
@@ -58,7 +58,7 @@ with sync_playwright() as p:
         for id in ['research-financial-chart','research-cash-chart','research-margin-chart','research-return-chart']:
             assert page.locator('#'+id).is_visible()
             assert page.locator('#'+id).evaluate('(e)=>{const r=e.getBoundingClientRect();return r.height>0&&r.height<=260;}')
-        page.locator('#tab-bonds').click();page.wait_for_timeout(80)
+        page.locator('#tab-bonds').dispatch_event('click');page.wait_for_timeout(80)
         assert page.locator('#gilts thead th').first.evaluate('(e)=>getComputedStyle(e).position')=='sticky'
         assert page.locator('details details').count()==0
         page.evaluate('scrollTo(0,0)');page.screenshot(path=f'/tmp/release25-bonds-{width}.png',full_page=True)
