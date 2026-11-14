@@ -32,7 +32,7 @@ with sync_playwright() as p:
     page.locator('#research-tab-0').click();page.wait_for_timeout(80)
     order=page.locator('#research-view-0 > [id]').evaluate_all('(els)=>els.map(e=>e.id)')
     # Analysis of the selected company stays in Company Research (terminal_layout.js RESEARCH).
-    expected=['research-overview','company-news-panel','company-advanced','company-price-block','company-benchmark-block','company-risk-panel','research-executive']
+    expected=['research-overview','company-news-panel','research-executive','company-price-block','company-benchmark-block','company-risk-panel','company-advanced']
     assert page.locator('#view-analytics #company-risk-panel').count()==0
     assert [order.index(x) for x in expected]==sorted(order.index(x) for x in expected),order
     for id in ['company-chart','company-benchmark-chart','company-risk-kpis','company-technical-kpis']:assert page.locator('#'+id).count()==1

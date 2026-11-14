@@ -173,7 +173,7 @@ function r24Overview(){
   // The duplicate tile snapshot contains exactly the quote values in Markets' price table.
   if($('headline'))$('headline').replaceChildren();
   $('r23-snapshot-detail')?.remove();$('r23-conditions')?.remove();$('r23-calendar')?.remove();
-  for(const id of ['r23-alerts','r23-watch'])if($(id))$(id).querySelector('h2').textContent=id==='r23-alerts'?'FULL DAILY BRIEFING & RESEARCH ALERTS':'WATCHLIST NEWS REFERENCES';
+  for(const id of ['r23-alerts','r23-watch'])if($(id))$(id).querySelector('h2').textContent=id==='r23-alerts'?'MARKET SIGNALS':'WATCHLIST NEWS REFERENCES';
   const cal=$('calendar');if(cal&&$('r23-calendar'))cal.append($('r23-calendar'));
 }
 const r24OldBriefing=renderMarketBriefing;
