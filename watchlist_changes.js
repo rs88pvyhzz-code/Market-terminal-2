@@ -37,6 +37,18 @@ function renderWatchChanges(w){
  const c=watchProfile(w.symbol),stored=(D.company_news||[]).find(x=>x.symbol===w.symbol);
  const articles=watchNewsMap.get(w.symbol)?.articles||stored?.articles||[];
  const groups=watchChangesData(c,articles);
+ // Material announcements have one home: the What changed summary.
+ const urls=new Set(groups.Announcements.map(row=>row.url));
+ const news=document.getElementById('watchlist-news-stories');
+ if(news){
+  const seen=new Set(urls);
+  for(const story of news.querySelectorAll('.company-story')){
+   const url=story.querySelector('a')?.getAttribute('href');
+   if(url&&seen.has(url))story.remove();else if(url)seen.add(url);
+  }
+  if(!news.children.length)news.append(el('p','note','No additional headlines in the last 24 hours.'));
+ }
+
  let shown=0;
  for(const [name,rows] of Object.entries(groups)){
   if(!rows.length)continue;shown++;

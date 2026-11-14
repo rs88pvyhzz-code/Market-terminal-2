@@ -34,7 +34,7 @@ with sync_playwright() as p:
  names=page.locator('#news-list article a').all_text_contents()
  assert not set(overview_names)&set(names),'Key market news repeated in further headlines'
  assert len(names)==len(set(names)),'Repeated further headlines'
- assert page.locator('.r29-news-footer').count()==1
+ assert page.locator('.news-pagination').count()==1
  if not data.get('demo'):page.screenshot(path='/tmp/release210-news-ipad.png',full_page=True)
  page.locator('#tab-etfs').dispatch_event('click')
  table=page.locator('#etf-tracker-panel .etf-table')

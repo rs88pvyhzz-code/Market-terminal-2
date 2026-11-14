@@ -458,7 +458,10 @@ const DROP_SECTIONS=['etf-issuer-snapshot'];
 const TILE_GRIDS='.etf-stat-grid,.research-stats,.watchlist-kpis,.etf-stat-grid,.analytic-cards,.research-dashboard,.company-kpis,.credit-kpis,.r28-gilt-yields,.r28-gilt-facts,.t11-ratios,.macro,.pulse-board,.layout-metrics,.r29-coverage-grid';
 function cleanReading(){
   const stage=$L('workspace-stage');if(!stage)return;
-  document.querySelectorAll('footer.foot').forEach(f=>f.hidden=true);
+  document.querySelectorAll('footer,[role=contentinfo]').forEach(f=>f.remove());
+  // Keep the screener methodology once, in Data Quality, rather than as a footer.
+  const screenNote=$L('screen-note'),quality=$L('view-quality');
+  if(screenNote&&quality&&screenNote.parentElement!==quality){screenNote.classList.remove('screener-footnote','layout-hidden');quality.append(screenNote);}
   for(const id of DROP_SECTIONS){const n=$L(id);if(n)n.classList.add('layout-hidden');}
   stage.querySelectorAll('.r24-calendar-key,.r28-gilt-advanced,.r28-more').forEach(n=>{if(!n.closest('#view-quality'))n.classList.add('layout-hidden');});
   stage.querySelectorAll('p,.note,.mini,small').forEach(n=>{

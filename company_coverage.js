@@ -22,7 +22,6 @@ function renderCompanyCoverage(c){
  box.append(el('p','mini','Latest annual period: '+info.period+' · '+info.usable+'/'+info.total+' periods with revenue, net income and operating cash flow · '+info.sources+' linked research documents'));
  if(info.latest){const a=el('a','','Results document: '+info.latest.published+' · period '+(info.latest.period||'not specified'));a.href=info.latest.url;a.target='_blank';a.rel='noopener noreferrer';box.append(a);}
  box.append(el('p','note',info.gaps.length?info.gaps.join(' · '):'No gaps found by these checks. Latest-release completeness has not been independently confirmed.'));
- box.append(el('small','mini','Source listing is not independent verification. History completeness does not establish comparability; reporting bases may differ.'));
 }
 const priorCoverageOverview=renderResearchOverview;
 renderResearchOverview=function(c){priorCoverageOverview(c);renderCompanyCoverage(c);};

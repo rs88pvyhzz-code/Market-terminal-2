@@ -78,13 +78,13 @@ renderIntelligenceNews=function(){
   host.append(a);
  }
  if(!distinct.length)host.append(el('p','note','No current verified publisher developments for these filters. The full source coverage and retrieval diagnostics are in Data Quality.'));
- const count=el('div','r29-news-footer','Showing '+Math.min(visibleNews,distinct.length)+' of '+distinct.length+' distinct current headlines');
+ const count=el('div','news-pagination','Showing '+Math.min(visibleNews,distinct.length)+' of '+distinct.length+' distinct current headlines');
  if(distinct.length>visibleNews){
   const button=el('button','btn','Show next '+Math.min(MAX_NEWS,distinct.length-visibleNews));
   button.type='button';button.onclick=()=>{visibleNews+=MAX_NEWS;renderIntelligenceNews();};count.append(button);
  }
- for(const old of host.parentElement.querySelectorAll('.r29-news-footer'))old.remove();
- host.after(count);
+ for(const old of host.parentElement.querySelectorAll('.news-pagination'))old.remove();
+ pills.append(count);
  const stamp=$id('news-stamp');if(stamp)stamp.textContent='Snapshot '+(D.generatedAt||'unavailable')+' · published date shown for each story';
  const title=$id('news')?.querySelector('h2');if(title)title.textContent='MARKET NEWS · RANKED HEADLINES';
 };
@@ -115,8 +115,6 @@ function coverage(c){
  const history=companyHistory.get(c.symbol)||[];
  const vals=[
   ['Share price',c.priceAsOf||'Unavailable'],
-  ['Financial accounts',annual[0]?.fiscalEnd||c.fiscalEnd||'Unavailable'],
-  ['Annual statements',annual.length?annual.length+' dated period'+(annual.length===1?'':'s'):'Unavailable'],
   ['Chart observations',history.length?history.length+' dated closes':'Not saved'],
   ['Fundamental source',c.fundamentalSource||'Unavailable'],
   ['Analyst coverage',c.analystConsensus?.analysts!=null?c.analystConsensus.analysts+' analysts':'Not available']
