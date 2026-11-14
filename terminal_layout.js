@@ -41,8 +41,8 @@ const TABS={
 // `source` is the tab where the subject (company, gilt, ETF, watched security) is chosen.
 const ANALYTICS=[
   {key:'markets',title:'Markets',source:null,context:null,scopes:[['scope-view-fx'],[]],
-   items:['watchlist-freshness','mt-risk-comparison','score-panel','analytics-rolling','market-valuations','compare',
-          'analytics-breadth','analytics-sectors','r23-market-conditions','r23-alerts']}
+   items:['mt-risk-comparison','score-panel','analytics-rolling','market-valuations','compare',
+          'analytics-breadth','analytics-sectors','r23-market-conditions','r23-alerts','watchlist-freshness']}
   // Bonds, ETF and watchlist analysis now stay on their own tabs, beside the instrument.
 ];
 
