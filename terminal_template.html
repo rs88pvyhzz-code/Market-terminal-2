@@ -2753,8 +2753,14 @@ function initWorkspace(){
   document.addEventListener('pointerdown',e=>{if(!e.target.closest('.global-search-wrap'))closeGlobalResults();});
   document.addEventListener('keydown',e=>{if(e.key==='/'&&!['INPUT','TEXTAREA','SELECT'].includes(document.activeElement.tagName)&&!e.metaKey&&!e.ctrlKey){e.preventDefault();input.focus();}});
   window.addEventListener('hashchange',()=>{const key=location.hash.slice(1);activateWorkspace(key,{updateHash:false,scroll:false});});
-  let toPaint;window.addEventListener('resize',()=>{clearTimeout(toPaint);toPaint=setTimeout(()=>paintWorkspace(activeWorkspace),170);});
-  const requested=location.hash.slice(1),key=requested||'overview';
+  // Mobile browser chrome changes height during scrolling; it must not rebuild ETF rows/charts.
+  let toPaint,lastPaintWidth=window.innerWidth;window.addEventListener('resize',()=>{
+    if(window.innerWidth===lastPaintWidth)return;lastPaintWidth=window.innerWidth;
+    clearTimeout(toPaint);toPaint=setTimeout(()=>paintWorkspace(activeWorkspace),170);
+  });
+  const reloaded=performance.getEntriesByType('navigation')[0]?.type==='reload';
+  if(reloaded){history.replaceState(null,'','#overview');history.scrollRestoration='manual';window.scrollTo(0,0);}
+  const requested=reloaded?'':location.hash.slice(1),key=requested||'overview';
   activateWorkspace(key,{updateHash:false,scroll:false});
   if(requested && !WORKSPACES.includes(requested) && $(requested)){requestAnimationFrame(()=>$(requested).scrollIntoView({block:'start'}));}
 }

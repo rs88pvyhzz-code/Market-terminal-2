@@ -111,6 +111,15 @@ with sync_playwright() as p:
             assert page.locator('#company-evidence-audit').count()==1
         page.locator('#company-news-panel').scroll_into_view_if_needed()
         page.screenshot(path=f'/tmp/compact-company-{width}.png')
+        # Height-only resizes (Safari chrome) and background news expiry leave ETF nodes intact.
+        page.locator('#tab-etfs').dispatch_event('click')
+        page.evaluate('window.__stableEtfRow=document.querySelector("#etf-rows tr")')
+        page.set_viewport_size({'width':width,'height':height-60})
+        page.wait_for_timeout(250)
+        assert page.evaluate('window.__stableEtfRow===document.querySelector("#etf-rows tr")')
+        page.reload(wait_until='domcontentloaded')
+        assert page.locator('#tab-overview').get_attribute('aria-selected')=='true'
+        assert page.evaluate('location.hash')=='#overview'
         assert not errors,(width,errors)
         page.close()
     browser.close()

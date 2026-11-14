@@ -42,6 +42,9 @@ with sync_playwright() as p:
     page.locator('#research-tab-3').click();page.locator('#research-business .research-notebook').evaluate('(d)=>d.open=true')
     page.get_by_label('Competitive advantages & supporting evidence',exact=True).fill('R22 retained note')
     page.reload(wait_until='domcontentloaded');page.wait_for_timeout(120)
+    assert page.locator('#view-overview').is_visible()
+    assert page.evaluate('location.hash')=='#overview'
+    page.locator('#tab-companies').dispatch_event('click')
     assert page.locator('#view-companies').is_visible()
     page.locator('#research-tab-3').click();assert page.get_by_label('Competitive advantages & supporting evidence',exact=True).input_value()=='R22 retained note'
     page.locator('#global-search').fill('Shell');page.wait_for_timeout(60);page.locator('#global-results button').filter(has_text='Company · SHEL.L').click();assert page.locator('#view-companies').is_visible()

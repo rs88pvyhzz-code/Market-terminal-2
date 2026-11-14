@@ -14,9 +14,11 @@ function newsDateControls(host){
  if(heading)heading.textContent='MORE MARKET HEADLINES · LAST 24 HOURS';
 }
 function refreshDatedNews(){
- r24Overview();renderIntelligenceNews();
- if(newsSelectedCompany)renderCompanyInsight(newsSelectedCompany);
- if(newsSelectedWatch)watchlistNews(...newsSelectedWatch);
+ // Expire the visible feed only; hidden workspaces redraw when selected.
+ if(activeWorkspace==='overview'){r24Overview();renderIntelligenceNews();}
+ if(activeWorkspace==='companies'&&newsSelectedCompany)renderCompanyInsight(newsSelectedCompany);
+ if(activeWorkspace==='watchlist'&&newsSelectedWatch)watchlistNews(...newsSelectedWatch);
+ if(['overview','companies','watchlist'].includes(activeWorkspace)&&window.terminalLayout)window.terminalLayout.apply();
 }
 const datedOverview=r24Overview;
 r24Overview=function(){datedOverview();newsDateControls(document.querySelector('#r24-developments .r24-content'));};
