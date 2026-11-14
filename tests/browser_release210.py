@@ -57,8 +57,10 @@ with sync_playwright() as p:
  for selector in ['#ust-securities-scroll','#gilts .gilt-table-scroll']:
   assert page.locator(selector).evaluate("(e)=>getComputedStyle(e).maxHeight==='none'&&e.scrollHeight<=e.clientHeight+2")
   assert page.locator(selector+' thead th').first.evaluate('(e)=>getComputedStyle(e).position')=='sticky'
- # The ladder builder is a calculator, so it lives in Analytics (terminal_layout.js).
- assert page.locator('#gilts #gilt-chart').count()==1 and page.locator('#view-analytics #gilt-ladder').count()==1
+ # The gilt calculator stays on Bonds, below the list and outside the quote panel.
+ assert page.locator('#gilts #gilt-chart').count()==1 and page.locator('#view-bonds #gilt-ladder').count()==1
+ assert page.locator('#gilt-ladder').count()==1
+ assert page.locator('#gilts #gilt-ladder').count()==0
  # Quote-specific gilt valuation cards appear after a valid security is selected.
  candidates=page.locator('#gilt-rows tr[data-isin]')
  if candidates.count():

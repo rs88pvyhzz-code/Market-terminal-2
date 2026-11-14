@@ -39,7 +39,12 @@ with sync_playwright() as p:
     assert page.locator("#view-quality #r29-coverage").count()==1  # source coverage lives in Data Quality
     assert page.locator("#research-overview .r29-market-cap").count()==1
     assert "MARKET CAPITALISATION" in page.locator("#research-overview .r29-market-cap").inner_text()
-    assert page.locator("#r29-coverage .r29-coverage-cell").count()==6
+    assert page.locator('#r29-coverage .r29-coverage-cell > .mini').all_text_contents()==[
+        'Share price','Chart observations','Fundamental source','Analyst coverage']
+    assert page.locator('#research-overview #company-coverage-gaps').count()==1
+    assert 'Latest annual period:' in page.locator('#company-coverage-gaps').text_content()
+    assert 'periods with revenue, net income and operating cash flow' in page.locator('#company-coverage-gaps').text_content()
+    assert page.locator('footer,[role=contentinfo]').count()==0
     assert page.locator("#company-news-list article").count()<=3
     assert page.locator("#company-chart").is_visible()
     if not data.get("demo"):page.screenshot(path="/tmp/release29-company-ipad.png",full_page=True)
