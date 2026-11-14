@@ -251,8 +251,7 @@ function r28GiltPairs(host,statRows,b,v,clean,manual){
   'Gross cash figures are undiscounted and include redemption plus scheduled coupons, less initial dirty cost. Annualised YTM is the cash-flow internal rate of return. Tax, broker fees and reinvestment of coupons are excluded. DMO reference quotes are not executable broker prices.';
  group.append(el('p','note',text));
  host.append(group);
- const taxBox=$('mt-gilt-tax-panel');
- if(taxBox)taxBox.hidden=true;
+ mtRenderGiltTax(b,clean,manual);
 }
 mtRenderGiltSummary=r28GiltPairs;
 function r28AnalystPanel(c){

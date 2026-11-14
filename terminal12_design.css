@@ -76,11 +76,10 @@
  .terminal1-design.release212 #view-fx #monitor .scroll table th,
  .terminal1-design.release212 #view-fx #monitor .scroll table td{padding:9px 6px!important;font-size:12px!important}
  .terminal1-design.release212 #view-fx #monitor .scroll table :is(th,td):nth-child(2),
- .terminal1-design.release212 #view-fx #monitor .scroll table :is(th,td):nth-child(3),
- .terminal1-design.release212 #view-fx #monitor .scroll table :is(th,td):nth-child(n+6){display:none}
+ .terminal1-design.release212 #view-fx #monitor .scroll table :is(th,td):nth-child(n+5){display:none}
  .terminal1-design.release212 #view-fx #monitor .scroll table :is(th,td):nth-child(1){width:53%;white-space:normal!important}
- .terminal1-design.release212 #view-fx #monitor .scroll table :is(th,td):nth-child(4){width:26%;text-align:right}
- .terminal1-design.release212 #view-fx #monitor .scroll table :is(th,td):nth-child(5){width:21%;text-align:right}
+ .terminal1-design.release212 #view-fx #monitor .scroll table :is(th,td):nth-child(3){width:26%;text-align:right}
+ .terminal1-design.release212 #view-fx #monitor .scroll table :is(th,td):nth-child(4){width:21%;text-align:right}
  .terminal1-design.release212 #view-equities #equity-screener .screener-scroll table{width:100%!important;min-width:0!important;table-layout:fixed}
  .terminal1-design.release212 #view-equities #equity-screener .screener-scroll table :is(th,td){padding:8px 5px!important;font-size:11px!important;min-width:0;white-space:normal;overflow-wrap:anywhere}
  .terminal1-design.release212 #view-equities #equity-screener .screener-scroll table :is(th,td):not(:nth-child(1)):not(:nth-child(4)):not(:nth-child(5)):not(:nth-child(10)){display:none}

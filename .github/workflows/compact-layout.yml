@@ -30,6 +30,7 @@ jobs:
       - name: Compact presentation and retained layout checks
         run: |
           python tests/browser_compact.py /tmp/compact-demo.html
+          python tests/browser_market_tables.py /tmp/compact-demo.html
           python tests/browser_layout.py /tmp/compact-demo.html
           python tests/browser_release212.py /tmp/compact-demo.html
           python tests/browser_release22.py /tmp/compact-demo.html
@@ -44,6 +45,7 @@ jobs:
         run: |
           python tests/rebuild_snapshot.py /tmp/archived-production /tmp/compact-production.html
           python tests/browser_compact.py /tmp/compact-production.html
+          python tests/browser_market_tables.py /tmp/compact-production.html
           python tests/browser_layout.py /tmp/compact-production.html
           python tests/browser_treasury_scroll.py /tmp/compact-production.html
       - name: Review screenshots

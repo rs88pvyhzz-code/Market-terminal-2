@@ -110,3 +110,12 @@ details.period-dates .time-box{margin-top:7px}
 /* 13. Gilt, ETF and watchlist analysis now sit on their own tabs: give them panel framing. */
 #view-bonds #gilt-ladder,#view-bonds #mt-gilt-tax{background:var(--t-panel,#121215);border:1px solid var(--t-line,#2a2a30);border-radius:10px;padding:13px;margin-top:14px}
 #view-etfs .layout-subpanel{margin-top:14px}
+
+/* Signed returns retain their meaning through presentation overrides. */
+#workspace-stage #analytics-sectors td.up,#workspace-stage #monitor td.up{color:#55cf91!important}
+#workspace-stage #analytics-sectors td.down,#workspace-stage #monitor td.down{color:#ff7272!important}
+.table-reading-head{position:fixed;z-index:70;overflow:hidden;background:#16161a;box-shadow:0 2px 3px #0006;pointer-events:auto}
+.table-reading-head table{border-collapse:collapse;table-layout:fixed;margin:0}
+.table-reading-head th{position:static!important;box-sizing:border-box;background:#16161a!important}
+
+.market-comparison-legend{display:flex;gap:20px;flex-wrap:wrap;font-size:12px;margin-top:4px}
