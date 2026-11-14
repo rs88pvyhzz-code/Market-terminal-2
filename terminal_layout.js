@@ -24,7 +24,7 @@ const $L=id=>document.getElementById(id);
 // Tab membership for everything except Analytics and Data Quality, in display order.
 const TABS={
   // Key market news is the top-ranked stories; 'news' lists the rest without repeating them.
-  overview:['overview-board','r24-conditions','r24-developments','news','r24-upcoming'],
+  overview:['news-visit-controls','overview-board','r24-conditions','r24-developments','news','r24-upcoming'],
   fx:['monitor'],
   equities:['equity-screener','constituents','movers'],
   companies:['companies'],
@@ -41,7 +41,7 @@ const TABS={
 // `source` is the tab where the subject (company, gilt, ETF, watched security) is chosen.
 const ANALYTICS=[
   {key:'markets',title:'Markets',source:null,context:null,scopes:[['scope-view-fx'],[]],
-   items:['score-panel','mt-risk-comparison','analytics-rolling','market-valuations','compare',
+   items:['mt-risk-comparison','score-panel','analytics-rolling','market-valuations','compare',
           'analytics-breadth','analytics-sectors','r23-market-conditions','r23-alerts']}
   // Bonds, ETF and watchlist analysis now stay on their own tabs, beside the instrument.
 ];
@@ -50,8 +50,8 @@ const ANALYTICS=[
 // in the research view where it is read. Listed panels are placed first, in order;
 // anything else in the view (e.g. the full metrics grid) follows them.
 const RESEARCH={
-  'research-view-0':['research-overview','company-news-panel','company-advanced','company-price-block',
-                     'company-benchmark-block','company-risk-panel','research-executive'],
+  'research-view-0':['research-overview','company-news-panel','research-executive','company-price-block',
+                     'company-benchmark-block','company-risk-panel','company-advanced'],
   'research-view-3':['peer-panel'],
   'research-view-5':['research-warning-priority','forensic-panel']
 };
@@ -279,6 +279,7 @@ function stripCaveats(root){
   const scope=root||$L('workspace-stage');if(!scope)return;
   scope.querySelectorAll('.note,.mini,p,.r23-observation>div,.watchlist-kpis>*>:nth-child(3)').forEach(n=>{
     if(n.dataset.caveatChecked===n.textContent)return;
+    if(n.closest('#company-coverage-gaps,.research-warning,.mt-inline-notice'))return;
     if(n.children.length===0){
       let t=n.textContent;const orig=t;
       for(const re of CAVEAT_SENTENCES)t=t.replace(re,'');
@@ -466,7 +467,7 @@ function cleanReading(){
   stage.querySelectorAll('.r24-calendar-key,.r28-gilt-advanced,.r28-more').forEach(n=>{if(!n.closest('#view-quality'))n.classList.add('layout-hidden');});
   stage.querySelectorAll('p,.note,.mini,small').forEach(n=>{
     if(n.dataset.cleanChecked===n.textContent)return;n.dataset.cleanChecked=n.textContent;
-    if(n.closest('#view-quality,table,label,button,select,summary,h1,h2,h3,h4,.news-item,.r24-item,.r23-observation,.layout-group-head,#layout-bond-tabs,.mt-reading-note,.r213-company-evidence,.company-story,.research-warning,.mt-inline-notice'))return;
+    if(n.closest('#company-coverage-gaps,#news-visit-controls,#view-quality,table,label,button,select,summary,h1,h2,h3,h4,.news-item,.r24-item,.r23-observation,.layout-group-head,#layout-bond-tabs,.mt-reading-note,.r213-company-evidence,.company-story,.research-warning,.mt-inline-notice'))return;
     const text=n.textContent.trim();if(!text)return;
     // Research write-ups (outlook, statements, issuer evidence) are content: there only
     // purely explanatory lines (no figure or date) are removed.

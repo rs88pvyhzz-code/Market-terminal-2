@@ -32,6 +32,8 @@ with sync_playwright() as p:
         page.route('http://localhost:8765/**',lambda r:r.fulfill(body=html,content_type='text/html'))
         page.goto('http://localhost:8765/',wait_until='domcontentloaded',timeout=120000)
         page.wait_for_timeout(200)
+        assert page.locator('#news-visit-controls').count()==1
+        assert page.locator('#news-visit-controls a').inner_text()=='Data diagnostics'
         assert page.locator('#workspace-tabs [role=tab]').evaluate_all('(xs)=>xs.map(x=>x.dataset.workspace)')==keys
         page.locator('#tab-overview').focus();page.keyboard.press('ArrowRight')
         assert page.locator('#tab-watchlist').get_attribute('aria-selected')=='true'
@@ -49,7 +51,7 @@ with sync_playwright() as p:
         assert page.locator('#view-overview > section').evaluate_all('(xs)=>xs.map(x=>x.id)')[:3]==['overview-board','r24-conditions','r24-developments']
         page.screenshot(path=f'/tmp/compact-overview-{width}.png')
         page.locator('#tab-analytics').dispatch_event('click')
-        assert page.locator('#layout-body-markets > *').first.get_attribute('id')=='score-panel'
+        assert page.locator('#layout-body-markets > *').evaluate_all('(xs)=>xs.slice(0,2).map(x=>x.id)')==['mt-risk-comparison','score-panel']
         assert page.locator('#mt-movers-table').count()==1
         assert page.locator('#mt-movers-table th button').count()==7
         assert page.locator('#score .mt-mover-row').count()==0
@@ -81,6 +83,22 @@ with sync_playwright() as p:
         page.screenshot(path=f'/tmp/compact-performance-{width}.png')
         page.locator('#tab-companies').dispatch_event('click');page.locator('#company-pick').select_option('SHEL.L');page.locator('#research-tab-0').click()
         ids=page.locator('#research-view-0 > [id]').evaluate_all('(xs)=>xs.map(x=>x.id)')
+        assert page.locator('#company-coverage-gaps').is_visible()
+        assert page.locator('#company-coverage-gaps p').first.is_visible()
+        assert ids.index('research-executive')<ids.index('company-advanced')
+        if data.get('demo'):
+            page.evaluate("localStorage.setItem('terminal-news-last-visit-v1',String(Date.now()-12*3600000))")
+            page.reload(wait_until='domcontentloaded')
+            page.locator('#tab-companies').dispatch_event('click');page.locator('#company-pick').select_option('SHEL.L');page.locator('#research-tab-0').click()
+            page.wait_for_timeout(200)
+            assert page.locator('#company-news-list .news-new').count()>0
+            page.locator('#tab-overview').dispatch_event('click')
+            page.locator('#news-visit-controls button').click()
+            assert page.locator('.news-new').count()==0
+            page.locator('#news-visit-controls a').click()
+            assert page.locator('#view-quality').is_visible()
+            page.locator('#tab-companies').dispatch_event('click');page.locator('#research-tab-0').click()
+
         assert ids.index('company-news-panel')<ids.index('company-price-block')<ids.index('company-risk-panel')
         if data.get('demo'):
             assert 'Quarterly results' in page.locator('#company-news-list article').first.inner_text()
