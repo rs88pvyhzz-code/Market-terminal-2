@@ -1,21 +1,17 @@
-/* Publisher-date filters use the viewer's current UK calendar day, not build time. */
-const newsDateFormat=new Intl.DateTimeFormat('en-CA',{timeZone:'Europe/London',year:'numeric',month:'2-digit',day:'2-digit'});
-let newsDateRange='today';
-function newsDay(value){return newsDateFormat.format(new Date(value));}
-function newsDateMatches(item,now=Date.now(),range=newsDateRange){
- const raw=String(item?.published||'');
+/* Rolling publisher-time window, independent of midnight and daylight saving. */
+function newsDateMatches(item,now=Date.now()){
+ const raw=String(item?.published||'').trim();
+ // Date-only records cannot establish publication within a 24-hour window.
+ if(!/\d{2}:\d{2}/.test(raw))return false;
  const date=Date.parse(raw.replace(' UTC','Z').replace(/^(\d{4}-\d\d-\d\d) /,'$1T'));
- if(!Number.isFinite(date)||date>now)return false;
- const day= newsDay(date),today=newsDay(now);
- const dayNumber=s=>Date.parse(s+'T12:00:00Z')/86400000;
- const age=dayNumber(today)-dayNumber(day);
- return range==='today'?age===0:range==='yesterday'?age===1:age>=0&&age<7;
+ return Number.isFinite(date)&&date<=now&&now-date<=86400000;
 }
-function newsEmptyText(){return newsDateRange==='today'?'No news today in the available feeds.':newsDateRange==='yesterday'?'No news yesterday in the available feeds.':'No news in the last 7 days in the available feeds.';}
+function newsEmptyText(){return 'No news in the last 24 hours in the available feeds.';}
 let newsSelectedCompany=null,newsSelectedWatch=null;
 function newsDateControls(host){
- // Today only: the Yesterday / 7 days switch is retired.
- newsDateRange='today';
+ if(host)host.setAttribute('aria-label','News from the last 24 hours');
+ const heading=document.querySelector('#news h2');
+ if(heading)heading.textContent='MORE MARKET HEADLINES · LAST 24 HOURS';
 }
 function refreshDatedNews(){
  r24Overview();renderIntelligenceNews();
@@ -30,8 +26,6 @@ const datedCompany=renderCompanyInsight;
 renderCompanyInsight=function(c){newsSelectedCompany=c;datedCompany(c);newsDateControls(document.getElementById('company-news-list'));};
 const datedWatch=watchlistNews;
 watchlistNews=function(w,q){newsSelectedWatch=[w,q];datedWatch(w,q);newsDateControls(document.getElementById('watchlist-news-stories'));};
-// Re-evaluate on returning to the page and across UK midnight without changing data.
-let newsLastDay=newsDay(Date.now());
-function checkNewsDay(){const day=newsDay(Date.now());if(day!==newsLastDay){newsLastDay=day;refreshDatedNews();}}
-document.addEventListener('visibilitychange',()=>{if(!document.hidden)checkNewsDay();});
-setInterval(checkNewsDay,60000);
+// Expire stories while the page remains open, and when returning to the tab.
+document.addEventListener('visibilitychange',()=>{if(!document.hidden)refreshDatedNews();});
+setInterval(()=>{if(!document.hidden)refreshDatedNews();},60000);

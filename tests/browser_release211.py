@@ -37,7 +37,12 @@ with sync_playwright() as p:
         symbol=page.locator('#company-pick option').nth(1).get_attribute('value')
         page.locator('#company-pick').select_option(symbol)
     page.locator('#research-tab-0').click()
-    assert page.locator('#r29-coverage .r29-coverage-cell').count()==6
+    assert page.locator('#r29-coverage .r29-coverage-cell > .mini').all_text_contents()==[
+        'Share price','Chart observations','Fundamental source','Analyst coverage']
+    assert page.locator('#research-overview #company-coverage-gaps').count()==1
+    assert 'Latest annual period:' in page.locator('#company-coverage-gaps').text_content()
+    assert 'periods with revenue, net income and operating cash flow' in page.locator('#company-coverage-gaps').text_content()
+    assert page.locator('footer,[role=contentinfo]').count()==0
     assert page.locator('#company-chart').is_visible()
     page.locator('#research-tab-2').click()
     assert page.locator('#research-valuation .t11-metric').count()==6

@@ -136,12 +136,12 @@ renderIntelligenceNews=function(){
   host.append(article);
  }
  if(!distinct.length)host.append(el('p','note',newsEmptyText()+' Leading stories may be shown under Key market news.'));
- for(const old of host.parentElement.querySelectorAll('.r29-news-footer'))old.remove();
- const foot=el('div','r29-news-footer','Showing '+Math.min(newsLimit,distinct.length)+' of '+distinct.length+' further headlines');
+ for(const old of host.parentElement.querySelectorAll('.news-pagination'))old.remove();
+ const foot=el('div','news-pagination','Showing '+Math.min(newsLimit,distinct.length)+' of '+distinct.length+' further headlines');
  if(distinct.length>newsLimit){
   const more=el('button','btn','Show 10 more');more.type='button';more.onclick=()=>{newsLimit+=10;renderIntelligenceNews();};foot.append(more);
  }
- host.after(foot);
+ pills.append(foot);
  const stamp=$r('news-stamp');if(stamp)stamp.textContent='Publisher dates retained';
  const heading=$r('news')?.querySelector('h2');if(heading)heading.textContent='MORE MARKET HEADLINES';
 };

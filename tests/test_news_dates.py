@@ -1,21 +1,21 @@
-"""UK calendar boundaries, DST, missing/future dates and seven-day inclusion."""
+"""Rolling news window: exact cutoff, midnight, DST, future and missing times."""
 import subprocess
 from pathlib import Path
 import unittest
 class NewsDates(unittest.TestCase):
- def test_calendar_boundaries(self):
+ def test_rolling_window(self):
   source=(Path(__file__).resolve().parents[1]/'news_dates.js').read_text().split('let newsSelectedCompany')[0]
   checks="""
 const assert=require('node:assert/strict');
-function check(published,now,range,want){assert.equal(newsDateMatches({published},Date.parse(now),range),want,JSON.stringify({published,now,range}));}
-check('2026-07-01 23:30 UTC','2026-07-02T00:00:00Z','today',true);
-check('2026-07-01 22:30 UTC','2026-07-02T00:00:00Z','today',false);
-check('2026-07-01 22:30 UTC','2026-07-02T00:00:00Z','yesterday',true);
-check('2026-10-25 00:30 UTC','2026-10-25T02:30:00Z','today',true);
-check('2026-11-07 12:00 UTC','2026-11-13T14:00:00Z','week',true);
-check('2026-11-06 12:00 UTC','2026-11-13T14:00:00Z','week',false);
-check('2026-11-13 15:00 UTC','2026-11-13T14:00:00Z','today',false);
-check('','2026-11-13T14:00:00Z','today',false);
+const now=Date.parse('2026-11-14T00:30:00Z');
+for(const [published,want] of [
+ ['2026-11-13 23:30 UTC',true],['2026-11-13 00:30 UTC',true],
+ ['2026-11-13T00:29:59Z',false],['2026-11-14T00:30:01Z',false],
+ ['',false],['bad date',false],['2026-11-14',false]])
+ assert.equal(newsDateMatches({published},now),want,published);
+assert.equal(newsDateMatches({published:'2026-10-24T02:00:00+01:00'},Date.parse('2026-10-25T01:00:00Z')),true);
+assert.equal(newsDateMatches({published:'2026-10-24T01:59:59+01:00'},Date.parse('2026-10-25T01:00:00Z')),false);
+assert.match(newsEmptyText(),/last 24 hours/);
 """
   subprocess.run(['node','-e',source+checks],check=True)
 if __name__=='__main__':unittest.main()
