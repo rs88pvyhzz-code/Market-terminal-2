@@ -1208,7 +1208,13 @@ const WATCH_MAJOR=['^GSPC','^IXIC','^DJI','^RUT','^GSPTSE','^BVSP','^MXX','^FTSE
 function watchMajorRank(q){const i=WATCH_MAJOR.indexOf(q.symbol);return i<0?999:i;}
 function watchSection(q){return WATCH_SECTIONS.find(([,test])=>test(q))[0];}
 function watchLongReturn(q,key){return q.kind==='yield'||q.kind==='volatility'?null:mtMoveReturn(q,key==='three'?'3Y':'5Y');}
-function renderWatch(){const body=$('watch-rows');body.replaceChildren();let rows=filtered();$('count').textContent=rows.length+' / '+D.quotes.length+' instruments';
+// Suppress broad ETF proxies only when a corresponding market index is present.
+// Keep their data for analytics, and retain distinct sector/global exposures.
+function marketEtfDuplicate(q){
+ const equivalents={SPY:['^GSPC'],QQQ:['^IXIC','^NDX'],VGK:['^STOXX','^STOXX50E'],EWJ:['^N225','^TOPX'],EWU:['^FTSE'],INDA:['^NSEI','^BSESN'],EWZ:['^BVSP'],EWT:['^TWII']};
+ return (equivalents[q.symbol]||[]).some(symbol=>D.quotes.some(x=>x.symbol===symbol));
+}
+function renderWatch(){const body=$('watch-rows');body.replaceChildren();let rows=filtered().filter(q=>!marketEtfDuplicate(q));$('count').textContent=rows.length+' instruments shown';
   const sectioned=state.sort==='default';
   if(sectioned){const order=new Map(WATCH_SECTIONS.map(([n],i)=>[n,i]));rows=rows.map((q,i)=>[q,i]).sort((a,b)=>order.get(watchSection(a[0]))-order.get(watchSection(b[0]))||watchMajorRank(a[0])-watchMajorRank(b[0])||a[1]-b[1]).map(x=>x[0]);}
   let current=null;
