@@ -63,13 +63,15 @@ with sync_playwright() as p:
         row.click();assert page.locator('#gilt-yield-review').text_content().startswith('DERIVED YIELDS REQUIRE REVIEW')  # computed; hidden in clean reading (Release 3.4)
         assert 'DERIVED YIELDS REQUIRE REVIEW' in page.locator('#gilt-yield-review').inner_text()
         assert 'Review required' in page.locator('#gilt-stats').inner_text()
-        # Release 2.8: one selected-gilt summary, no duplicate row in alternatives.
+        # Restored comparison includes the selected bond, but review yields stay withheld.
         peer=page.locator('#mt-gilt-tax-rows tr[data-isin="'+isin+'"]')
-        assert peer.count()==0
+        assert peer.count()==1
+        assert peer.locator('td').all_text_contents()[3:6]==['Review','Review','Review']
         assert page.locator('#gilt-stats .r28-gilt-single').count()==1
         assert page.locator('#gilt-stats .r28-gilt-yield').count()==3
         page.locator('#gilt-clean-input').fill('99');assert page.locator('#gilt-yield-review').text_content().startswith('DERIVED YIELDS REQUIRE REVIEW')
-        assert peer.count()==0
+        assert peer.count()==1
+        assert peer.locator('td').all_text_contents()[3:6]==['Review','Review','Review']
         assert 'Unavailable' in page.locator('#gilt-stats .r28-gilt-yield').all_text_contents()[0] or page.locator('#gilt-stats .r28-gilt-yield').count()==3
     assert page.locator('#gilt-ladder').evaluate('(e)=>!e.closest("#gilts")'),'Ladder must not interrupt gross return summary'
     assert page.locator('#gilt-rows tr').first.locator('td').count()==6

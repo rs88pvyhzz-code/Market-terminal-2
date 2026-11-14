@@ -42,6 +42,7 @@ function mtRenderGiltTax(selected,selectedPrice,manual){
  const select=document.getElementById('mt-gilt-tax-rate');if(!panel||!body||!select)return;
  if(!select.dataset.wired){select.dataset.wired='1';select.onchange=()=>renderGilts();}
  const rate=Number(select.value);body.replaceChildren();
+ if(!selected){panel.hidden=false;const row=document.createElement('tr'),cell=document.createElement('td');cell.colSpan=7;cell.textContent='No conventional gilt quotation is available in this snapshot.';row.append(cell);body.append(row);return;}
  if(selected.indexLinked){panel.hidden=true;return;}panel.hidden=false;
  const sourceDate=selected.asOf||(D.generatedAt||'').slice(0,10);
  const selectedMaturity=Date.parse(selected.maturity+'T12:00:00Z');

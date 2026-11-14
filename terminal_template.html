@@ -4043,7 +4043,7 @@ function renderGilts(){
     tr.onclick=()=>{giltState.symbol=g.ticker;renderGilts();};table.append(tr);
   }
   const b=giltList.find(g=>g.ticker===giltState.symbol);
-  if(!b){$('gilt-selected').textContent='NO GILT DATA AVAILABLE';$('gilt-stats').replaceChildren();empty('gilt-chart','No bonds returned.');return;}
+  if(!b){mtRenderGiltTax(null,null,false);$('gilt-selected').textContent='NO GILT DATA AVAILABLE';$('gilt-stats').replaceChildren();empty('gilt-chart','No bonds returned.');return;}
   const review=giltYieldReviewReason(b),reviewHost=$('gilt-yield-review');reviewHost.hidden=!review;reviewHost.textContent=review?'DERIVED YIELDS REQUIRE REVIEW · '+review+' Excluded from automatic yield ranking and gilt-ladder optimisation. Official DMO prices and security data are retained.':'';
   $('gilt-selected').textContent=b.name+'  ·  '+(b.shortTicker||b.isin);
   $('gilt-selected-source').textContent=b.asOf?'DMO source date: '+b.asOf:'No verified DMO quotation';
