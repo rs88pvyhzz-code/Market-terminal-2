@@ -155,6 +155,10 @@ function orderDetailContent(){
   const prices=document.createElement('section');prices.id='layout-market-prices';
   if(head&&group){prices.append(head,group,table);monitor.prepend(prices);}
  }
+ const risk=$L('watchlist-risk')||document.querySelector('#personal-watchlist-panel .watchlist-risk');
+ const history=$L('watchlist-history-meta')?.closest('.row');
+ if(risk&&history&&history.previousElementSibling!==risk)history.before(risk);
+ for(const node of [$L('watchlist-relative-meta')?.closest('.row'),$L('watchlist-relative-chart'),document.querySelector('.watchlist-relative-legend')])if(node)node.hidden=true;
  const watch=$L('personal-watchlist-panel'),news=watch?.querySelector('.watchlist-bottom'),selected=watch?.querySelector('.watchlist-selected-header');
  if(news&&selected&&selected.nextElementSibling!==news)selected.after(news);
  // Selected bond cash returns precede the history chart, retaining all controls.
