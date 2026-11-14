@@ -14,7 +14,10 @@ with sync_playwright() as p:
     assert page.locator('#news-pills > button').count()==7
     assert page.locator('.r23-regions button').count()==5
     ids=page.locator('#r23-alerts [data-alert-id]').evaluate_all('(els)=>els.map(e=>e.dataset.alertId)');assert len(ids)==len(set(ids))
-    assert page.locator('#r23-alerts [data-briefing-id]').count()<=5
+    briefing_ids=page.locator('#r23-alerts [data-briefing-id]').evaluate_all('(els)=>els.map(e=>e.dataset.briefingId)')
+    assert len(briefing_ids)<=7 and len(briefing_ids)==len(set(briefing_ids))
+    source_ids={x.get('id') for x in data.get('marketBriefing',{}).get('leadingItems',[])+data.get('marketBriefing',{}).get('alerts',[])}
+    assert set(briefing_ids)<=source_ids
     expected=['overview-board','r24-conditions','r24-developments','news','r24-upcoming']
     order=page.locator('#view-overview > [id]').evaluate_all('(els)=>els.map(e=>e.id)')
     assert [order.index(x) for x in expected]==sorted(order.index(x) for x in expected)
