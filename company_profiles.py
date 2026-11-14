@@ -62,6 +62,21 @@ def universe(movers, fundamentals, top_us=US_TOP_N):
     return [(s, names.get(s, s)) for s in out]
 
 
+def history_needs_refresh(record, now):
+    """Flag short/incomplete or old accounts; zero is a valid reported number."""
+    rows = record.get('annual') or []
+    usable = {r.get('fiscalEnd') for r in rows
+              if r.get('fiscalEnd') and all(isinstance(r.get(k), (int, float))
+              for k in ('revenue', 'netProfit', 'operatingCashFlow'))}
+    if len(usable) < 3:
+        return True
+    try:
+        latest = max(dt.date.fromisoformat(d) for d in usable)
+        return (now.date() - latest).days > 550
+    except (TypeError, ValueError):
+        return True
+
+
 def _profile(symbol, name, info, annual, status, events, stamp):
     num = company_data._num
     text = company_data._text
@@ -123,16 +138,19 @@ def collect(movers, fundamentals, detailed, directory, batch=35, offline=False, 
     records = {k: v for k, v in records.items() if k in wanted_syms}
 
     def stale(sym):
-        # Schema 5 adds sourced acquisition cash-flow lines for capital allocation;
-        # older cached profiles are refreshed in rotation without waiting a week.
-        if sym in records and records[sym].get('schema') != 5:
+        if age(attempts.get(sym)) < RETRY_DAYS:
+            return False
+        if sym not in records:
             return True
-        if sym in records:
-            return age(records[sym].get('asOf')) >= REFRESH_DAYS and age(attempts.get(sym)) >= RETRY_DAYS
-        return age(attempts.get(sym)) >= RETRY_DAYS
-    # Never-fetched first, then oldest.
+        return (records[sym].get('schema') != 5 or
+                history_needs_refresh(records[sym], now) or
+                age(records[sym].get('asOf')) >= REFRESH_DAYS)
+    # Repair existing coverage before adding profiles; oldest attempt breaks ties
+    # so repeatedly incomplete sources cannot monopolise the bounded batch.
     pending = sorted((x for x in wanted if stale(x[0])),
-                     key=lambda x: (x[0] in records, records.get(x[0], {}).get('asOf', '')))[:max(0, batch)]
+                     key=lambda x: (x[0] not in records,
+                                    attempts.get(x[0], ''),
+                                    records.get(x[0], {}).get('asOf', '')))[:max(0, batch)]
     warnings, fetched = [], 0
     if pending and not offline:
         fetch = fetch or (lambda s: company_data.financials_for(s, False))

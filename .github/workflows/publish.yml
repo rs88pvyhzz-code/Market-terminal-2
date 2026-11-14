@@ -6,6 +6,8 @@ on:
     branches: [main]
   schedule:
     - cron: '17,47 7-21 * * 1-5'
+    # Weekend news remains current; reuse the verified publishing pipeline.
+    - cron: '17 7-21 * * 0,6'
 
 permissions:
   contents: read
