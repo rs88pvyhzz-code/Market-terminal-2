@@ -41,7 +41,7 @@ const TABS={
 // `source` is the tab where the subject (company, gilt, ETF, watched security) is chosen.
 const ANALYTICS=[
   {key:'markets',title:'Markets',source:null,context:null,scopes:[['scope-view-fx'],[]],
-   items:['mt-risk-comparison','score-panel','analytics-rolling','market-valuations','compare',
+   items:['watchlist-freshness','mt-risk-comparison','score-panel','analytics-rolling','market-valuations','compare',
           'analytics-breadth','analytics-sectors','r23-market-conditions','r23-alerts']}
   // Bonds, ETF and watchlist analysis now stay on their own tabs, beside the instrument.
 ];
@@ -50,8 +50,8 @@ const ANALYTICS=[
 // in the research view where it is read. Listed panels are placed first, in order;
 // anything else in the view (e.g. the full metrics grid) follows them.
 const RESEARCH={
-  'research-view-0':['research-overview','company-news-panel','research-executive','company-price-block',
-                     'company-benchmark-block','company-risk-panel','company-advanced'],
+  'research-view-0':['research-overview','company-news-panel','company-price-block',
+                     'company-benchmark-block','company-risk-panel','company-advanced','research-executive'],
   'research-view-3':['peer-panel'],
   'research-view-5':['research-warning-priority','forensic-panel']
 };
@@ -138,6 +138,15 @@ function renderYieldSnapshot(){
  table.append(body);host.append(table);
 }
 
+function renderWatchFreshness(){
+ let host=$L('watchlist-freshness');if(!host){host=document.createElement('section');host.id='watchlist-freshness';host.className='panel';$L('view-analytics')?.append(host);}
+ const expected=watchExpectedDate(),stale=watchlistRecords.map(w=>({w,q:watchQuoteMap.get(w.symbol)})).filter(({q})=>!q?.asOf||q.asOf.slice(0,10)<expected);
+ const signature=expected+'|'+stale.map(({w,q})=>w.symbol+':'+q?.asOf).join('|');if(host.dataset.signature===signature)return;host.dataset.signature=signature;
+ host.replaceChildren(el('h2','','WATCHLIST QUOTE FRESHNESS'));
+ host.append(el('p','note','Expected weekday close: '+expected+'. Weekends excluded; exchange holidays may also explain older quotes.'));
+ if(!stale.length)host.append(el('p','','All watchlist quotes meet the weekday freshness check.'));
+ for(const {w,q} of stale)host.append(el('p','',w.name+' · '+(q?.asOf?.slice(0,10)||'No dated quote')));
+}
 function orderDetailContent(){
  // The price table answers the first Markets question; history follows selection.
  const monitor=$L('monitor'),table=$L('watch-rows')?.closest('.scroll');
@@ -347,15 +356,15 @@ function renderEtfAlternatives(){
   const fund=ETF_BY_SYMBOL.get(etfState.selected);if(!fund)return;
   let box=$L('layout-etf-alternatives');
   if(!box){box=document.createElement('section');box.id='layout-etf-alternatives';box.className='layout-subpanel';}
-  if(box.dataset.fund===fund.symbol&&box.isConnected)return;
-  box.dataset.fund=fund.symbol;box.replaceChildren();
+  if(box.dataset.fund===fund.symbol+'|'+[...etfState.compared].join(',')&&box.isConnected)return;
+  box.dataset.fund=fund.symbol+'|'+[...etfState.compared].join(',');box.replaceChildren();
   const h=document.createElement('h3');h.textContent='ALTERNATIVES — '+String(fund.market||'').toUpperCase();box.append(h);
   const alts=etfAlternatives(fund);
   if(!alts.length){const p=document.createElement('p');p.className='note';p.textContent='No other catalogued fund tracks this market.';box.append(p);}
   else{
     const wrap=document.createElement('div');wrap.className='mt-table-scroll';
     const t=document.createElement('table');t.className='watch layout-alt-table';
-    t.innerHTML='<thead><tr><th>Fund / ticker</th><th>Index</th><th>TER</th><th>Fund size</th><th>1Y</th><th>3Y</th><th>5Y</th><th>Replication</th><th>Income</th></tr></thead>';
+    t.innerHTML='<thead><tr><th>Fund / ticker</th><th>Index</th><th>TER</th><th>Fund size</th><th>1Y</th><th>3Y</th><th>5Y</th><th>Replication</th><th>Income</th><th>Chart</th></tr></thead>';
     const tb=document.createElement('tbody');
     for(const f of [fund,...alts]){
       const tr=document.createElement('tr');if(f===fund)tr.className='selected';
@@ -365,6 +374,7 @@ function renderEtfAlternatives(){
       b.textContent=f.name+' · '+f.symbol;b.disabled=f===fund;b.onclick=()=>{etfState.selected=f.symbol;try{renderEtfTracker();}catch(e){}renderEtfAlternatives();};
       name.append(b);tr.append(name);
       cells.slice(1).forEach((c,i)=>{const td=document.createElement('td');td.textContent=c;if(i>=3&&i<=5&&/^[+-]/.test(c))td.className=c.startsWith('-')?'down':'up';tr.append(td);});
+      const choice=document.createElement('td');if(f!==fund){const check=document.createElement('input');check.type='checkbox';check.checked=etfState.compared.has(f.symbol);check.setAttribute('aria-label','Compare '+f.name);check.onchange=()=>etfV5ChangeCompare(f.symbol,check.checked);choice.append(check);}else choice.textContent='Selected';tr.append(choice);
       tb.append(tr);
     }
     t.append(tb);wrap.append(t);box.append(wrap);
@@ -525,8 +535,9 @@ function applyLayout(){
     for(const id of ['gilt-ladder','mt-gilt-tax']){const n=$L(id),g=$L('gilts');if(n&&g&&g.contains(n))g.after(n);} // gilt analysis sits under the gilt list
     for(const [key,ids] of Object.entries(TABS)){const view=$L('view-'+key);if(view)place(view,ids);}
     for(const [id,ids] of Object.entries(RESEARCH)){const view=$L(id);if(view)place(view,ids);}
+    const executive=$L('research-executive'),research=$L('research-view-0');if(executive&&research&&research.lastElementChild!==executive)research.append(executive);
     mergeSnapshot(park);
-    for(const step of [orderPulse,orderDetailContent,renderYieldSnapshot,tidyEtf,renderEtfAlternatives,renderWarnings,renderSovereignTable,renderBondTabs])
+    for(const step of [orderPulse,orderDetailContent,renderWatchFreshness,renderYieldSnapshot,tidyEtf,renderEtfAlternatives,renderWarnings,renderSovereignTable,renderBondTabs])
       {try{step();}catch(e){console.warn('Layout step skipped:',step.name,e&&e.message);}}
     const ws=$L('watchlist-summary');if(ws&&ws.parentElement!==park)park.append(ws);
     stripCaveats();

@@ -1,0 +1,13 @@
+const fs=require('fs'),vm=require('vm'),assert=require('node:assert/strict');
+const html=fs.readFileSync('terminal_template.html','utf8');
+const code=html.slice(html.indexOf('function watchFmtQuote('),html.indexOf('function watchFmtQuote(')+html.slice(html.indexOf('function watchFmtQuote(')).indexOf('\nfunction watchExpectedDate('));
+const expected=html.match(/function watchExpectedDate\([^\n]+/)[0];
+const ctx={fmt:(x,d)=>Number(x).toFixed(d),watchHistoryMap:new Map(),Date};vm.createContext(ctx);vm.runInContext(code+'\n'+expected,ctx);
+assert.equal(ctx.watchFmtQuote({price:2645,currency:'GBp'}),'26.45 GBP');
+assert.equal(ctx.watchFmtQuote({price:2645,currency:'USD'}),'2645.00 USD');
+for(const date of ['2026-11-14','2026-11-15','2026-11-16'])assert.equal(ctx.watchExpectedDate(new Date(date+'T12:00Z')),'2026-11-13');
+ctx.watchHistoryMap.set('TEST',[['2021-11-12',100],['2023-11-13',121],['2026-10-13',150],['2026-11-13',165]]);
+assert.ok(Math.abs(ctx.watchPeriodReturn('TEST',0)-10)<1e-8);
+assert.ok(Math.abs(ctx.watchPeriodReturn('TEST',5)-10.5)<0.1);
+assert.equal(ctx.watchPeriodReturn('MISSING',3),null);
+console.log('Pence conversion, weekend freshness and period return checks passed.');

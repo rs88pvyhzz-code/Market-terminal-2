@@ -39,7 +39,7 @@ EUROSTAT_SERIES = [
     ('sts_trtu_m', {'geo':'EA21','indic_bt':'VOL_SLS','nace_r2':'G47','s_adj':'SCA','unit':'PCH_PRE'}, 'eu_retail_mom', 'Euro-area retail sales volume (m/m)', 'monthly'),
     ('sts_trtu_m', {'geo':'EA21','indic_bt':'VOL_SLS','nace_r2':'G47','s_adj':'CA','unit':'PCH_SM'}, 'eu_retail_yoy', 'Euro-area retail sales volume (y/y)', 'monthly'),
 ]
-for _region, _label in [('DE','Germany'),('FR','France'),('IT','Italy'),('ES','Spain')]:
+for _region, _label in [('DE', 'Germany'), ('FR', 'France'), ('IT', 'Italy'), ('ES', 'Spain'), ('NL', 'Netherlands'), ('SE', 'Sweden'), ('DK', 'Denmark'), ('PL', 'Poland'), ('IE', 'Ireland'), ('PT', 'Portugal'), ('BE', 'Belgium'), ('AT', 'Austria')]:
     EUROSTAT_SERIES.extend([
         ('prc_hicp_minr', {'geo':_region,'coicop18':'TOTAL','unit':'RCH_A'}, _region.lower()+'_inflation', _label+' HICP inflation (12m)', 'monthly'),
         ('une_rt_m', {'geo':_region,'sex':'T','age':'TOTAL','s_adj':'SA','unit':'PC_ACT'}, _region.lower()+'_unemployment', _label+' unemployment (15–74)', 'monthly'),
@@ -200,7 +200,7 @@ def demo_regional(end,days=730):
                 if dt.date(year,month,1)>end:break
                 hh.append({'date':f'{year}-{month:02d}-01','value':round(v+.18*math.sin(k/5+j),3),'period':f'{year}-{month:02d}'})
         macros.append(economic_series(key,name,hh,'SYNTHETIC DEMO',region,freq,False))
-    for region,name in [('DE','Germany'),('FR','France'),('IT','Italy'),('ES','Spain')]:
+    for region,name in [('DE', 'Germany'), ('FR', 'France'), ('IT', 'Italy'), ('ES', 'Spain'), ('NL', 'Netherlands'), ('SE', 'Sweden'), ('DK', 'Denmark'), ('PL', 'Poland'), ('IE', 'Ireland'), ('PT', 'Portugal'), ('BE', 'Belgium'), ('AT', 'Austria')]:
         for metric,name_suffix,freq,v in [('inflation','HICP inflation (12m)','monthly',2.5),('unemployment','unemployment (15–74)','monthly',6.0),('gdp_qoq','real GDP (q/q)','quarterly',.4)]:
             data=[]
             for k in range(34 if freq=='monthly' else 19):
