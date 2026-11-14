@@ -181,3 +181,52 @@
   polish();
   new MutationObserver(()=>{if(!busy)schedule();}).observe(document.body,{childList:true,subtree:true});
 })();
+
+// Reading headings follow page scroll even when a table has horizontal overflow.
+// Keep the real header in the table for semantics and forward sorting clicks.
+(function(){
+ const copies=new Map();let queued=false;
+ const set=(e,k,v)=>{if(e.style[k]!==v)e.style[k]=v;};
+ function update(){
+  queued=false;
+  const stage=document.getElementById('workspace-stage');if(!stage)return;
+  const nav=document.querySelector('.commandbar');
+  let top=Math.max(0,nav?.getBoundingClientRect().bottom||0);
+  for(const n of stage.querySelectorAll('.layout-subtabs,.mt-bond-nav,.r25-section-links')){
+   const r=n.getBoundingClientRect();if(n.getClientRects().length&&getComputedStyle(n).position==='sticky'&&r.top<=top+2&&r.bottom>top)top=r.bottom;
+  }
+  const active=new Set();
+  for(const table of stage.querySelectorAll('table')){
+   const head=table.tHead;if(!head||!head.rows.length||!table.getClientRects().length)continue;
+   const rect=table.getBoundingClientRect(),height=head.getBoundingClientRect().height;
+   if(rect.top>=top||rect.bottom<=top+height||!height)continue;
+   let left=Math.max(0,rect.left),right=Math.min(innerWidth,rect.right);
+   for(let p=table.parentElement;p&&p!==stage;p=p.parentElement){
+    if(/auto|scroll|hidden|clip/.test(getComputedStyle(p).overflowX)){const r=p.getBoundingClientRect();left=Math.max(left,r.left);right=Math.min(right,r.right);}
+   }
+   if(right<=left)continue;
+   active.add(table);let copy=copies.get(table);
+   const signature=head.innerHTML;
+   if(!copy||copy.signature!==signature){
+    copy?.box.remove();const box=document.createElement('div');box.className='table-reading-head';box.setAttribute('aria-hidden','true');
+    const t=document.createElement('table'),h=head.cloneNode(true);t.append(h);box.append(t);
+    for(const n of h.querySelectorAll('[id]'))n.removeAttribute('id');
+    for(const n of h.querySelectorAll('button,a,input'))n.tabIndex=-1;
+    const originals=[...head.querySelectorAll('th,td')],clones=[...h.querySelectorAll('th,td')];
+    clones.forEach((c,i)=>{c.addEventListener('click',e=>{e.preventDefault();const button=originals[i].querySelector('button');(button||originals[i]).click();});});
+    document.body.append(box);copy={box,t,originals,clones,signature};copies.set(table,copy);
+   }
+   set(copy.box,'top',top+'px');set(copy.box,'left',left+'px');set(copy.box,'width',(right-left)+'px');
+   set(copy.t,'width',rect.width+'px');set(copy.t,'marginLeft',(rect.left-left)+'px');
+   copy.clones.forEach((c,i)=>{const source=copy.originals[i],style=getComputedStyle(source),r=source.getBoundingClientRect();
+    for(const key of ['display','font','color','padding','textAlign','letterSpacing','whiteSpace','borderBottom'])set(c,key,style[key]);
+    set(c,'width',r.width+'px');set(c,'minWidth',r.width+'px');set(c,'maxWidth',r.width+'px');
+   });
+  }
+  for(const [table,copy] of copies)if(!active.has(table)){copy.box.remove();copies.delete(table);}
+ }
+ function schedule(){if(!queued){queued=true;requestAnimationFrame(update);}}
+ document.addEventListener('scroll',schedule,{capture:true,passive:true});window.addEventListener('resize',schedule,{passive:true});
+ const stage=document.getElementById('workspace-stage');if(stage)new MutationObserver(schedule).observe(stage,{childList:true,subtree:true});
+ schedule();
+})();

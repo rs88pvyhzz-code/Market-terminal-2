@@ -631,15 +631,15 @@ h2{font:600 15px/1.35 var(--font);color:var(--amber);margin:0}h3{font:500 13px v
 <div class="tiles" id="headline"></div>
 <section class="panel" id="monitor">
   <div class="row"><h2>PRICE CHARTS &amp; HISTORY</h2><div class="inputs"><select id="main-pick" class="field pick" aria-label="Choose instrument"></select><button id="export-main" class="btn" type="button">EXPORT CSV</button><button id="add-compare" class="btn" type="button">ADD TO COMPARE</button></div></div>
-  <div class="market-mini-summary" id="market-mini-summary" aria-label="Major market price summary"></div>
+
   <div class="pills" id="main-ranges" aria-label="Historical period"></div><div id="main-custom" class="time-box"></div>
   <div class="note" id="main-detail">Daily prices. Price history is not a total-return series.</div>
   <div class="chart" id="main-chart"></div>
   <div class="row"><h2>GLOBAL PRICES</h2><span class="mini" id="count"></span></div>
   <div class="inputs"><input id="search" class="field inputbox" type="search" placeholder="Search name or ticker…" aria-label="Search instruments"><div class="pills" id="group-pills"></div></div>
   <div class="scroll"><table class="watch"><thead><tr>
-    <th data-sort="name">Instrument</th><th data-sort="symbol" class="hide-sm">Ticker</th><th data-sort="currency" class="hide-sm">Ccy</th>
-    <th data-sort="price" class="n">Last</th><th data-sort="day" class="n">Day</th><th data-sort="ytd" class="n">YTD</th><th data-sort="year" class="n">1Y</th>
+    <th data-sort="name">Instrument</th><th data-sort="currency" class="hide-sm">Ccy</th>
+    <th data-sort="price" class="n">Last</th><th data-sort="day" class="n">Day</th><th data-sort="ytd" class="n">YTD</th><th data-sort="year" class="n">1Y</th><th data-sort="three" class="n">3Y p.a.</th><th data-sort="five" class="n">5Y p.a.</th>
     <th data-sort="low52" class="n hide-sm">52w low</th><th data-sort="high52" class="n hide-sm">52w high</th><th class="hide-sm">As of (UTC)</th>
   </tr></thead><tbody id="watch-rows"></tbody></table></div>
   <p class="note">¹ Yahoo US Treasury-yield tickers are indicative yield indices, not tradable bond total returns. Daily/YTD/1Y values for yields are changes in basis points. VIX is an index level; no YTD return is shown. Other columns show price moves in each instrument's quoted units, not dividend-adjusted investment returns.</p>
@@ -783,6 +783,7 @@ h2{font:600 15px/1.35 var(--font);color:var(--amber);margin:0}h3{font:500 13px v
  <div class="research-controls"><label class="mini" for="sector-index">INDEX</label><select id="sector-index" class="field" aria-label="Choose index for sector returns"></select>
   <label class="mini" for="sector-period">PERIOD</label><select id="sector-period" class="field" aria-label="Sector returns time frame"><option value="1M">1 month</option><option value="3M">3 months</option><option value="6M">6 months</option><option value="1Y">1 year</option></select></div>
  <div class="analytic-scroll"><table class="watch"><thead><tr><th>Sector</th><th class="n">Relative (pp)</th><th class="n">Sector move</th><th class="n">Index move</th><th class="n">Covered / identified</th><th>Relative bar</th></tr></thead><tbody id="sector-rows"></tbody></table></div>
+ <p class="mt-inline-notice" id="sector-method">Equal-weight returns of covered stocks versus the market index. This is a sample, not an official sector index. Coverage refers to identified stocks.</p>
  <p class="note" id="sector-note"></p>
 </section>
 <section class="panel" id="analytics-rolling">
@@ -1170,24 +1171,14 @@ function headlines(){const symbols=['^FTSE','^GSPC','GBPUSD=X','^TNX','BZ=F','GC
   for(const s of symbols){const q=qMap.get(s);if(!q)continue;const t=el('div','tile');t.append(el('div','t',q.name),el('div','v',price(q)));
     t.append(el('div','c '+tone(val(q)),move(q,'day')));t.title='Last observation: '+q.asOf;t.onclick=()=>{if(q.kind==='yield'){activateWorkspace('bonds');return;}state.sym=s;activateWorkspace('fx',{scroll:false,subview:'prices'});$('main-pick').value=s;renderMain();renderWatch();$('monitor').scrollIntoView({behavior:'smooth'});};t.style.cursor='pointer';$('headline').append(t);}
 }
-function renderMarketMini(){
-  const host=$('market-mini-summary');if(!host)return;host.replaceChildren();
-  for(const symbol of ['^FTSE','^GSPC','^IXIC','GBPUSD=X','BZ=F','GC=F']){
-    const q=qMap.get(symbol);if(!q)continue;
-    const b=el('button','market-mini-tile'+(state.sym===symbol?' selected':''));b.type='button';
-    b.title='Show '+q.name+' price chart';b.setAttribute('aria-label','Show '+q.name+' chart');
-    b.append(el('span','market-mini-name',q.name),el('strong','market-mini-value',price(q)),
-      el('span','market-mini-change '+tone(moveVal(q,'day')),move(q,'day')));
-    b.onclick=()=>{state.sym=symbol;renderMain();renderWatch();};host.append(b);
-  }
-}
+function renderMarketMini(){} // Overview owns the market snapshot.
 function renderGroups(){wipe('group-pills');['','Equities','ETFs','FX','Rates','Commodities','Crypto'].forEach(g=>{
  const b=el('button','btn'+(state.group===g?' active':''),g||'All');b.onclick=()=>{state.group=g;renderGroups();renderWatch();renderScore();};$('group-pills').append(b);});}
 function filtered(){let rows=D.quotes.filter(q=>(!state.group||q.group===state.group)&&
     (!state.search||(q.name+' '+q.symbol).toLowerCase().includes(state.search)));
  if(state.sort!=='default'){const k=state.sort;rows=rows.slice().sort((a,b)=>{
-   let x=k==='day'?moveVal(a,'day'):k==='ytd'?moveVal(a,'ytd'):k==='year'?moveVal(a,'year'):a[k];
-   let y=k==='day'?moveVal(b,'day'):k==='ytd'?moveVal(b,'ytd'):k==='year'?moveVal(b,'year'):b[k];
+   let x=k==='day'?moveVal(a,'day'):k==='ytd'?moveVal(a,'ytd'):k==='year'?moveVal(a,'year'):k==='three'||k==='five'?watchLongReturn(a,k):a[k];
+   let y=k==='day'?moveVal(b,'day'):k==='ytd'?moveVal(b,'ytd'):k==='year'?moveVal(b,'year'):k==='three'||k==='five'?watchLongReturn(b,k):b[k];
    let n=(typeof x==='string'||typeof y==='string')?String(x||'').localeCompare(String(y||'')):numCmp(x,y);return state.desc?-n:n;});}
  return rows;}
 function td(tr,text,classes=''){let c=el('td',classes,text);tr.append(c);return c;}
@@ -1216,17 +1207,26 @@ const WATCH_MAJOR=['^GSPC','^IXIC','^DJI','^RUT','^GSPTSE','^BVSP','^MXX','^FTSE
   'BZ=F','CL=F','GC=F','SI=F','HG=F','NG=F','ZW=F','ZC=F','BTC-USD','ETH-USD'];
 function watchMajorRank(q){const i=WATCH_MAJOR.indexOf(q.symbol);return i<0?999:i;}
 function watchSection(q){return WATCH_SECTIONS.find(([,test])=>test(q))[0];}
+function watchLongReturn(q,key){return q.kind==='yield'||q.kind==='volatility'?null:mtMoveReturn(q,key==='three'?'3Y':'5Y');}
 function renderWatch(){const body=$('watch-rows');body.replaceChildren();let rows=filtered();$('count').textContent=rows.length+' / '+D.quotes.length+' instruments';
   const sectioned=state.sort==='default';
   if(sectioned){const order=new Map(WATCH_SECTIONS.map(([n],i)=>[n,i]));rows=rows.map((q,i)=>[q,i]).sort((a,b)=>order.get(watchSection(a[0]))-order.get(watchSection(b[0]))||watchMajorRank(a[0])-watchMajorRank(b[0])||a[1]-b[1]).map(x=>x[0]);}
   let current=null;
   for(const q of rows){
-  if(sectioned){const name=watchSection(q);if(name!==current){current=name;const n=rows.filter(x=>watchSection(x)===name).length;const hr=el('tr','watch-section');const cell=el('th','',name);cell.colSpan=10;cell.scope='colgroup';cell.append(el('span','watch-section-count',' '+n));hr.append(cell);body.append(hr);}}
+  if(sectioned){const name=watchSection(q);if(name!==current){current=name;const n=rows.filter(x=>watchSection(x)===name).length;const hr=el('tr','watch-section');const cell=el('th','',name);cell.colSpan=11;cell.scope='colgroup';cell.append(el('span','watch-section-count',' '+n));hr.append(cell);body.append(hr);}}
   const tr=el('tr',q.symbol===state.sym?'selected':'');
-  td(tr,q.name);td(tr,q.symbol,'hide-sm');td(tr,q.currency||'—','hide-sm');td(tr,price(q),'n');
+  td(tr,q.name);td(tr,q.currency||'—','hide-sm');td(tr,price(q),'n');
   for(const k of ['day','ytd','year'])td(tr,move(q,k),'n '+tone(moveVal(q,k)));
+  for(const k of ['three','five']){const v=watchLongReturn(q,k);td(tr,v==null?'—':pc(v),'n '+tone(v));}
   td(tr,fmt(q.low52,prec(q)),'n hide-sm');td(tr,fmt(q.high52,prec(q)),'n hide-sm');td(tr,q.asOf||'—','hide-sm');
   tr.onclick=()=>{state.sym=q.symbol;$('main-pick').value=q.symbol;renderMain();renderWatch();};body.append(tr);}
+}
+function healthcareComparison(asset,benchmark){
+ const bm=new Map(benchmark.filter(p=>p.v>0).map(p=>[p.date,p.v]));
+ const pairs=asset.filter(p=>p.v>0&&bm.has(p.date)).map(p=>({date:p.date,a:p.v,b:bm.get(p.date)}));
+ if(pairs.length<2)return null;
+ const first=pairs[0];return {start:first.date,end:pairs.at(-1).date,
+  a:pairs.map(p=>({date:p.date,v:(p.a/first.a-1)*100})),b:pairs.map(p=>({date:p.date,v:(p.b/first.b-1)*100}))};
 }
 function renderMain(){let q=qMap.get(state.sym);if(!q){empty('main-chart','No market series selected.');return;}
   $('main-pick').value=state.sym;
@@ -1238,7 +1238,14 @@ function renderMain(){let q=qMap.get(state.sym);if(!q){empty('main-chart','No ma
   const changeText=state.mainRange==='1D'?move(q,'day'):q.kind==='yield'?bp(change==null?null:change*100):pts.length>1?pc((pts[pts.length-1].v/pts[0].v-1)*100):'—';
   $('main-detail').textContent=q.name+' · '+price(q)+' · '+state.mainRange+' '+(q.kind==='yield'?'yield change':q.kind==='volatility'?'index-level movement':'price move')+': '+changeText+
     ' · quoted in '+(q.currency||'native units')+' · last quote '+(q.asOf||'unknown')+' · SOURCE: '+q.source;
-  chart('main-chart',[{name:q.name,pts:pts,color:AMBER}],{format:v=>fmt(v,prec(q))+(q.kind==='yield'?'%':''),area:true});
+  if(q.symbol==='XLV'&&!INTRADAY_RANGES.includes(state.mainRange)){
+    const comparison=healthcareComparison(pts,seriesOf('^GSPC',state.mainRange));
+    if(comparison){
+      const {a,b,start,end}=comparison,ar=a.at(-1).v,br=b.at(-1).v;
+      $('main-detail').textContent='US Healthcare (XLV) '+pc(ar)+' · S&P 500 '+pc(br)+' · difference '+fmt(ar-br,2)+'pp · '+start+' to '+end+' · USD cumulative price returns; dividends excluded. S&P 500 is the broad-market comparator, not XLV’s tracking index.';
+      chart('main-chart',[{name:'US Healthcare (XLV)',pts:a,color:AMBER},{name:'S&P 500',pts:b,color:'#67b7ff'}],{format:v=>pc(v),aria:'US Healthcare versus S&P 500 cumulative price returns'});
+    }else{chart('main-chart',[{name:q.name,pts,color:AMBER}],{format:v=>fmt(v,prec(q)),area:true});$('main-detail').textContent+=' · S&P 500 comparison unavailable: insufficient matching dates';}
+  }else chart('main-chart',[{name:q.name,pts:pts,color:AMBER}],{format:v=>fmt(v,prec(q))+(q.kind==='yield'?'%':''),area:true});
   renderMarketMini();
 }
 // Graphical charts are written in standard SVG with no external JS dependencies.
@@ -1966,7 +1973,7 @@ function renderSectors(){
   title.append(el('span','r212-sector-context','Sector '+(d.sectorReturnPct==null?'—':pc(d.sectorReturnPct))+' · index '+(d.indexReturnPct==null?'—':pc(d.indexReturnPct))+' · covered '+n+'/'+item.sectorMembers));
   td(tr,d.relativePp==null?'—':(d.relativePp>0?'+':'')+fmt(d.relativePp,2)+'pp','n '+tone(d.relativePp));
   td(tr,d.sectorReturnPct==null?'—':pc(d.sectorReturnPct),'n '+tone(d.sectorReturnPct));
-  td(tr,d.indexReturnPct==null?'—':pc(d.indexReturnPct),'n');
+  td(tr,d.indexReturnPct==null?'—':pc(d.indexReturnPct),'n '+tone(d.indexReturnPct));
   td(tr,n+' / '+item.sectorMembers+' ('+ratio+')','n');
   const cell=td(tr,'');if(d.relativePp!=null){const bar=el('div','sector-bar');const fill=el('span','sector-fill '+(d.relativePp>=0?'plus':'minus'));
    fill.style.width=Math.min(100,Math.abs(d.relativePp)/20*100)+'%';bar.append(fill);cell.append(bar);}
