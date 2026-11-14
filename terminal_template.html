@@ -494,7 +494,7 @@ h2{font:600 15px/1.35 var(--font);color:var(--amber);margin:0}h3{font:500 13px v
   </div>
   <p class="note" id="watchlist-note" aria-live="polite"></p>
   <div class="watchlist-table-scroll"><table class="watch"><thead><tr>
-    <th>Security</th><th>Ticker</th><th class="n">Last price</th><th class="n">Day</th><th class="n">YTD</th><th class="n">1Y</th><th class="n">P/E</th><th class="n">Dividend</th><th>Quote date</th>
+    <th>Security</th><th>Ticker</th><th class="n">Last price</th><th class="n">Day</th><th class="n">1M</th><th class="n">1Y</th><th class="n">3Y p.a.</th><th class="n">5Y p.a.</th><th class="n">Dividend</th>
   </tr></thead><tbody id="watchlist-rows"></tbody></table></div>
   <div class="watchlist-selected-header">
     <div><h3 id="watchlist-selected-name">Select a security</h3><p class="mini" id="watchlist-selected-meta"></p></div>
@@ -943,10 +943,10 @@ h2{font:600 15px/1.35 var(--font);color:var(--amber);margin:0}h3{font:500 13px v
  <div class="chart" id="uk-eu-spread"></div>
 </section>
 <section class="panel" id="macro">
- <div class="row"><h2>ECONOMIC INDICATORS</h2><div class="inputs"><label class="mini" for="macro-region">REGION</label><select class="field" id="macro-region" aria-label="Economic region"><option value="UK">United Kingdom</option><option value="EU">Euro area</option><option value="US">United States</option><option value="DE">Germany</option><option value="FR">France</option><option value="IT">Italy</option><option value="ES">Spain</option></select></div></div>
+ <div class="row"><h2>ECONOMIC INDICATORS</h2><div class="inputs"><label class="mini" for="macro-region">REGION</label><select class="field" id="macro-region" aria-label="Economic region"><option value="UK">United Kingdom</option><option value="EU">Euro area</option><option value="US">United States</option><option value="DE">Germany</option><option value="FR">France</option><option value="IT">Italy</option><option value="ES">Spain</option><option value="NL">Netherlands</option><option value="SE">Sweden</option><option value="DK">Denmark</option><option value="PL">Poland</option><option value="IE">Ireland</option><option value="PT">Portugal</option><option value="BE">Belgium</option><option value="AT">Austria</option></select></div></div>
  <p class="note" id="macro-method">Official statistics; dates are the observation periods, not necessarily the publication dates. UK: ONS; euro area and major European countries: Eurostat/ECB; US: FRED. Euro-area statistics use EA21 for 2026.</p>
  <div class="macro" id="macro-tiles"></div><div class="period-controls" id="macro-period"></div>
- <div class="row"><span class="mini" id="macro-detail"></span><div class="inputs"><label class="mini" for="macro-compare">COMPARE WITH</label><select class="field" id="macro-compare" aria-label="Compare economics with another region"><option value="">None</option><option value="UK">United Kingdom</option><option value="EU">Euro area</option><option value="US">United States</option><option value="DE">Germany</option><option value="FR">France</option><option value="IT">Italy</option><option value="ES">Spain</option></select></div></div>
+ <div class="row"><span class="mini" id="macro-detail"></span><div class="inputs"><label class="mini" for="macro-compare">COMPARE WITH</label><select class="field" id="macro-compare" aria-label="Compare economics with another region"><option value="">None</option><option value="UK">United Kingdom</option><option value="EU">Euro area</option><option value="US">United States</option><option value="DE">Germany</option><option value="FR">France</option><option value="IT">Italy</option><option value="ES">Spain</option><option value="NL">Netherlands</option><option value="SE">Sweden</option><option value="DK">Denmark</option><option value="PL">Poland</option><option value="IE">Ireland</option><option value="PT">Portugal</option><option value="BE">Belgium</option><option value="AT">Austria</option></select></div></div>
  <div class="chart" id="macro-chart"></div>
  <p class="note">Inflation: UK CPI differs from European HICP (including country HICP). GDP figures are quarterly growth; unemployment measures have different populations and methods. Comparisons are indicative, not harmonised without qualification.</p>
 </section>
@@ -1452,6 +1452,14 @@ const METRIC_KEY={UK:{inflation:'uk_cpi',unemployment:'uk_unemployment',gdp:'uk_
  FR:{inflation:'fr_inflation',unemployment:'fr_unemployment',gdp:'fr_gdp_qoq'},
  IT:{inflation:'it_inflation',unemployment:'it_unemployment',gdp:'it_gdp_qoq'},
  ES:{inflation:'es_inflation',unemployment:'es_unemployment',gdp:'es_gdp_qoq'}};
+METRIC_KEY.NL={inflation:'nl_inflation',unemployment:'nl_unemployment',gdp:'nl_gdp_qoq'};
+METRIC_KEY.SE={inflation:'se_inflation',unemployment:'se_unemployment',gdp:'se_gdp_qoq'};
+METRIC_KEY.DK={inflation:'dk_inflation',unemployment:'dk_unemployment',gdp:'dk_gdp_qoq'};
+METRIC_KEY.PL={inflation:'pl_inflation',unemployment:'pl_unemployment',gdp:'pl_gdp_qoq'};
+METRIC_KEY.IE={inflation:'ie_inflation',unemployment:'ie_unemployment',gdp:'ie_gdp_qoq'};
+METRIC_KEY.PT={inflation:'pt_inflation',unemployment:'pt_unemployment',gdp:'pt_gdp_qoq'};
+METRIC_KEY.BE={inflation:'be_inflation',unemployment:'be_unemployment',gdp:'be_gdp_qoq'};
+METRIC_KEY.AT={inflation:'at_inflation',unemployment:'at_unemployment',gdp:'at_gdp_qoq'};
 function macroMetric(key){for(const region of Object.keys(METRIC_KEY))for(const [metric,id] of Object.entries(METRIC_KEY[region]))if(id===key)return metric;return null;}
 function macroHistory(m){return (m.history||[]).filter(p=>p.value!=null).map(p=>({date:p.date,v:Number(p.value)}));}
 function renderMacro(){
@@ -2220,7 +2228,17 @@ const watchNewsMap=new Map((D.watchlist_news||[]).map(n=>[n.symbol,n]));
 const watchState={symbol:watchlistRecords[0]?.symbol||'',query:'',kind:'all',sort:'original',range:'1Y',riskRange:'1Y',basis:'price_local'};
 const WATCH_RANGES=['1M','1Y','3Y','5Y','MAX'];
 function watchProfile(symbol){return companyMap.get(symbol)||fundamentalsMap.get(symbol)||null;}
-function watchFmtQuote(q){if(!q||q.price==null)return '—';return fmt(q.price,q.price>=1000?1:2)+' '+(q.currency||'');}
+function watchFmtQuote(q){if(!q||q.price==null)return '—';const pence=['GBp','GBX'].includes(q.currency),price=q.price/(pence?100:1);return fmt(price,2)+' '+(pence?'GBP':q.currency||'');}
+function watchPeriodReturn(symbol,years){
+ const rows=(watchHistoryMap.get(symbol)||[]).filter(x=>Number(x[1])>0).slice().sort((a,b)=>a[0].localeCompare(b[0]));
+ if(rows.length<2)return null;const end=rows.at(-1),target=new Date(end[0]+'T12:00:00Z');
+ if(years)target.setUTCFullYear(target.getUTCFullYear()-years);else target.setUTCMonth(target.getUTCMonth()-1);
+ const start=rows.filter(x=>Date.parse(x[0]+'T12:00:00Z')<=target).at(-1);
+ if(!start||target-Date.parse(start[0]+'T12:00:00Z')>7*86400000)return null;
+ const days=(Date.parse(end[0])-Date.parse(start[0]))/86400000,gross=end[1]/start[1];
+ return 100*((years?Math.pow(gross,365.25/days):gross)-1);
+}
+function watchExpectedDate(now=new Date()){const d=new Date(now);d.setUTCDate(d.getUTCDate()-1);while([0,6].includes(d.getUTCDay()))d.setUTCDate(d.getUTCDate()-1);return d.toISOString().slice(0,10);}
 function watchRows(){let rows=watchlistRecords.filter(w=>(watchState.kind==='all'||w.assetType===watchState.kind)&&
   (!watchState.query||(w.name+' '+w.symbol).toLowerCase().includes(watchState.query)));
  const val=(w,key)=>{const x=key==='changePct'?watchQuoteMap.get(w.symbol)?.changePct:watchProfile(w.symbol)?.[key];return x!=null&&Number.isFinite(Number(x))?Number(x):null;};
@@ -2416,7 +2434,7 @@ function renderWatchlistRisk(w,q){
  const host=$('watchlist-risk-kpis');host.replaceChildren();
  const period=watchState.riskRange||'1Y',r=watchTechnical(w,period),unit=q?.currency||'';
  const val=(x,p=1)=>x==null||!Number.isFinite(x)?'—':fmt(x,p);
- const showPrice=x=>x==null?'—':fmt(x,x>=100?1:2)+' '+unit;
+ const showPrice=x=>watchFmtQuote({price:x,currency:unit});
  const rsi=r.rsi==null?'Insufficient trading sessions':r.rsi>=70?'Above 70 · strong momentum':r.rsi<=30?'Below 30 · weak momentum':'Neutral momentum band';
  const entries=[
   [period+' PRICE MOVE',r.periodMove==null?'—':pc(r.periodMove),'Price only; excludes dividends'],
@@ -2483,10 +2501,10 @@ function renderWatchRows(){
   if(watchState.symbol===w.symbol)tr.classList.add('selected');
   const pct=(value)=>value==null?'—':pc(value);
   td(tr,w.name);td(tr,w.symbol);td(tr,watchFmtQuote(q),'n');
-  td(tr,pct(q?.changePct),'n '+tone(q?.changePct));td(tr,pct(q?.ytdPct),'n '+tone(q?.ytdPct));
+  td(tr,pct(q?.changePct),'n '+tone(q?.changePct));const month=watchPeriodReturn(w.symbol,0);td(tr,pct(month),'n '+tone(month));
   td(tr,pct(q?.yearPct),'n '+tone(q?.yearPct));
-  td(tr,f?.trailingPE!=null?fmt(f.trailingPE,1)+'×':'—','n');td(tr,pct(f?.dividendYieldPct),'n');
-  td(tr,q?.asOf?.slice(0,10)||'—');
+  for(const years of [3,5]){const v=watchPeriodReturn(w.symbol,years);td(tr,pct(v),'n '+tone(v));}td(tr,pct(f?.dividendYieldPct),'n');
+  const date=q?.asOf?.slice(0,10);if(!date||date<watchExpectedDate()){const flag=el('span','mini down',' · '+(date?'Quote '+date:'Quote unavailable'));tr.cells[0].append(flag);}
   tr.onclick=()=>{watchState.symbol=w.symbol;renderWatchlist();};
   tr.onkeydown=e=>{if(e.key==='Enter'||e.key===' '){e.preventDefault();watchState.symbol=w.symbol;renderWatchlist();}};
   body.append(tr);
@@ -2517,7 +2535,8 @@ function renderWatchlistChart(w,q){
   btn.type='button';btn.onclick=()=>{watchState.range=range;renderWatchlistChart(w,q);renderWatchlistRelative(w,q);};controls.append(btn);}
  const found=watchSeries(w,q),pts=found.pts;
  const adj=watchState.basis.startsWith('adjusted'),gbp=watchState.basis.endsWith('gbp');
- const units=gbp?'GBP per share':(q?.currency||'native quoted units');
+ const pence=!gbp&&['GBp','GBX'].includes(q?.currency);if(pence)pts.forEach(p=>p.v/=100);
+ const units=gbp||pence?'GBP per share':(q?.currency||'native quoted units');
  if(found.error){empty('watchlist-chart',found.error);$('watchlist-history-meta').textContent=found.error;return;}
  const move=100*(pts.at(-1).v/pts[0].v-1);
  const span=watchSpanDays(pts[0].date,pts.at(-1).date);
@@ -2578,22 +2597,22 @@ function renderWatchlist(){
  const core=[
   ['LAST QUOTED PRICE',watchFmtQuote(q),q?.source||'No verified exchange quote'],
   ['DAILY PRICE MOVE',pc(q?.changePct),q?.asOf?.slice(0,10)||'No dated quote'],
-  ['YTD PRICE RETURN',pc(q?.ytdPct),'Price only · local currency'],
+  ['ONE-MONTH PRICE RETURN',pc(watchPeriodReturn(w.symbol,0)),'Price only · local currency'],
   ['ONE-YEAR PRICE RETURN',pc(q?.yearPct),'Price only · dividends excluded']
  ];
  const riskMeasures=[
   ['THREE-YEAR PRICE RETURN',pc(risk.threeYear),'Price only · quoted currency'],
   ['ONE-YEAR VOLATILITY',pc(technical.volatility),'Daily log price returns · ≥120 observations'],
   ['MAX DRAWDOWN',pc(technical.drawdown),technical.drawdownLabel||'Observed closes'],
-  ['52-WEEK HIGH',q?.high52==null?'—':fmt(q.high52,2)+' '+(q.currency||''),'Quoted price units'],
-  ['52-WEEK LOW',q?.low52==null?'—':fmt(q.low52,2)+' '+(q.currency||''),'Quoted price units']
+  ['52-WEEK HIGH',q?.high52==null?'—':watchFmtQuote({...q,price:q.high52}),'Quoted price units'],
+  ['52-WEEK LOW',q?.low52==null?'—':watchFmtQuote({...q,price:q.low52}),'Quoted price units']
  ];
  const valuation=[
   ['TRAILING P/E',c.trailingPE==null?'—':fmt(c.trailingPE,1)+'×','Earnings-based valuation'],
   ['FORWARD P/E',c.forwardPE==null?'—':fmt(c.forwardPE,1)+'×','Third-party forecast'],
   ['DIVIDEND YIELD',c.dividendYieldPct==null?'—':fmt(c.dividendYieldPct,2)+'%','Can lag the share-price date'],
   ['MARKET CAPITALISATION',companyAmount(c.marketCap,c.marketCapCurrency||''),'Company size, not your holding'],
-  ['52-WEEK PRICE RANGE',q?.low52==null||q?.high52==null?'—':fmt(q.low52,2)+' – '+fmt(q.high52,2)+' '+(q.currency||''),'Exchange quote units']
+  ['52-WEEK PRICE RANGE',q?.low52==null||q?.high52==null?'—':fmt(q.low52,2)+' – '+watchFmtQuote({...q,price:q.high52}),'Exchange quote units']
  ];
  let data;
  if(w.assetType==='stock'){
@@ -2616,6 +2635,7 @@ function renderWatchlist(){
   if(w.assetType==='fund')data.push(['FUND NAV','—','A platform code is not an exchange ticker; use provider NAV']);
  }
  const keyCount=w.assetType==='stock'?9:data.length;
+ data=data.filter(([label])=>!['ONE-YEAR VOLATILITY','MAX DRAWDOWN'].includes(label));
  for(const [label,value,info] of data.slice(0,keyCount))kpis.append(watchValTile(label,value,info));
  const extra=$('watchlist-extra-kpis');extra.replaceChildren();for(const [label,value,info] of data.slice(keyCount))extra.append(watchValTile(label,value,info));
  $('watchlist-advanced').hidden=!extra.children.length;
@@ -3607,8 +3627,6 @@ function etfV5ChangeCompare(symbol,yes){
       return false;
     }
     etfState.compared.add(symbol);
-    etfState.selected=symbol;
-    if(typeof etfCompareBenchmark!=='undefined')etfCompareBenchmark=ETF_BY_SYMBOL.get(symbol)?.benchmark||'';
   }else{etfState.compared.delete(symbol);}
   renderEtfTracker();
   return true;

@@ -85,7 +85,7 @@ with sync_playwright() as p:
         ids=page.locator('#research-view-0 > [id]').evaluate_all('(xs)=>xs.map(x=>x.id)')
         assert page.locator('#company-coverage-gaps').is_visible()
         assert page.locator('#company-coverage-gaps p').first.is_visible()
-        assert ids.index('research-executive')<ids.index('company-advanced')
+        assert ids.index('research-executive')>ids.index('company-advanced')
         if data.get('demo'):
             page.evaluate("localStorage.setItem('terminal-news-last-visit-v1',String(Date.now()-12*3600000))")
             page.reload(wait_until='domcontentloaded')
