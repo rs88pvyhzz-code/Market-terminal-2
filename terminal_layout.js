@@ -597,7 +597,7 @@ function addUkYieldQuotes(){
   if(!Array.isArray(D.quotes)||D.quotes.some(q=>q.symbol==='UK10Y.BOE'))return;
   const added=[];
   for(const [field,label] of [['gilt5y','5Y'],['gilt10y','10Y'],['gilt20y','20Y']]){
-    const pts=(D.uk_rates||[]).map(r=>({date:r.date,v:Number(r[field])}));
+    const pts=(D.uk_rates||[]).filter(r=>typeof r[field]==='number'&&Number.isFinite(r[field])).map(r=>({date:r.date,v:r[field]}));
     const q=ukYieldQuote('UK'+label+'.BOE','UK '+label+' gilt yield (BoE spot)',pts,'Bank of England','BoE nominal zero-coupon spot curve');
     if(q)added.push(q);
   }
