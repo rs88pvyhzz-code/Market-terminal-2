@@ -117,3 +117,5 @@ details.period-dates .time-box{margin-top:7px}
 .table-reading-head{position:fixed;z-index:70;overflow:hidden;background:#16161a;box-shadow:0 2px 3px #0006;pointer-events:auto}
 .table-reading-head table{border-collapse:collapse;table-layout:fixed;margin:0}
 .table-reading-head th{position:static!important;box-sizing:border-box;background:#16161a!important}
+
+.market-comparison-legend{display:flex;gap:20px;flex-wrap:wrap;font-size:12px;margin-top:4px}

@@ -1244,6 +1244,7 @@ function renderMain(){let q=qMap.get(state.sym);if(!q){empty('main-chart','No ma
       const {a,b,start,end}=comparison,ar=a.at(-1).v,br=b.at(-1).v;
       $('main-detail').textContent='US Healthcare (XLV) '+pc(ar)+' · S&P 500 '+pc(br)+' · difference '+fmt(ar-br,2)+'pp · '+start+' to '+end+' · USD cumulative price returns; dividends excluded. S&P 500 is the broad-market comparator, not XLV’s tracking index.';
       chart('main-chart',[{name:'US Healthcare (XLV)',pts:a,color:AMBER},{name:'S&P 500',pts:b,color:'#67b7ff'}],{format:v=>pc(v),aria:'US Healthcare versus S&P 500 cumulative price returns'});
+      const legend=el('div','market-comparison-legend');for(const [name,color] of [['US Healthcare (XLV)',AMBER],['S&P 500','#67b7ff']]){const label=el('span','','━ '+name);label.style.color=color;legend.append(label);}$('main-chart').append(legend);
     }else{chart('main-chart',[{name:q.name,pts,color:AMBER}],{format:v=>fmt(v,prec(q)),area:true});$('main-detail').textContent+=' · S&P 500 comparison unavailable: insufficient matching dates';}
   }else chart('main-chart',[{name:q.name,pts:pts,color:AMBER}],{format:v=>fmt(v,prec(q))+(q.kind==='yield'?'%':''),area:true});
   renderMarketMini();

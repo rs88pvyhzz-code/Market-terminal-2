@@ -27,6 +27,8 @@ with sync_playwright() as p:
         page.locator('#main-pick').select_option('XLV')
         page.locator('#main-ranges button').filter(has_text=re.compile('^3Y$')).click()
         assert 'S&P 500' in page.locator('#main-detail').inner_text()
+        page.locator('#main-chart').scroll_into_view_if_needed()
+        page.screenshot(path='/tmp/compact-healthcare-comparison.png')
     page.locator('#tab-bonds').dispatch_event('click');page.wait_for_timeout(250)
     conventional=[g for g in data.get('gilts',[]) if not g.get('indexLinked') and g.get('quoted')]
     if conventional:
@@ -43,6 +45,11 @@ with sync_playwright() as p:
                 assert float(cells[4][:-1])<=float(cells[3][:-1])+0.001
         page.locator('#mt-gilt-tax').scroll_into_view_if_needed()
         page.screenshot(path='/tmp/compact-gilt-comparison.png')
+    page.locator('#tab-analytics').dispatch_event('click');page.wait_for_timeout(100)
+    assert page.locator('#sector-method').count()==1
+    for cell in page.locator('#sector-rows td.up,#sector-rows td.down').all():
+        expected='rgb(85, 207, 145)' if 'up' in cell.get_attribute('class').split() else 'rgb(255, 114, 114)'
+        assert cell.evaluate('(e)=>getComputedStyle(e).color')==expected
     assert not errors,errors
     browser.close()
 print('PASS market headings, 3Y/5Y columns, XLV comparator and populated gilt comparison')
