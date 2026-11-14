@@ -51,7 +51,7 @@ with sync_playwright() as p:
         assert page.locator('#view-overview > section').evaluate_all('(xs)=>xs.map(x=>x.id)')[:3]==['overview-board','r24-conditions','r24-developments']
         page.screenshot(path=f'/tmp/compact-overview-{width}.png')
         page.locator('#tab-analytics').dispatch_event('click')
-        assert page.locator('#layout-body-markets > *').first.get_attribute('id')=='score-panel'
+        assert page.locator('#layout-body-markets > *').evaluate_all('(xs)=>xs.slice(0,2).map(x=>x.id)')==['mt-risk-comparison','score-panel']
         assert page.locator('#mt-movers-table').count()==1
         assert page.locator('#mt-movers-table th button').count()==7
         assert page.locator('#score .mt-mover-row').count()==0

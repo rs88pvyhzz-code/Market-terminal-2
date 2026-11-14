@@ -24,7 +24,7 @@ const $L=id=>document.getElementById(id);
 // Tab membership for everything except Analytics and Data Quality, in display order.
 const TABS={
   // Key market news is the top-ranked stories; 'news' lists the rest without repeating them.
-  overview:['overview-board','r24-conditions','r24-developments','news','r24-upcoming'],
+  overview:['news-visit-controls','overview-board','r24-conditions','r24-developments','news','r24-upcoming'],
   fx:['monitor'],
   equities:['equity-screener','constituents','movers'],
   companies:['companies'],
