@@ -42,3 +42,7 @@
 
 /* 6. Section headings clear the sticky navigation when jumped to. */
 #workspace-stage .panel,#workspace-stage .r24-support{scroll-margin-top:calc(var(--r24-nav-height,120px) + 96px)!important}
+
+/* 7. Labels inside ETF metric tiles stay in the reading font even where a tile
+      sits in a numeric cell; only the values use the monospace. */
+#workspace-stage .etf-stat .k{font-family:var(--reading-sans,-apple-system,BlinkMacSystemFont,"Segoe UI",Arial,sans-serif)!important}
