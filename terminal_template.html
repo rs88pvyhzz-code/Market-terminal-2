@@ -6,7 +6,7 @@
 <meta name="color-scheme" content="dark">
 <title>Global Market Terminal — Nine Workspaces</title>
 <style>
-:root{--bg:#09090b;--panel:#121215;--panel2:#17171b;--line:#2a2a30;--amber:#ffa028;--fg:#ececef;--muted:#96969f;--up:#51d284;--down:#ff665e;--blue:#5caeff;--purple:#c6a0ff;--aqua:#60d5ce;--font:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace}
+:root{--bg:#09090b;--panel:#121215;--panel2:#17171b;--line:#2a2a30;--amber:#ffa028;--fg:#ececef;--muted:#96969f;--up:#4ade80;--down:#ff7078;--blue:#5caeff;--purple:#c6a0ff;--aqua:#60d5ce;--font:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace}
 *{box-sizing:border-box}html{scroll-behavior:smooth}body{margin:0;background:#060607;color:var(--fg);font:14px/1.5 -apple-system,BlinkMacSystemFont,"Segoe UI",Arial,sans-serif}
 button,input,select{font:inherit}button{cursor:pointer}button:focus-visible,input:focus-visible,select:focus-visible,a:focus-visible{outline:2px solid var(--amber);outline-offset:2px}
 a{color:#e9b46b;text-decoration:none}a:hover{text-decoration:underline}.wrap{max-width:1470px;margin:auto;padding:16px;display:grid;gap:14px}
@@ -2496,8 +2496,15 @@ function watchPriceRisk(symbol){
   volatility=100*Math.sqrt(252*logs.reduce((v,x)=>v+(x-mean)*(x-mean),0)/(logs.length-1));}
  return {threeYear,volatility,maxDrawdown:recent.length>=125?drawdown:null};
 }
+function styleReturnValue(node,label,value){
+ if(!/return|price move|daily.*move|drawdown/i.test(label)||/volatility|yield|tracking/i.test(label))return;
+ const raw=String(value??'').replace(/−/g,'-').replace(/,/g,'');
+ const n=parseFloat(raw);node.classList.add(Number.isFinite(n)?tone(n):'neutral');
+ if(Number.isFinite(n)&&n>0&&!raw.startsWith('+'))node.textContent='+'+node.textContent;
+}
 function watchValTile(label,value,info=''){
  const box=el('div','watchlist-stat');box.append(el('div','k',label),el('div','v',value??'—'));
+ styleReturnValue(box.querySelector('.v'),label,value);
  if(info)box.append(el('div','d',info));return box;
 }
 function renderWatchRows(){
@@ -2814,6 +2821,7 @@ function etfFee(f){return f.terPct==null?'—':fmt(f.terPct,2)+'%';}
 function etfCell(row,value,cls){const cell=el('td',cls||'',value);row.append(cell);return cell;}
 function etfStatistic(host,label,value,detail){
   const stat=el('div','etf-stat');stat.append(el('div','k',label),el('div','v',etfText(value)));
+  styleReturnValue(stat.querySelector('.v'),label,value);
   if(detail)stat.append(el('div','d',detail));host.append(stat);
 }
 function etfFiltered(){
@@ -2984,7 +2992,7 @@ function renderEtfTracker(){
     etfCell(row,fund.replication||'Unverified',fund.replication.startsWith('Synthetic')?'etf-swap':'etf-unknown');
     etfCell(row,fund.distribution||'—');
     etfCell(row,fund.quote?.price==null?'—':fmt(fund.quote.price,Math.abs(fund.quote.price)<2?4:2)+' '+(fund.quote.currency||''),'n');
-    etfCell(row,etfPct(fund.return1Y),'n');etfCell(row,etfPct(fund.return3Y),'n');etfCell(row,etfPct(fund.return5Y),'n');
+    etfCell(row,etfPct(fund.return1Y),'n '+tone(fund.return1Y));etfCell(row,etfPct(fund.return3Y),'n '+tone(fund.return3Y));etfCell(row,etfPct(fund.return5Y),'n '+tone(fund.return5Y));
     etfCell(row,(fund.quote?.asOf||'').slice(0,10)||'Unavailable');
     const td=etfCell(row,'');const check=el('input');check.type='checkbox';check.checked=etfState.compared.has(fund.symbol);
     check.setAttribute('aria-label','Compare '+fund.symbol);check.onchange=()=>{
@@ -3749,7 +3757,7 @@ renderEtfTracker=function(){
     const [code,label]=etfV5Kind(f);const codecell=etfCell(row,code,'etf-compact-code');codecell.title=label+' · '+(f.replicationStatus||'unverified');
     const aum=etfCell(row,etfFundSize(f),'n');aum.title=(f.fundSizeSource||'Fund AUM unverified')+(f.fundSizeAsOf?' · '+f.fundSizeAsOf:'');
     for(const period of ['1D','1M']){const v=etfShortReturn(f,period);etfCell(row,etfPct(v),'n '+tone(v));}
-    etfCell(row,etfPct(f.return1Y),'n');etfCell(row,etfPct(f.return3Y),'n');etfCell(row,etfPct(f.return5Y),'n');
+    etfCell(row,etfPct(f.return1Y),'n '+tone(f.return1Y));etfCell(row,etfPct(f.return3Y),'n '+tone(f.return3Y));etfCell(row,etfPct(f.return5Y),'n '+tone(f.return5Y));
     const cell=etfCell(row,'','etf-compact-compare');
     const check=el('input');check.type='checkbox';check.checked=etfState.compared.has(f.symbol);
     check.setAttribute('aria-label','Compare '+f.symbol);check.onchange=()=>{if(!etfV5ChangeCompare(f.symbol,check.checked))check.checked=false;};cell.append(check);
