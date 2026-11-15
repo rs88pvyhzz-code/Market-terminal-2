@@ -530,7 +530,7 @@ function refreshContexts(){
 let applying=false;
 // Presentation only: retain raw labels for grouping; never rewrite source values.
 function readableMetrics(){
-  const acronym=/\b(?:TTM|FY|EPS|EBITDA|EV|ROE|ROIC|RSI|CAGR|GBP|USD|EUR|ETF|TER|OCF|P\/E|P\/B|[135]Y|[12]M)\b/g;
+  const acronym=/\b(?:US|UK|EU|FTSE|MSCI|S&P|GDP|CPI|PMI|TTM|FY|EPS|EBITDA|EV|ROE|ROIC|RSI|CAGR|GBP|USD|EUR|ETF|TER|OCF|P\/E|P\/B|\d+[YMDW])\b/g;
   function sentence(text){const keep=new Map();let i=0;const protectedText=text.replace(acronym,m=>{const key='zz'+i+++'zz';keep.set(key,m);return key;});let result=protectedText.toLowerCase();result=result.charAt(0).toUpperCase()+result.slice(1);for(const [key,value] of keep)result=result.replace(new RegExp(key,'i'),value);return result;}
   const stage=$L('workspace-stage');if(!stage)return;
   stage.querySelectorAll(TILE_GRIDS.split(',').map(g=>g+' > *').join(',')).forEach(tile=>{
