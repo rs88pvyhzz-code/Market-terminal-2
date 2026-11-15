@@ -192,7 +192,7 @@
   const stage=document.getElementById('workspace-stage');if(!stage)return;
   const nav=document.querySelector('.commandbar');
   let top=Math.max(0,nav?.getBoundingClientRect().bottom||0);
-  for(const n of stage.querySelectorAll('.layout-subtabs,.mt-bond-nav,.r25-section-links')){
+  for(const n of stage.querySelectorAll('.layout-subtabs,.mt-bond-nav,.r25-section-links,.watchlist-selected-header,#etf-tracker-panel .etf-detail>.row:first-child')){
    const r=n.getBoundingClientRect();if(n.getClientRects().length&&getComputedStyle(n).position==='sticky'&&r.top<=top+2&&r.bottom>top)top=r.bottom;
   }
   const active=new Set();
@@ -230,3 +230,6 @@
  const stage=document.getElementById('workspace-stage');if(stage)new MutationObserver(schedule).observe(stage,{childList:true,subtree:true});
  schedule();
 })();
+
+// Measure navigation rather than assuming an iPad or desktop header height.
+(function(){const nav=document.querySelector('.commandbar');if(!nav)return;const size=()=>document.documentElement.style.setProperty('--security-nav-height',nav.getBoundingClientRect().height+'px');size();new ResizeObserver(size).observe(nav);})();
