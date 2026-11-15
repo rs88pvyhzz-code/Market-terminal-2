@@ -48,8 +48,9 @@ with sync_playwright() as p:
     page.locator('#tab-analytics').dispatch_event('click');page.wait_for_timeout(100)
     assert page.locator('#sector-method').count()==1
     for cell in page.locator('#sector-rows td.up,#sector-rows td.down').all():
-        expected='rgb(85, 207, 145)' if 'up' in cell.get_attribute('class').split() else 'rgb(255, 114, 114)'
+        expected='rgb(74, 222, 128)' if 'up' in cell.get_attribute('class').split() else 'rgb(255, 112, 120)'
         assert cell.evaluate('(e)=>getComputedStyle(e).color')==expected
+        assert cell.evaluate('(e)=>getComputedStyle(e).fontWeight')=='600'
     assert not errors,errors
     browser.close()
 print('PASS market headings, 3Y/5Y columns, XLV comparator and populated gilt comparison')
