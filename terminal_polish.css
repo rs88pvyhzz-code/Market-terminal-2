@@ -124,3 +124,18 @@ details.period-dates .time-box{margin-top:7px}
 #workspace-stage .up,#workspace-stage #monitor td.up,#workspace-stage #analytics-sectors td.up{color:#4ade80!important;font-weight:600!important}
 #workspace-stage .down,#workspace-stage #monitor td.down,#workspace-stage #analytics-sectors td.down{color:#ff7078!important;font-weight:600!important}
 #workspace-stage .neutral{color:#b8bec8!important;font-weight:400!important}
+
+/* Reading hierarchy: restrained amber, readable context and blue selection. */
+:root{--muted:#b8bec8;--t-muted:#b8bec8}
+#workspace-stage :is(.mini,.note,.secondary,.etf-compact-sub,.polish-basis),
+#workspace-stage :is(.watchlist-stat,.etf-stat) .d{color:#b8bec8}
+#workspace-stage :is(.watchlist-stat,.etf-stat,.research-stat) .k{color:#c9d4e1!important}
+#workspace-stage table thead th,.table-reading-head table thead th{color:#dce7f3!important;background:#202b38!important;border-bottom-color:#526376!important}
+#workspace-stage table thead th :is(button,a),.table-reading-head th :is(button,a){color:inherit!important}
+#workspace-stage :is(table.watch,.etf-table,.mt-return-table) tbody tr:nth-child(odd):not(.selected):not(.etf-active):not(.watch-section):not(.etf-geo-group)>td{background-color:#12161d!important}
+#workspace-stage :is(table.watch,.etf-table,.mt-return-table) tbody tr:nth-child(even):not(.selected):not(.etf-active):not(.watch-section):not(.etf-geo-group)>td{background-color:#1b212b!important}
+#workspace-stage :is(table.watch,.etf-table,.mt-return-table) tbody tr:is(.selected,.etf-active)>td{background-color:#19334d!important}
+#workspace-stage :is(table.watch,.etf-table,.mt-return-table) tbody tr:is(.selected,.etf-active)>td:first-child{box-shadow:inset 3px 0 #69b7ff;color:#e4effa!important}
+#workspace-stage :is(table.watch,.etf-table,.mt-return-table) tbody tr:hover:not(.selected):not(.etf-active)>td{background-color:#25303d!important}
+#workspace-stage :is(.warning,.research-warning,.mover-warning){color:#ffd28a;border-color:#8a6732}
+#workspace-stage .err{color:#ffb9b9;border-color:#a94848;background:#301b20}
