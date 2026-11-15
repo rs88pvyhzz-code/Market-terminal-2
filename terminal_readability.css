@@ -14,22 +14,22 @@
 #workspace-stage tr.watch-section th{font-size:12.5px!important}
 
 /* 2. Market pulse: the move is the headline; the time is a footnote. */
-#market-pulse .r24-snapshot-item .lab{font-size:12.5px!important}
-#market-pulse .r24-snapshot-item strong{font-size:20px!important;font-weight:500!important}
-#market-pulse .r24-snapshot-item .pos,
-#market-pulse .r24-snapshot-item .neg,
-#market-pulse .r24-snapshot-item .up,
-#market-pulse .r24-snapshot-item .down,
-#market-pulse .r24-snapshot-item .neutral{font:600 15px/1.35 var(--t-mono,ui-monospace,"SF Mono",Menlo,monospace)!important;margin:2px 0}
-#market-pulse .r24-snapshot-item .mini{font-size:11px!important;color:#8b93a1!important;letter-spacing:0}
+#workspace-stage #market-pulse .r24-snapshot-item .lab{font-size:12.5px!important}
+#workspace-stage #market-pulse .r24-snapshot-item strong{font-size:20px!important;font-weight:500!important}
+#workspace-stage #market-pulse .r24-snapshot-item .pos,
+#workspace-stage #market-pulse .r24-snapshot-item .neg,
+#workspace-stage #market-pulse .r24-snapshot-item .up,
+#workspace-stage #market-pulse .r24-snapshot-item .down,
+#workspace-stage #market-pulse .r24-snapshot-item .neutral{font:600 15px/1.35 var(--t-mono,ui-monospace,"SF Mono",Menlo,monospace)!important;margin:2px 0}
+#workspace-stage #market-pulse .r24-snapshot-item .mini{font-size:11px!important;color:#8b93a1!important;letter-spacing:0}
 .rd-utc-note{font:12px var(--reading-sans,-apple-system,sans-serif);color:#8b93a1;margin:-4px 0 10px}
 
 /* 3. Economic indicators: bigger figures, readable prior values. */
-#macro-tiles button .ml{font-size:14px!important}
-#macro-tiles button .mv{font-size:24px!important;margin:4px 0 2px}
-#macro-tiles button .md{font-size:13px!important}
-#macro-tiles button .r28-economic-sub{font-size:14px!important;color:#d3dae4!important;margin-top:8px}
-#macro-tiles button .r28-economic-sub b{font-family:var(--t-mono,ui-monospace,"SF Mono",Menlo,monospace);font-weight:500;color:#ececef}
+#workspace-stage #macro-tiles button .ml{font-size:14px!important}
+#workspace-stage #macro-tiles button .mv{font-size:24px!important;margin:4px 0 2px}
+#workspace-stage #macro-tiles button .md{font-size:13px!important}
+#workspace-stage #macro-tiles button .r28-economic-sub{font-size:14px!important;color:#d3dae4!important;margin-top:8px}
+#workspace-stage #macro-tiles button .r28-economic-sub b{font-family:var(--t-mono,ui-monospace,"SF Mono",Menlo,monospace);font-weight:500;color:#ececef}
 
 /* 4. Sorted column: mark the heading only, not a shaded band down the table. */
 #workspace-stage td.mt-selected-period{background:transparent!important;box-shadow:none!important;border-left:0!important;border-right:0!important}
