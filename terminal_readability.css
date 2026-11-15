@@ -1,6 +1,9 @@
 /* Readability layer — injected after the polish layer, so it has the final word.
    Presentation only: no market data, calculation or source is changed. */
 
+/* Sections 1-3 apply on iPad and desktop only; phones keep the compact sizes so
+   wide tables still fit the screen. */
+@media (min-width:700px){
 /* 1. Larger, calmer text in data tables. Numbers keep the system monospace
       (SF Mono on Apple devices) with aligned digits. */
 #workspace-stage table td{font-size:14px!important;line-height:1.45}
@@ -30,6 +33,7 @@
 #workspace-stage #macro-tiles button .md{font-size:13px!important}
 #workspace-stage #macro-tiles button .r28-economic-sub{font-size:14px!important;color:#d3dae4!important;margin-top:8px}
 #workspace-stage #macro-tiles button .r28-economic-sub b{font-family:var(--t-mono,ui-monospace,"SF Mono",Menlo,monospace);font-weight:500;color:#ececef}
+}
 
 /* 4. Sorted column: mark the heading only, not a shaded band down the table. */
 #workspace-stage td.mt-selected-period{background:transparent!important;box-shadow:none!important;border-left:0!important;border-right:0!important}
