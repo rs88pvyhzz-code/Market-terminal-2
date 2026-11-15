@@ -1288,7 +1288,7 @@ function chart(id,series,opt={}){
  const vertical=svgEl('line',{x1:0,x2:0,y1:T,y2:H-B,stroke:'#797984','stroke-dasharray':'3 3',style:'display:none'});s.append(vertical);
  const circles=good.map(item=>{const circle=svgEl('circle',{r:3.8,fill:item.color||AMBER,style:'display:none'});s.append(circle);return circle;});
  const overlay=svgEl('rect',{x:L,y:T,width:plotW,height:plotH,fill:'transparent'});s.append(overlay);
- const legend=el('div','chart-series-labels');for(const item of good){const label=el('span');const swatch=el('i');swatch.style.borderTop='3px '+(item.reference?'dashed':'solid')+' '+(item.color||AMBER);label.append(swatch,document.createTextNode(item.name||'Series'));legend.append(label);}host.append(legend,s);const tooltip=el('div','tip');host.append(tooltip);
+ const legend=el('div','chart-series-labels');for(const item of good){const label=el('span');const swatch=el('i');swatch.style.borderTop='3px '+(item.reference?'dashed':'solid')+' '+(item.color||AMBER);label.append(swatch,document.createTextNode(item.name||'Series'));legend.append(label);}if(!host.classList.contains('r25-financial-chart'))host.append(legend);host.append(s);const tooltip=el('div','tip');host.append(tooltip);
  const nearest=(pts,t)=>{let lo=0,hi=pts.length-1;while(lo<hi){let mid=(lo+hi)>>1;if(chartTime(pts[mid])<t)lo=mid+1;else hi=mid;}
  return lo>0&&Math.abs(chartTime(pts[lo-1])-t)<Math.abs(chartTime(pts[lo])-t)?pts[lo-1]:pts[lo];};
  overlay.addEventListener('pointermove',e=>{
