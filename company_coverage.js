@@ -8,8 +8,8 @@ function companyCoverageFacts(c,now=Date.now()){
  const gaps=[];
  if(!latest)gaps.push('No dated results document');
  else if(now-Date.parse(latest.published)>210*86400000)gaps.push('Results document over 7 months old—check for newer release');
- if(usable.length<3)gaps.push('Only '+usable.length+' usable annual periods');
- if(rows.length>usable.length)gaps.push('Some annual periods lack revenue, net income or operating cash flow');
+ if(usable.length<3)gaps.push('Only '+usable.length+' complete annual periods: multi-year growth and cash-flow analysis may be unavailable');
+ if(rows.length>usable.length){const missing=[['revenue','revenue'],['netIncome','net income'],['operatingCashFlow','operating cash flow']].filter(([key])=>rows.some(r=>!Number.isFinite(r[key]))).map(([,name])=>name);gaps.push('Annual history is missing '+missing.join(', ')+'. Snapshot figures below can still be available; they do not establish a complete annual history');}
  if(rows.some((r,i)=>i&&Date.parse(rows[i-1].fiscalEnd)-Date.parse(r.fiscalEnd)>400*86400000))gaps.push('Gaps in annual history');
  if(!sources.length)gaps.push('No linked issuer evidence in research records');
  if(rows[0]&&now-Date.parse(rows[0].fiscalEnd)>550*86400000)gaps.push('Latest annual period over 18 months old');
@@ -18,7 +18,7 @@ function companyCoverageFacts(c,now=Date.now()){
 function renderCompanyCoverage(c){
  const host=document.getElementById('research-overview');if(!host)return;
  let box=document.getElementById('company-coverage-gaps');if(!box){box=el('div','company-coverage-gaps');box.id='company-coverage-gaps';host.prepend(box);}
- const info=companyCoverageFacts(c);box.replaceChildren(el('strong','','RESEARCH COVERAGE'));
+ const info=companyCoverageFacts(c);box.replaceChildren(el('strong','','Research coverage'));
  box.append(el('p','mini','Latest annual period: '+info.period+' · '+info.usable+'/'+info.total+' periods with revenue, net income and operating cash flow · '+info.sources+' linked research documents'));
  if(info.latest){const a=el('a','','Results document: '+info.latest.published+' · period '+(info.latest.period||'not specified'));a.href=info.latest.url;a.target='_blank';a.rel='noopener noreferrer';box.append(a);}
  box.append(el('p','note',info.gaps.length?info.gaps.join(' · '):'No gaps found by these checks. Latest-release completeness has not been independently confirmed.'));
