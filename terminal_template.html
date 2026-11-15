@@ -1163,7 +1163,7 @@ function seriesOf(symbol,range,prop='mainRange'){
   const all=histMap.get(symbol)||[];
   return periods(all,prop);
 }
-function setLatest(){const ts=D.generatedAt||'unknown';$('stamp').textContent='Generated '+ts+' · rerun Python to refresh';
+function setLatest(){const ts=D.generatedAt||'unknown';$('stamp').textContent='Generated '+ts;
   if(D.demo){$('demo-banner').style.display='block';$('status-tag').textContent='SIMULATED DATA';}
   if(!D.quotes.length){$('status-tag').textContent='NO QUOTES';}
 }
@@ -1681,9 +1681,9 @@ function renderScreener(){
   const p=x=>x==null?'—':fmt(x,1);
   for(const x of matched.slice(0,150)){
     const tr=el('tr');tr.title='Open '+x.name+' company research';tr.onclick=()=>openConstituent(x.symbol);
-    td(tr,x.name+' · '+x.markets.join('/'));td(tr,x.symbol);td(tr,x.sector||'—');
+    const nameCell=td(tr,x.name);nameCell.append(el('small','screen-identity',x.symbol+' · '+x.markets.join('/')));td(tr,x.symbol);td(tr,x.sector||'—');
     td(tr,x.pe!=null?p(x.pe)+'×':'—','n');td(tr,p(x.div),'n');td(tr,p(x.roe),'n');td(tr,p(x.growth),'n');
-    td(tr,x.leverage!=null?p(x.leverage)+'×':'—','n');td(tr,p(x.vol),'n');td(tr,p(x.momentum),'n');td(tr,p(x.maxDD),'n');
+    td(tr,x.leverage!=null?p(x.leverage)+'×':'—','n');td(tr,p(x.vol),'n');td(tr,p(x.momentum),'n '+tone(x.momentum));td(tr,p(x.maxDD),'n '+tone(x.maxDD));
     td(tr,x.finDate||'—');td(tr,x.history.first?x.history.first+' to '+x.history.last:'—');host.append(tr);
   }
 }

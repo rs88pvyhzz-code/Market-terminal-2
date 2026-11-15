@@ -122,10 +122,12 @@ function r24Conditions(host){
   const curve=s&&two&&s.date===two.date?((s.DGS10-two.DGS2)*100).toFixed(0)+' bp':'Unavailable';
   r24Table(host,['Indicator','Latest observation','Change / context','Observation date'],[
     ['Volatility',vix?'VIX '+fmt(vix.price,2):'Unavailable',vix?pc(vix.changePct):'Unavailable',vix?.asOf||'Unavailable'],
-    ['Market breadth',list(breadth.map(b=>b.name+': '+b.advancers+' advancing / '+b.decliners+' declining')),list(breadth.map(b=>b.quoted+'/'+b.members+' quoted; above 200D '+b.above200+'/'+b.eligible200)),list(breadth.map(b=>b.name+' '+b.date))],
     ['Sovereign yields / curve',list([u?'UK 10Y '+fmt(u.gilt10y,2)+'%':'UK unavailable',s?'US 10Y '+fmt(s.DGS10,2)+'%':'US unavailable']),list([u&&p?'UK '+fmt((u.gilt10y-p.gilt10y)*100,1)+' bp since '+p.date:'UK change unavailable',s&&t?'US '+fmt((s.DGS10-t.DGS10)*100,1)+' bp since '+t.date:'US change unavailable','US 10Y−2Y '+curve]),list([u?'UK '+u.date:'UK date unavailable',s?'US '+s.date:'US date unavailable'])],
     ['Credit spreads',list(credit.map(c=>c.name+' '+fmt(c.latestBp,0)+' bp')),list(credit.map(c=>c.name+' 1M '+fmt(c.change30Bp,0)+' bp')),list(credit.map(c=>c.name+' '+c.date))]
   ],'r24-conditions-table');
+  host.append(el('h3','', 'Market breadth'));
+  r24Table(host,['Index','Advancing','Declining','Above 200-day average','Quoted / listed','Date'],
+    breadth.map(b=>[b.name,b.advancers??'—',b.decliners??'—',b.above200!=null&&b.eligible200?b.above200+' / '+b.eligible200:'—',b.quoted+' / '+b.members,b.date]),'reading-breadth-table');
 }
 function r24Snapshot(){
   const host=$('market-pulse');if(!host)return;host.replaceChildren();

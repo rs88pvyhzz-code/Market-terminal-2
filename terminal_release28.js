@@ -161,7 +161,7 @@ renderMacro=function(){
   tile.querySelectorAll('.r28-economic-sub').forEach(n=>n.remove());
   const p=index.get(m.key);const text=el('div','r28-economic-sub');
   if(p?.previous!=null){
-   text.textContent='Prior '+fmt(p.previous,2)+(p.unit||m.unit||'')+' · '+(p.previousPeriod||'previous period');
+   text.append(el('span','prior-label','Prior '),el('strong','prior-value',fmt(p.previous,2)+(p.unit||m.unit||'')),el('span','prior-period',p.previousPeriod||'Previous period'));
   }else text.textContent='Prior unavailable';
   tile.append(text);
   if(p?.forecast!=null&&p?.sourceUrl&&p?.source&&p?.recordedAt){

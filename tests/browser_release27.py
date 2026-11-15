@@ -144,7 +144,7 @@ with sync_playwright() as p:
             # original capture for review; enforce legibility and usable containment.
             for prop in ['fontFamily','color']:
                 if prop not in props:continue
-                if prop=='fontFamily' and selector in ['#view-etfs>.workspace-title h1','#etf-tracker-panel h2']:
+                if prop=='fontFamily' and selector in ['#view-etfs>.workspace-title h1','#etf-tracker-panel h2','#etf-tracker-panel .etf-table td']:
                     assert actual[prop]==reading_font,(selector,prop,reading_font,actual)
                 else:assert actual[prop]==expected[prop],(selector,prop,expected,actual)
         assert page.locator('#etf-tracker-panel .etf-table td').first.evaluate('(e)=>parseFloat(getComputedStyle(e).fontSize)>=12')

@@ -286,3 +286,28 @@
 #workspace-stage .layout-metrics .metric-commentary>:nth-child(n+3){display:block!important}
 #workspace-stage .layout-metrics [hidden]{display:none!important}
 #workspace-stage .layout-metrics{align-items:start}
+
+/* Larger reading text; figures use the compact Analytics table face with tabular digits. */
+#workspace-stage table :is(td,th),#workspace-stage #etf-tracker-panel .etf-table :is(td,th){font-family:var(--reading-sans)!important;font-size:14px!important;line-height:1.45!important}
+#workspace-stage table td.n,#workspace-stage .mt-return-table td{font-family:var(--reading-sans)!important;font-variant-numeric:tabular-nums}
+#workspace-stage :is(.news-item,.company-story,#news-list,#r24-developments) a{font-size:16px!important;line-height:1.45!important}
+#workspace-stage :is(.news-meta,.news-item .mini,.company-story .mini){font-size:12px!important;color:#b8bec8!important}
+#workspace-stage #market-pulse .r24-snapshot-item>strong{font:600 18px/1.3 var(--reading-sans)!important;font-variant-numeric:tabular-nums}
+#workspace-stage #market-pulse .r24-snapshot-item>:nth-child(3){font:600 15px/1.4 var(--reading-sans)!important;font-variant-numeric:tabular-nums}
+#workspace-stage #market-pulse .reading-timestamp{font:400 11px/1.4 var(--reading-sans)!important;color:#b8bec8!important}
+#workspace-stage .reading-time-basis{display:block!important;font:400 12px/1.4 var(--reading-sans);color:#b8bec8;margin:3px 0 8px}
+#workspace-stage table .reading-table-date{font-size:12px!important;white-space:nowrap}
+#workspace-stage #macro-tiles .r28-economic-sub{font:400 14px/1.4 var(--reading-sans)!important;color:#dce7f3!important;margin-top:8px}
+#workspace-stage #macro-tiles .prior-value{font:600 17px/1.35 var(--reading-sans)!important;font-variant-numeric:tabular-nums;color:#ececef!important}
+#workspace-stage #macro-tiles .prior-period{display:block;font:400 12px/1.4 var(--reading-sans)!important;color:#b8bec8;margin-top:3px}
+#workspace-stage .screen-identity{display:block;font:400 12px/1.4 var(--reading-sans)!important;color:#b8bec8!important;margin-top:3px}
+#workspace-stage .reading-screen table :is(th,td):nth-child(2){display:none!important}
+#workspace-stage .reading-screen:not(.show-source-columns) table :is(th,td):nth-child(n+12){display:none!important}
+#screen-source-toggle{margin:8px 0}
+#workspace-stage .reading-screen .screener-scroll{overflow-x:auto!important}
+#workspace-stage .reading-screen table{min-width:1000px;table-layout:auto!important}
+#workspace-stage .reading-screen table :is(th,td):first-child{min-width:190px}
+#workspace-stage .reading-screen table th{white-space:normal}
+html{scroll-padding-top:calc(var(--security-nav-height,110px) + 16px)}
+#workspace-stage :is(section[id],.panel[id],.layout-group[id]){scroll-margin-top:calc(var(--security-nav-height,110px) + 16px)}
+#workspace-stage .panel>h2{position:sticky;top:var(--security-nav-height,110px);z-index:32;background:var(--t-panel,#121215);padding:8px 0;margin-top:0}

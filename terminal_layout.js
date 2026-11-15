@@ -549,6 +549,37 @@ function readableMetrics(){
   });
 }
 
+// Shared timestamp hierarchy and optional screener provenance columns.
+function readingRefinements(){
+  const pulse=$L('market-pulse');
+  const shortDate=text=>text.replace(/\b(\d{4})-(\d{2})-(\d{2})(?:[T ](\d{2}:\d{2})(?::\d{2})?)?(?: UTC|Z|\+00:00)?/g,(raw,y,m,d,time)=>{
+    const months=['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+    return +d+' '+(months[+m-1]||m)+' '+y+(time?', '+time:'');});
+  if(pulse){
+    let note=$L('pulse-time-basis');if(!note){note=document.createElement('div');note.id='pulse-time-basis';note.className='mt-reading-note reading-time-basis';note.textContent='Quote times in UTC';pulse.before(note);}
+    for(const tile of pulse.children){
+      const stamp=tile.children[3];if(!stamp)continue;
+      stamp.classList.add('reading-timestamp');
+      const raw=stamp.dataset.rawTime||stamp.textContent;stamp.dataset.rawTime=raw;stamp.title=raw;
+      const text=shortDate(raw);if(stamp.textContent!==text)stamp.textContent=text;
+    }
+  }
+  document.querySelectorAll('#workspace-stage table').forEach(table=>{
+    const heads=[...(table.tHead?.rows[0]?.cells||[])];
+    heads.forEach((head,i)=>{
+      if(!/\bUTC\b/.test(head.textContent))return;
+      for(const row of table.tBodies[0]?.rows||[]){const cell=row.cells[i];if(!cell||cell.children.length)continue;
+        const raw=cell.textContent;if(!/ UTC\b/.test(raw))continue;cell.title=raw;cell.textContent=shortDate(raw);cell.classList.add('reading-table-date');}
+    });
+  });
+  const screen=$L('equity-screener');if(screen&&!$L('screen-source-toggle')){
+    screen.classList.add('reading-screen');
+    const button=document.createElement('button');button.id='screen-source-toggle';button.type='button';button.className='btn';button.textContent='Show source columns';button.setAttribute('aria-expanded','false');
+    button.onclick=()=>{const show=screen.classList.toggle('show-source-columns');button.textContent=show?'Hide source columns':'Show source columns';button.setAttribute('aria-expanded',String(show));};
+    screen.querySelector('.screener-scroll')?.before(button);
+  }
+}
+
 function applyLayout(){
   if(applying)return;applying=true;
   try{
@@ -572,6 +603,7 @@ function applyLayout(){
       {try{step();}catch(e){console.warn('Layout step skipped:',step.name,e&&e.message);}}
     const ws=$L('watchlist-summary');if(ws&&ws.parentElement!==park)park.append(ws);
     readableMetrics();
+    readingRefinements();
     stripCaveats();
     try{cleanReading();}catch(e){console.warn('Clean reading skipped:',e&&e.message);}
     const av=$L('view-analytics');

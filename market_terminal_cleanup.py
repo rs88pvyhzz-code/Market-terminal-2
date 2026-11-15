@@ -191,7 +191,7 @@ function renderScore(){
  for(const period of mtMovePeriods){
   const th=el('th'),button=el('button','mt-sort',period+(period==='3Y'||period==='5Y'?' p.a.':''));button.type='button';button.dataset.mtPeriod=period;
   const active=period===mtMovePeriod;th.setAttribute('aria-sort',active&&mtMoveView==='ranked'?(mtMoveDirection<0?'descending':'ascending'):'none');
-  if(active)th.classList.add('mt-selected-period');
+  if(active&&mtMoveView==='ranked')th.classList.add('mt-selected-period');
   button.append(document.createTextNode(active&&mtMoveView==='ranked'?(mtMoveDirection<0?' ↓':' ↑'):''));
   button.onclick=()=>{mtMoveDirection=active&&mtMoveView==='ranked'?-mtMoveDirection:-1;mtMovePeriod=period;mtMoveView='ranked';renderScore();};th.append(button);hr.append(th);
  }
@@ -201,7 +201,7 @@ function renderScore(){
   const tr=el('tr');tr.dataset.symbol=q.symbol;
   const name=el('td','',q.name);name.append(el('span','mt-currency',' · '+(q.currency||'currency unspecified')));
   const history=mtMoveIndex().get(q.symbol);name.title=q.symbol+' · through '+(history?.at(-1)?.date||q.asOf||'date unavailable');tr.append(name);
-  values.forEach((v,i)=>{const cell=el('td',v==null?'':v<0?'down':v>0?'up':'',mtMoveFormat(v));if(i===pi)cell.classList.add('mt-selected-period');tr.append(cell);});body.append(tr);
+  values.forEach((v,i)=>{const cell=el('td',v==null?'':v<0?'down':v>0?'up':'',mtMoveFormat(v));if(i===pi&&mtMoveView==='ranked')cell.classList.add('mt-selected-period');tr.append(cell);});body.append(tr);
  }
  table.append(body);wrap.append(table);host.append(wrap);
 }

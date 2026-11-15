@@ -101,14 +101,20 @@
     for(const w of $$(WRAPS)){
       if(w.closest('#view-quality')||w.parentElement?.closest(WRAPS))continue;
       const body=w.querySelector('tbody');if(!body)continue;
-      const rows=[...body.rows].filter(r=>!/group|geo/.test(r.className));
+      const rows=[...body.rows].filter(r=>!/group|geo|watch-section/.test(r.className));
       const key=wrapKey(w),open=expanded.has(key),over=rows.length>LIMIT;
       let n=0;
       for(const r of body.rows){
-        const isGroup=/group|geo/.test(r.className);if(!isGroup)n++;
+        const isGroup=/group|geo|watch-section/.test(r.className);if(!isGroup)n++;
         const keep=open||!over||n<=LIMIT||r.matches('.etf-active,.selected,.active,[aria-selected=true]');
         if(r.classList.contains('polish-cut')===keep)r.classList.toggle('polish-cut',!keep);
       }
+      // A group heading appears only when at least one following row is visible.
+      const all=[...body.rows];
+      all.forEach((row,i)=>{if(!/group|geo|watch-section/.test(row.className))return;
+        let visible=false;for(let j=i+1;j<all.length&&!/group|geo|watch-section/.test(all[j].className);j++)if(!all[j].classList.contains('polish-cut'))visible=true;
+        row.classList.toggle('polish-cut',!visible);
+      });
       let btn=w.nextElementSibling?.classList.contains('polish-more')?w.nextElementSibling:null;
       if(!over){btn?.remove();continue;}
       if(!btn){btn=document.createElement('button');btn.type='button';btn.className='polish-more';w.after(btn);}
