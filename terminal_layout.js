@@ -246,7 +246,7 @@ const SNAPSHOT_DUPLICATES=/^(day move|market capitali[sz]ation)$/i;
 const METRIC_GROUPS=[
   ['Price & valuation',[/^price$/,/^market capitali[sz]ation$/,/^valuation$/,/^trailing p\/e/,/^forward p\/e/,/^price \/ book/,/^ev \/ ebitda/,/^eps/,/^dividend yield/]],
   ['Size & growth',[/^revenue · ttm/,/^revenue · fy/,/^revenue growth/,/^ebitda/,/^operating profit/,/^net profit · ttm/,/^net profit · fy/]],
-  ['Profitability',[/^profit margin/,/^profitability/,/^return on equity/,/^return on/]],
+  ['Profitability',[/^profit margin/,/^profitability/,/^calculated return on equity/,/^return on equity/,/^return on/]],
   ['Cash & balance sheet',[/^cash generation/,/^free cash flow/,/^total debt/,/^financial strength/,/^net debt/]]
 ];
 function metricOrder(label){
@@ -269,7 +269,13 @@ function mergeSnapshot(park){
   if(kpis.parentElement!==wrap)wrap.append(kpis);
   kpis.classList.add('layout-merged-kpis');
   for(const tile of kpis.children){const label=(tile.firstElementChild&&tile.firstElementChild.textContent||'').trim();tile.hidden=SNAPSHOT_DUPLICATES.test(label);}
-  for(const tile of [...dash.children,...kpis.children]){const label=tile.firstElementChild&&tile.firstElementChild.textContent||'';tile.style.order=String(metricOrder(label));}
+  const trailing=[...dash.children].find(t=>/^trailing p\/e$/i.test(t.firstElementChild?.textContent.trim()||''));
+  for(const tile of kpis.children)if(/^trailing p\/e$/i.test(tile.firstElementChild?.textContent.trim()||'')&&trailing&&trailing.children[1]?.textContent!=='—')tile.hidden=true;
+  const calculated=[...dash.children].find(t=>/^calculated return on equity$/i.test(t.firstElementChild?.textContent.trim()||''));
+  const reported=[...kpis.children].find(t=>/^return on equity$/i.test(t.firstElementChild?.textContent.trim()||''));
+  if(calculated&&reported&&calculated.children[1]?.textContent!=='—'&&calculated.children[1]?.textContent===reported.children[1]?.textContent)reported.hidden=true;
+  for(const tile of [...dash.children,...kpis.children]){const label=tile.firstElementChild&&tile.firstElementChild.textContent||'';tile.style.order=String(metricOrder(tile.dataset.metricLabel||label));}
+
   if(holder&&!holder.contains(kpis)&&!park.contains(holder)){
     const rest=[...holder.children].filter(c=>!c.matches('h3,h4,summary,.r24-support-heading'));
     if(!rest.length)park.append(holder);
@@ -481,7 +487,7 @@ function cleanReading(){
   stage.querySelectorAll('.r24-calendar-key,.r28-gilt-advanced,.r28-more').forEach(n=>{if(!n.closest('#view-quality'))n.classList.add('layout-hidden');});
   stage.querySelectorAll('p,.note,.mini,small').forEach(n=>{
     if(n.dataset.cleanChecked===n.textContent)return;n.dataset.cleanChecked=n.textContent;
-    if(n.closest('#company-coverage-gaps,#news-visit-controls,#view-quality,table,label,button,select,summary,h1,h2,h3,h4,.news-item,.r24-item,.r23-observation,.layout-group-head,#layout-bond-tabs,.mt-reading-note,.r213-company-evidence,.company-story,.research-warning,.mt-inline-notice'))return;
+    if(n.closest('.metric-commentary,#company-coverage-gaps,#news-visit-controls,#view-quality,table,label,button,select,summary,h1,h2,h3,h4,.news-item,.r24-item,.r23-observation,.layout-group-head,#layout-bond-tabs,.mt-reading-note,.r213-company-evidence,.company-story,.research-warning,.mt-inline-notice'))return;
     const text=n.textContent.trim();if(!text)return;
     // Research write-ups (outlook, statements, issuer evidence) are content: there only
     // purely explanatory lines (no figure or date) are removed.
@@ -497,7 +503,7 @@ function cleanReading(){
   });
   // Tile captions that only explain (no figure or date) go; captions with data stay.
   stage.querySelectorAll(TILE_GRIDS.split(',').map(g=>g+' > * > :nth-child(n+3)').join(',')).forEach(n=>{
-    if(n.closest('#view-quality'))return;
+    if(n.closest('#view-quality,.metric-commentary'))return;
     if(n.children.length===0&&!/\d/.test(n.textContent))n.classList.add('layout-hidden');
   });
   $L('company-dates')?.classList.add('layout-hidden');
@@ -522,6 +528,27 @@ function refreshContexts(){
 }
 
 let applying=false;
+// Presentation only: retain raw labels for grouping; never rewrite source values.
+function readableMetrics(){
+  const acronym=/\b(?:US|UK|EU|FTSE|MSCI|S&P|GDP|CPI|PMI|TTM|FY|EPS|EBITDA|EV|ROE|ROIC|RSI|CAGR|GBP|USD|EUR|ETF|TER|OCF|P\/E|P\/B|\d+[YMDW])\b/g;
+  function sentence(text){const keep=new Map();let i=0;const protectedText=text.replace(acronym,m=>{const key='zz'+i+++'zz';keep.set(key,m);return key;});let result=protectedText.toLowerCase();result=result.charAt(0).toUpperCase()+result.slice(1);for(const [key,value] of keep)result=result.replace(new RegExp(key,'i'),value);return result;}
+  const stage=$L('workspace-stage');if(!stage)return;
+  stage.querySelectorAll(TILE_GRIDS.split(',').map(g=>g+' > *').join(',')).forEach(tile=>{
+    if(tile.classList.contains('layout-metrics-head')||tile.matches('.research-dashboard,.company-kpis'))return;
+    const label=tile.firstElementChild,value=tile.children[1];if(!label||!value||label.children.length)return;
+    const raw=tile.dataset.metricLabel||label.textContent;tile.dataset.metricLabel=raw;
+    const next=sentence(raw).replace(/ · TTM/g,' — last 12 months').replace(/ · FY /g,' — FY ');
+    if(label.textContent!==next)label.textContent=next;
+    if(value.textContent.trim()==='Sector review'){tile.classList.add('metric-commentary');value.textContent='Review sector-specific measures';}
+    if(tile.classList.contains('metric-commentary'))tile.querySelectorAll('.layout-hidden').forEach(n=>n.classList.remove('layout-hidden'));
+    for(const note of [...tile.children].slice(2)){
+      if(note.children.length)continue;
+      const text=note.textContent;const next=text.replace(/\d{4}-\d{2}-\d{2}[T ]\d{2}:\d{2}(?::\d{2}(?:\.\d+)?)?(?:\+00:00|Z| UTC)?/g,rawDate=>{const d=new Date(rawDate.includes('T')?rawDate:rawDate.replace(' ','T').replace(' UTC','Z'));if(!Number.isFinite(+d))return rawDate;return d.toLocaleDateString('en-GB',{day:'numeric',month:'short',year:'numeric',timeZone:'UTC'})+', '+d.toLocaleTimeString('en-GB',{hour:'2-digit',minute:'2-digit',timeZone:'UTC'})+' UTC';}).replace(/^Provider observation · /,'Updated ');
+      if(next!==text){note.title=text;note.textContent=next;}
+    }
+  });
+}
+
 function applyLayout(){
   if(applying)return;applying=true;
   try{
@@ -544,6 +571,7 @@ function applyLayout(){
     for(const step of [orderPulse,orderDetailContent,renderWatchFreshness,renderYieldSnapshot,tidyEtf,renderEtfAlternatives,renderWarnings,renderSovereignTable,renderBondTabs])
       {try{step();}catch(e){console.warn('Layout step skipped:',step.name,e&&e.message);}}
     const ws=$L('watchlist-summary');if(ws&&ws.parentElement!==park)park.append(ws);
+    readableMetrics();
     stripCaveats();
     try{cleanReading();}catch(e){console.warn('Clean reading skipped:',e&&e.message);}
     const av=$L('view-analytics');

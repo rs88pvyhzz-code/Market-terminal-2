@@ -71,13 +71,13 @@
 #workspace-stage :is(.research-stats,.watchlist-kpis,.etf-stat-grid,.analytic-cards,.research-dashboard,.company-kpis,.mt-quality-grid,.r29-coverage-grid,.credit-kpis,.r28-gilt-yields,.r28-gilt-facts,.history-coverage-grid,.t11-ratios,#view-economics .macro){
   display:grid;gap:1px!important;background:transparent!important;border:1px solid var(--t-line)!important;border-radius:8px;overflow:hidden;padding:0!important}
 #workspace-stage :is(.research-stats,.watchlist-kpis,.etf-stat-grid,.analytic-cards,.research-dashboard,.company-kpis,.mt-quality-grid,.r29-coverage-grid,.credit-kpis,.r28-gilt-yields,.r28-gilt-facts,.history-coverage-grid,.t11-ratios,#view-economics .macro)>*{
-  background:var(--t-tile)!important;border:0!important;border-radius:0!important;box-shadow:0 0 0 1px var(--t-line)!important;padding:14px 16px!important;min-width:0;display:flex;flex-direction:column;gap:6px;justify-content:flex-start}
+  background:var(--t-tile)!important;border:0!important;border-radius:0!important;box-shadow:0 0 0 1px var(--t-line)!important;padding:9px 12px!important;min-height:0!important;min-width:0;display:flex;flex-direction:column;gap:4px;justify-content:flex-start}
 #workspace-stage :is(.research-stats,.watchlist-kpis,.etf-stat-grid,.analytic-cards,.research-dashboard,.company-kpis,.mt-quality-grid,.r29-coverage-grid,.credit-kpis,.r28-gilt-yields,.r28-gilt-facts,.history-coverage-grid,.t11-ratios,#view-economics .macro)>*>:first-child{
-  font:500 12px/1.35 var(--t-mono)!important;color:var(--t-amber)!important;letter-spacing:.02em;text-transform:none!important}
+  font:500 12px/1.35 var(--reading-sans)!important;color:#c9d4e1!important;letter-spacing:normal;text-transform:none!important}
 #workspace-stage :is(.research-stats,.watchlist-kpis,.etf-stat-grid,.analytic-cards,.research-dashboard,.company-kpis,.mt-quality-grid,.r29-coverage-grid,.credit-kpis,.r28-gilt-yields,.r28-gilt-facts,.history-coverage-grid,.t11-ratios,#view-economics .macro)>*>:nth-child(2){
-  font:400 20px/1.25 var(--t-mono)!important;color:var(--t-fg);font-variant-numeric:tabular-nums;overflow-wrap:anywhere}
+  font:400 18px/1.3 var(--t-mono)!important;color:var(--t-fg);font-variant-numeric:tabular-nums;overflow-wrap:anywhere}
 #workspace-stage :is(.research-stats,.watchlist-kpis,.etf-stat-grid,.analytic-cards,.research-dashboard,.company-kpis,.mt-quality-grid,.r29-coverage-grid,.credit-kpis,.r28-gilt-yields,.r28-gilt-facts,.history-coverage-grid,.t11-ratios,#view-economics .macro)>*>:nth-child(n+3){
-  font:400 11.5px/1.45 var(--t-mono)!important;color:var(--t-muted)}
+  font:400 12px/1.45 var(--reading-sans)!important;color:var(--t-muted)}
 #workspace-stage :is(.research-stats,.watchlist-kpis,.etf-stat-grid,.analytic-cards,.research-dashboard,.company-kpis,.credit-kpis,.r28-gilt-yields,.r28-gilt-facts)>*>:nth-child(n+3):is(.pos,.up,.good){color:#5fd39a}
 #workspace-stage :is(.research-stats,.watchlist-kpis,.etf-stat-grid,.analytic-cards,.research-dashboard,.company-kpis,.credit-kpis,.r28-gilt-yields,.r28-gilt-facts)>*>:nth-child(n+3):is(.neg,.down,.bad){color:#ff6b6b}
 #workspace-stage .r28-gilt-yields>*>:nth-child(2){font-size:26px!important;color:var(--t-fg)}
@@ -272,3 +272,17 @@
 .news-visit-controls a{color:var(--amber)}
 .news-new{display:inline-block;font:600 10px/1.4 var(--font);color:var(--amber);border:1px solid currentColor;border-radius:3px;padding:1px 4px;margin:0 6px 4px 0}
 #company-coverage-gaps .layout-hidden{display:block!important}
+
+/* One reading family for language; tabular monospace for financial values. */
+:root{--reading-sans:-apple-system,BlinkMacSystemFont,"Segoe UI",Arial,sans-serif}
+#workspace-stage :is(h1,h2,h3,h4,.layout-metrics-head,.layout-context,.mini,.note,.obs,.d,small,.lab,.k,.key,.chart-series-labels),
+.commandbar :is(button,label),#workspace-stage :is(button,label,select),.table-reading-head th{
+ font-family:var(--reading-sans)!important;letter-spacing:normal!important;text-transform:none!important}
+#workspace-stage :is(h2,h3,h4,.layout-metrics-head){font-size:14px!important;font-weight:600!important;line-height:1.4!important}
+#workspace-stage :is(.note,.obs,.d,small,.layout-context){font-size:12px!important;line-height:1.45!important;color:#b8bec8}
+#workspace-stage table th{font-family:var(--reading-sans)!important;letter-spacing:normal!important;text-transform:none!important}
+#workspace-stage table td.n{font-family:var(--t-mono)!important;font-variant-numeric:tabular-nums}
+#workspace-stage .layout-metrics .metric-commentary>:nth-child(2){font:400 13px/1.45 var(--reading-sans)!important;color:#b8bec8!important}
+#workspace-stage .layout-metrics .metric-commentary>:nth-child(n+3){display:block!important}
+#workspace-stage .layout-metrics [hidden]{display:none!important}
+#workspace-stage .layout-metrics{align-items:start}

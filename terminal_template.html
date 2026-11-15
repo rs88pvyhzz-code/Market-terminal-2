@@ -1284,11 +1284,11 @@ function chart(id,series,opt={}){
  if(opt.area&&good.length===1&&good[0].pts.length){let points=good[0].pts,p0=points[0],pn=points[points.length-1];
   let area=getPath(points)+' L'+X(chartTime(pn))+' '+(H-B)+' L'+X(chartTime(p0))+' '+(H-B)+' Z';
   s.append(svgEl('path',{d:area,fill:good[0].color||AMBER,opacity:'.11'}));}
- good.forEach(item=>s.append(svgEl('path',{d:getPath(item.pts,item.step),fill:'none',stroke:item.color||AMBER,'stroke-width':2.1,'stroke-linejoin':'round'})));
+ good.forEach(item=>s.append(svgEl('path',{d:getPath(item.pts,item.step),fill:'none',stroke:item.color||AMBER,'stroke-width':2.1,'stroke-dasharray':item.reference?'7 4':'none','stroke-linejoin':'round'})));
  const vertical=svgEl('line',{x1:0,x2:0,y1:T,y2:H-B,stroke:'#797984','stroke-dasharray':'3 3',style:'display:none'});s.append(vertical);
  const circles=good.map(item=>{const circle=svgEl('circle',{r:3.8,fill:item.color||AMBER,style:'display:none'});s.append(circle);return circle;});
  const overlay=svgEl('rect',{x:L,y:T,width:plotW,height:plotH,fill:'transparent'});s.append(overlay);
- host.append(s);const tooltip=el('div','tip');host.append(tooltip);
+ const legend=el('div','chart-series-labels');for(const item of good){const label=el('span');const swatch=el('i');swatch.style.borderTop='3px '+(item.reference?'dashed':'solid')+' '+(item.color||AMBER);label.append(swatch,document.createTextNode(item.name||'Series'));legend.append(label);}if(!host.classList.contains('r25-financial-chart'))host.append(legend);host.append(s);const tooltip=el('div','tip');host.append(tooltip);
  const nearest=(pts,t)=>{let lo=0,hi=pts.length-1;while(lo<hi){let mid=(lo+hi)>>1;if(chartTime(pts[mid])<t)lo=mid+1;else hi=mid;}
  return lo>0&&Math.abs(chartTime(pts[lo-1])-t)<Math.abs(chartTime(pts[lo])-t)?pts[lo-1]:pts[lo];};
  overlay.addEventListener('pointermove',e=>{
@@ -2410,7 +2410,7 @@ function renderCompanyRisk(c){
  $('company-benchmark-note').textContent=selected[0].date+' to '+selected.at(-1).date+' · '+sym+' '+pc(ap.at(-1).v-100)+' vs '+
   (bench?.name||benchSymbol)+' '+pc(bp.at(-1).v-100)+' · '+(same?'same quoted currency':'both converted to GBP on matching dates')+
   ' · price returns only, excluding dividends'+(chartRange!=='MAX'&&watchSpanDays(selected[0].date,selected.at(-1).date)<250&&chartRange==='1Y'?' · PARTIAL HISTORY':'');
- chart('company-benchmark-chart',[{name:sym+' rebased',pts:ap,color:AMBER},{name:(bench?.name||benchSymbol)+' rebased',pts:bp,color:AQUA}],
+ chart('company-benchmark-chart',[{name:sym+' rebased',pts:ap,color:AMBER},{name:(bench?.name||benchSymbol)+' rebased',pts:bp,color:AQUA,reference:true}],
   {format:v=>fmt(v,1),aria:sym+' against '+benchSymbol});
 }
 $('company-benchmark-range').addEventListener('change',()=>{if(state.companySymbol)renderCompanyRisk(ensureCompany(state.companySymbol));});
@@ -2476,7 +2476,7 @@ function renderWatchlistRelative(w,q){
   w.symbol+' '+pc(a.at(-1).v-100)+' vs '+(found.bench?.name||w.benchmark)+' '+pc(b.at(-1).v-100)+
   ' · relative '+pc(diff)+' percentage points · '+(found.converted?'Both translated to GBP at dated FX rates':'Same quoted currency')+
   ' · '+(watchState.basis.startsWith('adjusted')?'adjusted returns where supplied; the index may remain price only':'price return only; no dividends')+'.';
- chart('watchlist-chart',[{name:w.symbol+' (rebased)',pts:a,color:AMBER},{name:(found.bench?.name||w.benchmark)+' (rebased)',pts:b,color:AQUA}],
+ chart('watchlist-chart',[{name:w.symbol+' (rebased)',pts:a,color:AMBER},{name:(found.bench?.name||w.benchmark)+' (rebased)',pts:b,color:AQUA,reference:true}],
   {format:v=>fmt(v,1),aria:w.name+' compared with '+(found.bench?.name||w.benchmark)});
 }
 
@@ -2496,6 +2496,8 @@ function watchPriceRisk(symbol){
   volatility=100*Math.sqrt(252*logs.reduce((v,x)=>v+(x-mean)*(x-mean),0)/(logs.length-1));}
  return {threeYear,volatility,maxDrawdown:recent.length>=125?drawdown:null};
 }
+function shortSecurityName(name){return String(name||'').replace(/\bUCITS\b/gi,'').replace(/\bETF\b/gi,'').replace(/\bplc\b/gi,'').replace(/Accumulating/gi,'Acc').replace(/Distributing/gi,'Dist').replace(/\s+/g,' ').trim();}
+function explainMissing(stat,value){if(value==null||String(value).trim()==='—'){const n=el('div','missing-reason','Source data unavailable');stat.append(n);}}
 function styleReturnValue(node,label,value){
  if(!/return|price move|daily.*move|drawdown/i.test(label)||/volatility|yield|tracking/i.test(label))return;
  const raw=String(value??'').replace(/−/g,'-').replace(/,/g,'');
@@ -2504,7 +2506,7 @@ function styleReturnValue(node,label,value){
 }
 function watchValTile(label,value,info=''){
  const box=el('div','watchlist-stat');box.append(el('div','k',label),el('div','v',value??'—'));
- styleReturnValue(box.querySelector('.v'),label,value);
+ styleReturnValue(box.querySelector('.v'),label,value);explainMissing(box,value);
  if(info)box.append(el('div','d',info));return box;
 }
 function renderWatchRows(){
@@ -2514,7 +2516,7 @@ function renderWatchRows(){
   tr.tabIndex=0;tr.setAttribute('role','button');tr.setAttribute('aria-label','Open research for '+w.name);
   if(watchState.symbol===w.symbol)tr.classList.add('selected');
   const pct=(value)=>value==null?'—':pc(value);
-  td(tr,w.name);td(tr,w.symbol);td(tr,watchFmtQuote(q),'n');
+  const nameCell=td(tr,shortSecurityName(w.name));nameCell.title=w.name;td(tr,w.symbol);td(tr,watchFmtQuote(q),'n');
   td(tr,pct(q?.changePct),'n '+tone(q?.changePct));const month=watchPeriodReturn(w.symbol,0);td(tr,pct(month),'n '+tone(month));
   td(tr,pct(q?.yearPct),'n '+tone(q?.yearPct));
   for(const years of [3,5]){const v=watchPeriodReturn(w.symbol,years);td(tr,pct(v),'n '+tone(v));}td(tr,pct(f?.dividendYieldPct),'n');
@@ -2604,7 +2606,7 @@ function renderWatchlist(){
  watchState.symbol=w.symbol;
  const q=watchQuoteMap.get(w.symbol),c=watchProfile(w.symbol)||{},fundCcy=c.financialCurrency||'';
  if(['3Y','5Y','MAX'].includes(watchState.riskRange))loadWatchlistDailyArchive(w.symbol);
- $('watchlist-selected-name').textContent=w.name+' · '+w.symbol;
+ $('watchlist-selected-name').textContent=w.name+' · '+w.symbol+' · '+(['GBp','GBX'].includes(q?.currency)?'GBP':q?.currency||'Currency unavailable');
  $('watchlist-selected-meta').textContent=[w.assetType.replace('_',' '),c.sector,c.industry,q?.asOf?'Quote '+q.asOf:(w.assetType==='fund'?'Fund platform code: no exchange market quote':'Quote unavailable')].filter(Boolean).join(' · ');
  const kpis=$('watchlist-kpis');kpis.replaceChildren();
  const risk=watchPriceRisk(w.symbol),technical=watchTechnical(w);
@@ -2821,7 +2823,7 @@ function etfFee(f){return f.terPct==null?'—':fmt(f.terPct,2)+'%';}
 function etfCell(row,value,cls){const cell=el('td',cls||'',value);row.append(cell);return cell;}
 function etfStatistic(host,label,value,detail){
   const stat=el('div','etf-stat');stat.append(el('div','k',label),el('div','v',etfText(value)));
-  styleReturnValue(stat.querySelector('.v'),label,value);
+  styleReturnValue(stat.querySelector('.v'),label,value);explainMissing(stat,value);
   if(detail)stat.append(el('div','d',detail));host.append(stat);
 }
 function etfFiltered(){
@@ -2936,7 +2938,7 @@ function etfDrawChart(){
   if(dates.length<2){empty('etf-chart','No overlapping dated observations for this comparison.');$('etf-chart-note').textContent=rejected.join(' · ');return;}
   const sets=sources.map((source,i)=>{
     const values=new Map(source.points.map(p=>[p.date,p.v])),base=values.get(dates[0]);
-    return {name:source.name,color:['#ffa028','#5caeff','#60d5ce','#c6a0ff','#ff6f91','#a6e267'][i%6],pts:dates.map(date=>({date,v:100*values.get(date)/base}))};
+    return {name:source.name,reference:/index\/reference/.test(source.name),color:['#ffa028','#5caeff','#60d5ce','#c6a0ff','#ff6f91','#a6e267'][i%6],pts:dates.map(date=>({date,v:100*values.get(date)/base}))};
   });
   chart('etf-chart',sets,{height:290,format:v=>fmt(v,1),aria:'ETF indexed performance starting at 100 on '+dates[0]});
   $('etf-chart-note').textContent='Rebased to 100 on '+datefmt(dates[0])+'. '+dates.length+' exact matched dates. '
@@ -2948,7 +2950,7 @@ function etfDrawChart(){
 function etfDetails(){
   const fund=ETF_BY_SYMBOL.get(etfState.selected);if(!fund)return;
   const q=fund.quote||{};
-  $('etf-selected').textContent=fund.name+' ['+fund.symbol+']';
+  $('etf-selected').textContent=fund.name+' ['+fund.symbol+'] · '+(fund.quote?.currency==='GBp'?'GBP':fund.quote?.currency||'Currency unavailable');
   $('etf-selected-meta').textContent=fund.category+' · '+fund.market+' · '+(fund.domicile||'Domicile not verified')+' · '+(fund.isin||'ISIN not recorded');
   const issuer=$('etf-facts-link');issuer.href=fund.issuerFactsUrl||'https://www.justetf.com/uk/';issuer.textContent=fund.issuerFactsUrl?'CHECK ETF PROFILE':'SEARCH ETF FACTS';
   $('etf-quote-link').href='https://finance.yahoo.com/quote/'+encodeURIComponent(fund.symbol)+'/';
@@ -3733,7 +3735,7 @@ renderEtfTracker=function(){
   _etfV5PriorRender(); // existing risk, issuer facts, chart, data-quality links preserved
   const tbody=$('etf-rows'),table=tbody?.closest('table'),thead=table?.querySelector('thead');
   if(!tbody||!table||!thead)return;
-  const labels=['Fund / ticker','TER','P/S','Fund AUM','1D','1M','1Y','3Y','5Y','Cmp'];
+  const labels=['Fund / ticker','TER','P/S','Fund AUM','1D','1M','1Y','3Y p.a.','5Y p.a.','Cmp'];
   const head=el('tr');
   for(const label of labels){const th=el('th','',label);th.scope='col';
     if(label==='TER')th.title='Annual ongoing charge. Not tracking error.';
@@ -3752,7 +3754,7 @@ renderEtfTracker=function(){
     }
     const row=el('tr',f.symbol===etfState.selected?'etf-active':'');row.dataset.etfSymbol=f.symbol;
     row.setAttribute('aria-label','View details of '+f.name);
-    const name=etfCell(row,'');name.append(el('span','etf-compact-fund',f.name),el('span','etf-compact-sub',f.symbol+' · '+f.market));
+    const name=etfCell(row,'');name.title=f.name;name.append(el('span','etf-compact-fund',shortSecurityName(f.name)),el('span','etf-compact-sub',f.symbol+' · '+f.market));
     const fee=etfCell(row,etfFee(f),'n');fee.title=(f.terSource||f.terStatus||'Unverified')+(f.terCheckedAt?' · '+f.terCheckedAt:'');
     const [code,label]=etfV5Kind(f);const codecell=etfCell(row,code,'etf-compact-code');codecell.title=label+' · '+(f.replicationStatus||'unverified');
     const aum=etfCell(row,etfFundSize(f),'n');aum.title=(f.fundSizeSource||'Fund AUM unverified')+(f.fundSizeAsOf?' · '+f.fundSizeAsOf:'');

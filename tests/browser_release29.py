@@ -38,7 +38,7 @@ with sync_playwright() as p:
     assert order.index("research-overview")<order.index("company-price-block"),order
     assert page.locator("#view-quality #r29-coverage").count()==1  # source coverage lives in Data Quality
     assert page.locator("#research-overview .r29-market-cap").count()==1
-    assert "MARKET CAPITALISATION" in page.locator("#research-overview .r29-market-cap").inner_text()
+    assert page.locator("#research-overview .r29-market-cap > .mini").inner_text()=="Market capitalisation"
     assert page.locator('#r29-coverage .r29-coverage-cell > .mini').all_text_contents()==[
         'Share price','Chart observations','Fundamental source','Analyst coverage']
     assert page.locator('#research-overview #company-coverage-gaps').count()==1

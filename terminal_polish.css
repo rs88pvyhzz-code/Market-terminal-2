@@ -139,3 +139,13 @@ details.period-dates .time-box{margin-top:7px}
 #workspace-stage :is(table.watch,.etf-table,.mt-return-table) tbody tr:hover:not(.selected):not(.etf-active)>td{background-color:#25303d!important}
 #workspace-stage :is(.warning,.research-warning,.mover-warning){color:#ffd28a;border-color:#8a6732}
 #workspace-stage .err{color:#ffb9b9;border-color:#a94848;background:#301b20}
+
+/* Compact detail metrics and persistent instrument context. */
+#workspace-stage :is(.watchlist-kpis,.etf-stat-grid,.company-kpis,.research-stats)>*{padding:9px 12px!important;gap:3px!important;min-height:0!important}
+#workspace-stage :is(.watchlist-kpis,.etf-stat-grid,.company-kpis,.research-stats)>*>:nth-child(2){font-size:17px!important}
+#workspace-stage table .n{text-align:right;font-variant-numeric:tabular-nums}
+#workspace-stage .missing-reason{display:block!important;color:#b8bec8;font-size:11px;line-height:1.4}
+.chart-series-labels{display:flex;flex-wrap:wrap;gap:8px 20px;padding:5px 0 9px;color:#dce7f3;font:12px var(--font)}
+.chart-series-labels span{display:flex;align-items:center;gap:7px}
+.chart-series-labels i{width:24px;display:inline-block}
+.watchlist-selected-header,#etf-tracker-panel .etf-detail>.row:first-child{position:sticky;top:var(--security-nav-height,110px);z-index:35;background:#142333!important;padding:9px 12px;border-bottom:1px solid #526376}

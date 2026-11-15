@@ -116,6 +116,14 @@ with sync_playwright() as p:
         assert page.locator('#etf-same-index table').count()==0
         assert page.locator('#etf-same-index .etf-compare-card').count()<=3
     assert not errors,errors
+    # The approved reading design uses one sans-serif family for language and
+    # monospaced financial values. Check this in demo AND live runs.
+    reading_font=page.locator('#etf-tracker-panel h2').first.evaluate('(e)=>getComputedStyle(e).fontFamily')
+    assert reading_font.endswith('sans-serif') and 'monospace' not in reading_font,reading_font
+    for selector in ['#view-etfs>.workspace-title h1','#etf-tracker-panel .etf-detail .etf-stat .k']:
+        assert page.locator(selector).first.evaluate('(e)=>getComputedStyle(e).fontFamily')==reading_font,selector
+    value_font=page.locator('#etf-tracker-panel .etf-detail .etf-stat .v').first.evaluate('(e)=>getComputedStyle(e).fontFamily')
+    assert 'monospace' in value_font,value_font
     # Same representative funds and viewport for visual reference comparison.
     if not data.get('demo'):
         original_path=Path(sys.argv[2]) if len(sys.argv)>2 else Path('/tmp/release27-original.html')
@@ -135,7 +143,10 @@ with sync_playwright() as p:
             # Compact layout deliberately changes spacing and dimensions. Keep the
             # original capture for review; enforce legibility and usable containment.
             for prop in ['fontFamily','color']:
-                if prop in props:assert actual[prop]==expected[prop],(selector,prop,expected,actual)
+                if prop not in props:continue
+                if prop=='fontFamily' and selector in ['#view-etfs>.workspace-title h1','#etf-tracker-panel h2']:
+                    assert actual[prop]==reading_font,(selector,prop,reading_font,actual)
+                else:assert actual[prop]==expected[prop],(selector,prop,expected,actual)
         assert page.locator('#etf-tracker-panel .etf-table td').first.evaluate('(e)=>parseFloat(getComputedStyle(e).fontSize)>=12')
         assert page.locator('#etf-tracker-panel').evaluate('(e)=>e.getBoundingClientRect().right<=innerWidth+1')
         for label,target in [('original',reference),('restored',page)]:
