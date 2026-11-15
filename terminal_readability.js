@@ -100,6 +100,53 @@
     });
   }
 
+  // Dates: one style everywhere. "2027-01-29" -> "29 Jan 2027"; "2026-11-13 21:15" -> "13 Nov 2026, 21:15";
+  // "2026 SEP" -> "Sep 2026"; "2026 Q2" -> "Q2 2026".
+  const ISO=/\b(\d{4})-(\d{2})-(\d{2})(?:[ T](\d{2}:\d{2})(?::\d{2})?)?(?: UTC)?\b/g;
+  const niceDate=t=>t.replace(ISO,(m,y,mo,d,hm)=>`${+d} ${MONTHS[+mo-1]} ${y}`+(hm?', '+hm:''))
+                     .replace(/^(\d{4}) ([A-Z]{3})$/,(m,y,mo)=>mo[0]+mo.slice(1).toLowerCase()+' '+y)
+                     .replace(/^(\d{4}) (Q[1-4])$/,'$2 $1')
+                     .replace(/^(\d{4})-(\d{2})$/,(m,y,mo)=>MONTHS[+mo-1]+' '+y);
+  function datesIn(root){
+    const w=document.createTreeWalker(root,NodeFilter.SHOW_TEXT);let n;const todo=[];
+    while(n=w.nextNode()){const v=n.nodeValue;if(/\d{4}-\d{2}-\d{2}/.test(v)&&!n.parentElement.closest('input,select,textarea,script,style'))todo.push(n)}
+    todo.forEach(n=>{const v=niceDate(n.nodeValue);if(v!==n.nodeValue)n.nodeValue=v});
+  }
+  function econDates(){
+    document.querySelectorAll('#macro-tiles button .ml').forEach(el=>{if(/Bank of england/.test(el.textContent))el.textContent=el.textContent.replace('Bank of england','Bank of England')});
+    document.querySelectorAll('#macro-tiles button .md').forEach(el=>{if(!el.children.length){const v=niceDate(el.textContent.trim());if(v!==el.textContent)el.textContent=v}});
+    document.querySelectorAll('#macro-tiles .r28-economic-sub').forEach(el=>{
+      const last=el.lastChild;if(!last||last.nodeType!==3)return;
+      const m=last.nodeValue.match(/^(\s*·\s*)(.+)$/);if(!m)return;
+      const v=m[1]+niceDate(m[2].trim());if(v!==last.nodeValue)last.nodeValue=v;
+    });
+  }
+  // Words in the reading font, figures in the monospace.
+  const NUM=/^[\s(]*[+\-−–]?\s*(?:USD|GBP|EUR|£|\$|€)?\s*[+\-−–]?[\d][\d.,]*\s*(?:%|bp|pp|x|×|bn|m|k|p)?\s*\*?\s*[)]?\s*$|^[\s—–-]*$/;
+  const DATEISH=/^\s*\d{1,2} [A-Z][a-z]{2}(?: \d{4})?(?:, \d{2}:\d{2})?\s*$|^\s*\d{4}(?:-\d{2}){1,2}/;
+  function classify(){
+    const DATECOL=/date|time|as of|maturity|matures|retrieved|checked/i;
+    document.querySelectorAll('#workspace-stage table').forEach(table=>{
+      const hr=table.tHead&&table.tHead.rows.length?table.tHead.rows[table.tHead.rows.length-1]:null;
+      if(!hr)return;
+      [...hr.cells].forEach((h,i)=>{if(!DATECOL.test(h.textContent))return;
+        for(const tb of table.tBodies)for(const row of tb.rows){const c=row.cells[i];
+          if(c&&row.cells.length===hr.cells.length&&!c.querySelector('canvas,svg,input,select,button')){c.classList.add('rd-num');c.classList.remove('rd-txt');c.dataset.rdCol='date'}}});
+    });
+    document.querySelectorAll('#workspace-stage table tbody td').forEach(td=>{
+      if(td.dataset.rdCol==='date'||td.querySelector('canvas,svg,input,select,button'))return;
+      const kids=[...td.children];
+      if(!kids.length){
+        const t=td.textContent;const num=NUM.test(t)||DATEISH.test(t);
+        td.classList.toggle('rd-num',num);td.classList.toggle('rd-txt',!num);
+      }else{
+        kids.forEach(k=>{if(k.children.length&&k.querySelector('canvas,svg'))return;
+          const t=k.textContent;const num=NUM.test(t)||DATEISH.test(t);
+          k.classList.toggle('rd-num',num);k.classList.toggle('rd-txt',!num);});
+      }
+    });
+  }
+
   let busy=false,queued=false;
   function apply(){
     if(busy)return;busy=true;
@@ -107,6 +154,7 @@
       header();pulse();
       document.querySelectorAll('#workspace-stage table').forEach(tableUtc);
       hideCols();orphans();priors();
+      document.querySelectorAll('#workspace-stage table tbody').forEach(datesIn);econDates();classify();
     }catch(e){console.warn('readability layer',e)}
     busy=false;
   }
