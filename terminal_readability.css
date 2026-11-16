@@ -60,3 +60,25 @@
 #workspace-stage input,#workspace-stage select{font-family:var(--reading-sans,-apple-system,BlinkMacSystemFont,"Segoe UI",Arial,sans-serif)!important;letter-spacing:normal!important}
 #workspace-stage #etf-tracker-panel .etf-table thead th,#workspace-stage #etf-tracker-panel .etf-table thead th *{color:#d6dee8!important;font-family:var(--reading-sans,-apple-system,BlinkMacSystemFont,"Segoe UI",Arial,sans-serif)!important;font-weight:600!important}
 #workspace-stage #etf-tracker-panel input,#workspace-stage #etf-tracker-panel select,#workspace-stage #etf-tracker-panel label,#workspace-stage #etf-tracker-panel .etf-controls *{font-family:var(--reading-sans,-apple-system,BlinkMacSystemFont,"Segoe UI",Arial,sans-serif)!important;letter-spacing:normal!important}
+
+/* Financial emphasis: rate accents are neutral; signed returns retain their signs. */
+#workspace-stage .rate-coupon{color:#8dc8ed!important;font-weight:600!important}
+#workspace-stage .rate-ytm,#workspace-stage .r28-gilt-yields>:first-child>:nth-child(2){color:#efba72!important;font-weight:600!important}
+#workspace-stage .signed-positive{color:#5fd39a!important}
+#workspace-stage .signed-negative{color:#ff8088!important}
+#workspace-stage #ust-chart:has(.ust-dated-marks){min-height:0!important;height:auto!important}
+#workspace-stage .ust-dated-marks{width:100%;max-width:480px;margin-top:8px}
+/* Eleven columns: six requested periods, names get the remaining space. */
+#workspace-stage #etf-tracker-panel .etf-table th:nth-child(1){width:27%!important}
+#workspace-stage #etf-tracker-panel .etf-table th:nth-child(2){width:6%!important}
+#workspace-stage #etf-tracker-panel .etf-table th:nth-child(3){width:4%!important}
+#workspace-stage #etf-tracker-panel .etf-table th:nth-child(4){width:12%!important}
+#workspace-stage #etf-tracker-panel .etf-table th:nth-child(n+5):nth-child(-n+10){width:8.5%!important}
+#workspace-stage #etf-tracker-panel .etf-table th:nth-child(11){width:4.8%!important}
+#workspace-stage #etf-tracker-panel .etf-table :is(th,td):nth-child(8){text-align:right!important}
+#workspace-stage #etf-tracker-panel .etf-table :is(th,td):nth-child(11){text-align:center!important}
+#workspace-stage #etf-tracker-panel .etf-table :is(th,td){padding:8px 4px!important}
+@media(max-width:600px){
+ #workspace-stage #etf-tracker-panel .etf-table-scroll{overflow-x:auto!important}
+ #workspace-stage #etf-tracker-panel .etf-table{min-width:800px!important}
+}

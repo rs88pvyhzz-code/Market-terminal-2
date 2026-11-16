@@ -54,7 +54,7 @@ with sync_playwright() as p:
     assert page.locator('#mt-risk-comparison').is_visible()
     assert page.locator('#analytics-rolling').count()==1
     page.locator('#tab-etfs').dispatch_event('click')
-    assert page.locator('#etf-tracker-panel .etf-table thead th').count()==8
+    assert page.locator('#etf-tracker-panel .etf-table thead th').count()==11
     assert page.locator('#etf-tracker-panel .etf-table-scroll').evaluate("(e)=>getComputedStyle(e).maxHeight==='none'&&e.scrollHeight<=e.clientHeight+2")
     page.locator('#tab-bonds').dispatch_event('click')
     for selector in ['#gilts .gilt-table-scroll','#ust-securities-scroll']:

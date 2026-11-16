@@ -103,7 +103,7 @@ details.period-dates .time-box{margin-top:7px}
 }
 
 /* 12. No fund comparison: Cmp column, compare ticks and the clear button are gone. */
-#etf-tracker-panel .etf-table :is(th,td):nth-child(8){display:none!important}
+#etf-tracker-panel .etf-table :is(.etf-compare-heading,.etf-compact-compare){display:none!important}
 #etf-tracker-panel .etf-card-actions label,#etf-clear-comparisons,#etf-selected-comparisons{display:none!important}
 .polish-retained{font:11px var(--font,ui-monospace,monospace);color:#f3bd6c}
 

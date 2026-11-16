@@ -60,7 +60,7 @@ with sync_playwright() as p:
         assert page.locator(selector).evaluate("(e)=>getComputedStyle(e).maxHeight==='none'&&e.scrollHeight<=e.clientHeight+2"),selector
     assert page.locator("#gilt-freshness").count()==1
     page.locator("#tab-etfs").click()
-    assert page.locator("#etf-tracker-panel .etf-table thead th").count()==8
+    assert page.locator("#etf-tracker-panel .etf-table thead th").count()==11
     assert page.locator("#etf-tracker-panel .etf-table-scroll").count()>=1
     for width,height in [(1440,900),(1024,768),(390,844)]:
         page.set_viewport_size({"width":width,"height":height})

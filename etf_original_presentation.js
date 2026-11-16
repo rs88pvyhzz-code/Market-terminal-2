@@ -126,18 +126,38 @@ function etfV5PickMain(){
   }
   return {all,shown:all.filter(f=>keep.has(f.symbol)),suppressed:all.length-keep.size};
 }
+// Short-period returns are cumulative adjusted-close returns in listing currency.
+// Leave missing/gapped histories unavailable; never substitute another basis.
+function etfShortPeriod(f,period){
+ const rows=(ETF_HISTORY.get(f.symbol)||[]).filter(p=>/^\d{4}-\d{2}-\d{2}$/.test(p[0])&&Number.isFinite(p[2])&&p[2]>0).slice().sort((a,b)=>a[0].localeCompare(b[0]));
+ if(rows.length<2)return null;
+ const end=rows.at(-1),endDate=new Date(end[0]+'T12:00:00Z');let start;
+ if(period==='1D'){
+  start=rows.at(-2);if((endDate-Date.parse(start[0]+'T12:00:00Z'))/86400000>4)return null;
+ }else{
+  const months=period==='1M'?1:period==='3M'?3:0;if(!months)return null;
+  const month=new Date(Date.UTC(endDate.getUTCFullYear(),endDate.getUTCMonth()-months,1,12));
+  const lastDay=new Date(Date.UTC(month.getUTCFullYear(),month.getUTCMonth()+1,0)).getUTCDate();
+  month.setUTCDate(Math.min(endDate.getUTCDate(),lastDay));
+  start=rows.filter(p=>Date.parse(p[0]+'T12:00:00Z')<=month).at(-1);
+  if(!start||month-Date.parse(start[0]+'T12:00:00Z')>7*86400000)return null;
+ }
+ return {value:100*(end[2]/start[2]-1),start:start[0],end:end[0]};
+}
 renderEtfTracker=function(){
   const etfViewport=$('etf-rows')?.closest('.etf-table-scroll'),savedTop=etfViewport?.scrollTop||0;
   _etfV5PriorRender(); // existing risk, issuer facts, chart, data-quality links preserved
   const tbody=$('etf-rows'),table=tbody?.closest('table'),thead=table?.querySelector('thead');
   if(!tbody||!table||!thead)return;
-  const labels=['Fund / ticker','TER','P/S','Fund AUM','1Y','3Y','5Y','Cmp'];
+  const labels=['Fund / ticker','TER','P/S','Fund AUM','1D','1M','3M','1Y','3Y','5Y','Cmp'];
   const head=el('tr');
   for(const label of labels){const th=el('th','',label);th.scope='col';
     if(label==='TER')th.title='Annual ongoing charge. Not tracking error.';
+    if(label==='Cmp')th.className='etf-compare-heading';
     if(label==='Cmp')th.title='Tick to add this fund to the detailed comparison and display its expanded facts.';
     if(label==='P/S')th.title='P: physical; S: synthetic; ?: unknown. Click a fund for the exact replication detail.';
-    if(['1Y','3Y','5Y'].includes(label))th.title='Annualised adjusted-close price proxy. Not certified NAV total return.';
+    if(['1D','1M','3M'].includes(label))th.title='Cumulative adjusted-close return in listing currency; dated endpoints on each value. Not certified NAV total return.';
+    if(['1Y','3Y','5Y'].includes(label))th.title='Recorded return basis; 1Y period return, 3Y/5Y annualised. Dated endpoints on each value.';
     head.append(th);
   }
   thead.replaceChildren(head);
@@ -146,7 +166,7 @@ renderEtfTracker=function(){
   for(const f of shown){
     const region=typeof etfRegion==='function'?etfRegion(f)[2]:f.market;
     if($('etf-sort')?.value==='market'&&region!==lastGroup){
-      const gr=el('tr','etf-geo-group'),th=el('th','',region||f.market);th.colSpan=8;th.scope='rowgroup';gr.append(th);frag.append(gr);lastGroup=region;
+      const gr=el('tr','etf-geo-group'),th=el('th','',region||f.market);th.colSpan=11;th.scope='rowgroup';gr.append(th);frag.append(gr);lastGroup=region;
     }
     const row=el('tr',f.symbol===etfState.selected?'etf-active':'');row.dataset.etfSymbol=f.symbol;
     row.setAttribute('aria-label','View details of '+f.name);
@@ -154,8 +174,12 @@ renderEtfTracker=function(){
     const fee=etfCell(row,etfFee(f),'n');fee.title=(f.terSource||f.terStatus||'Unverified')+(f.terCheckedAt?' · '+f.terCheckedAt:'');
     const [code,label]=etfV5Kind(f);const codecell=etfCell(row,code,'etf-compact-code');codecell.title=label+' · '+(f.replicationStatus||'unverified');
     const aum=etfCell(row,etfFundSize(f),'n');aum.title=(f.fundSizeSource||'Fund AUM unverified')+(f.fundSizeAsOf?' · '+f.fundSizeAsOf:'');
+    for(const period of ['1D','1M','3M']){
+      const result=etfShortPeriod(f,period),cell=etfCell(row,etfPct(result?.value),'n '+tone(result?.value));
+      cell.title=result?period+' adjusted close · '+result.start+' to '+result.end+' · '+(f.quote?.currency||'listing currency'):period+' unavailable: insufficient dated adjusted closes';
+    }
     for(const y of ['1Y','3Y','5Y']){
-      const cell=etfCell(row,etfPct(f['return'+y]),'n'),period=f.returnPeriods?.[y];
+      const cell=etfCell(row,etfPct(f['return'+y]),'n '+tone(f['return'+y])),period=f.returnPeriods?.[y];
       cell.title=period ? y+' '+period.basis+': '+period.start+' to '+period.end+
           ' · '+(f.returnEndSource||'Yahoo historical prices') :
           y+' return unavailable: no sufficiently close dated anniversary observations';
@@ -167,8 +191,8 @@ renderEtfTracker=function(){
     frag.append(row);
   }
   tbody.replaceChildren(frag);etfViewport.scrollTop=savedTop;
-  const label=$('etf-result-count');if(label)label.textContent=shown.length+' mainstream funds · '+suppressed+' other funds in these markets · maximum two per market · ESG/climate funds excluded · 1Y period / 3Y & 5Y annualised';
-  // Older wrappers used a seven-column layout; these eight match the headers.
+  const label=$('etf-result-count');if(label)label.textContent=shown.length+' mainstream funds · '+suppressed+' other funds in these markets · maximum two per market · ESG/climate funds excluded · 1D/1M/3M cumulative adjusted close · 1Y period / 3Y & 5Y annualised';
+  // Six requested return periods share the same compact table.
   // Duplicate checked-fund cards are deliberately not restored.
   renderSameIndexETFs();
   etfV5PeerLabels();

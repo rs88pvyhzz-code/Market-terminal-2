@@ -34,7 +34,7 @@ with sync_playwright() as p:
             if before>0:
                 assert viewport.evaluate('(e)=>{const box=e.getBoundingClientRect(),h=e.querySelector("thead th").getBoundingClientRect();return Math.abs(h.top-box.top)<3;}')
                 index=rows.evaluate_all('''els=>{const box=els[0].closest('#ust-securities-scroll').getBoundingClientRect();let best=0,d=Infinity;els.forEach((e,i)=>{const r=e.getBoundingClientRect(),delta=Math.abs((r.top+r.bottom)/2-(box.top+box.bottom)/2);if(r.top>box.top+40&&r.bottom<box.bottom&&delta<d){best=i;d=delta;}});return best;}''')
-                cusip=rows.nth(index).locator('td').nth(1).inner_text();rows.nth(index).click();page.wait_for_timeout(80)
+                cusip=rows.nth(index).get_attribute('data-cusip');rows.nth(index).click();page.wait_for_timeout(80)
                 assert abs(viewport.evaluate('(e)=>e.scrollTop')-before)<2,'selection reset table scroll'
                 assert cusip in page.locator('#ust-selected').inner_text()
                 source=next(s for s in securities if s['cusip']==cusip)
