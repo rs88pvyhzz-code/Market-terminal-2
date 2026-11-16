@@ -147,6 +147,39 @@
     });
   }
 
+  // Neutral rate accents do not imply a recommendation or lower credit risk.
+  function financialColours(){
+    for(const table of document.querySelectorAll('#gilts table,#us-treasuries table')){
+      const heads=table.tHead?.rows[0]?.cells;if(!heads)continue;
+      [...heads].forEach((h,i)=>{
+        const kind=/coupon/i.test(h.textContent)?'rate-coupon':/gross.*ytm/i.test(h.textContent)?'rate-ytm':null;
+        if(!kind)return;
+        for(const body of table.tBodies)for(const row of body.rows){
+          const cell=row.cells[i];if(row.cells.length!==heads.length||!cell)continue;
+          cell.classList.toggle(kind,/^[+−-]?[\d,.]+%/.test(cell.textContent.trim()));
+        }
+      });
+    }
+    for(const tile of document.querySelectorAll('#ust-stats>*,#gilt-stats .r28-gilt-yield,#gilt-stats .r28-gilt-fact')){
+      const label=tile.firstElementChild?.textContent||'',value=tile.children[1];if(!value)continue;
+      value.classList.toggle('rate-coupon',/coupon/i.test(label)&&/\d/.test(value.textContent));
+      value.classList.toggle('rate-ytm',/gross.*ytm|investment yield/i.test(label)&&/\d/.test(value.textContent));
+    }
+    // Colour signed percentage tokens only, including small YoY/CAGR lines.
+    // Keep signs and exact text; no inference that a positive metric is desirable.
+    const root=document.getElementById('view-companies');if(!root)return;
+    const walker=document.createTreeWalker(root,NodeFilter.SHOW_TEXT),nodes=[];let node;
+    while(node=walker.nextNode())if(!node.parentElement.closest('script,style,svg,option,input,.signed-positive,.signed-negative')&&/[+−-]\d[\d,.]*\s*%/.test(node.nodeValue))nodes.push(node);
+    for(const text of nodes){
+      const frag=document.createDocumentFragment();let end=0;
+      for(const match of text.nodeValue.matchAll(/[+−-]\d[\d,.]*\s*%/g)){
+        frag.append(text.nodeValue.slice(end,match.index));const span=document.createElement('span');
+        span.className=match[0][0]==='+'?'signed-positive':'signed-negative';span.textContent=match[0];frag.append(span);end=match.index+match[0].length;
+      }
+      frag.append(text.nodeValue.slice(end));text.replaceWith(frag);
+    }
+  }
+
   let busy=false,queued=false;
   function apply(){
     if(busy)return;busy=true;
@@ -154,7 +187,7 @@
       header();pulse();
       document.querySelectorAll('#workspace-stage table').forEach(tableUtc);
       hideCols();orphans();priors();
-      document.querySelectorAll('#workspace-stage table tbody').forEach(datesIn);econDates();classify();
+      document.querySelectorAll('#workspace-stage table tbody').forEach(datesIn);econDates();classify();financialColours();
     }catch(e){console.warn('readability layer',e)}
     busy=false;
   }

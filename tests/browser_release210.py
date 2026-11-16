@@ -38,7 +38,7 @@ with sync_playwright() as p:
  if not data.get('demo'):page.screenshot(path='/tmp/release210-news-ipad.png',full_page=True)
  page.locator('#tab-etfs').dispatch_event('click')
  table=page.locator('#etf-tracker-panel .etf-table')
- assert table.locator('thead th').count()==8
+ assert table.locator('thead th').count()==11
  result=page.locator('#etf-rows [data-etf-symbol]').evaluate_all('''rows=>rows.map(r=>r.dataset.etfSymbol)''')
  catalogue={f['symbol']:f for f in data['etfTracker']['funds']}
  market=collections.Counter()
@@ -92,4 +92,4 @@ with sync_playwright() as p:
    assert page.evaluate('document.body.scrollWidth<=innerWidth+1'),(width,tab)
  assert not errors,errors
  browser.close()
-print('PASS Release 2.10: 14 sourced quotes, UK gilt parity, 2 mainstream ETFs/market, no ESG/climate candidates, no duplicated news, short scroll, research headings; original eight-column ETF UI retained.')
+print('PASS Release 2.10: 14 sourced quotes, UK gilt parity, 2 mainstream ETFs/market, no ESG/climate candidates, no duplicated news, short scroll, research headings; original ETF styling and six requested return periods retained.')

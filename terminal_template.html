@@ -903,7 +903,7 @@ h2{font:600 15px/1.35 var(--font);color:var(--amber);margin:0}h3{font:500 13px v
   <a class="btn" href="https://www.treasurydirect.gov/GA-FI/FedInvest/todaySecurityPriceDate.htm" target="_blank" rel="noopener noreferrer">OFFICIAL US PRICES</a>
  </div>
  <div id="ust-securities-scroll" class="constituents-scroll" role="region" aria-label="US Treasury securities" tabindex="0"><table class="watch" style="min-width:1080px"><thead><tr>
- <th>Security</th><th>CUSIP</th><th>Maturity</th><th class="n">Coupon</th><th class="n">Bid / SELL</th><th class="n">Offer / BUY</th><th class="n">EOD price</th><th class="n">Est. gross YTM*</th><th>Quote date</th>
+ <th>Security</th><th>Maturity</th><th class="n">Coupon</th><th class="n">Bid / SELL</th><th class="n">Offer / BUY</th><th class="n">EOD price</th><th class="n">Est. gross YTM*</th><th>Quote date</th>
  </tr></thead><tbody id="ust-rows"></tbody></table></div>
  <p class="note" id="ust-quality">The free FedInvest file supplies official reference quotations, not guaranteed prices obtainable from an individual broker.</p>
  <div class="row"><h3 id="ust-selected">SELECT A US TREASURY</h3><span id="ust-selected-date" class="mini">—</span></div>
@@ -1682,8 +1682,8 @@ function renderScreener(){
   for(const x of matched.slice(0,150)){
     const tr=el('tr');tr.title='Open '+x.name+' company research';tr.onclick=()=>openConstituent(x.symbol);
     td(tr,x.name+' · '+x.markets.join('/'));td(tr,x.symbol);td(tr,x.sector||'—');
-    td(tr,x.pe!=null?p(x.pe)+'×':'—','n');td(tr,p(x.div),'n');td(tr,p(x.roe),'n');td(tr,p(x.growth),'n');
-    td(tr,x.leverage!=null?p(x.leverage)+'×':'—','n');td(tr,p(x.vol),'n');td(tr,p(x.momentum),'n');td(tr,p(x.maxDD),'n');
+    td(tr,x.pe!=null?p(x.pe)+'×':'—','n');td(tr,p(x.div),'n');td(tr,p(x.roe),'n '+tone(x.roe));td(tr,p(x.growth),'n '+tone(x.growth));
+    td(tr,x.leverage!=null?p(x.leverage)+'×':'—','n');td(tr,p(x.vol),'n');td(tr,p(x.momentum),'n '+tone(x.momentum));td(tr,p(x.maxDD),'n '+tone(x.maxDD));
     td(tr,x.finDate||'—');td(tr,x.history.first?x.history.first+' to '+x.history.last:'—');host.append(tr);
   }
 }
@@ -4148,12 +4148,13 @@ function renderUST(){
   const day=ustList[0]?.asOf,age=day?Math.max(0,Math.round((new Date((D.generatedAt||'').slice(0,10)+'T12:00:00Z')-new Date(day+'T12:00:00Z'))/86400000)):null;
   $('ust-coverage').textContent=ustList.length?`${valid} / ${ustList.length} dated quotes · ${day||'date unavailable'}`:'No verified US security quotes';
   $('ust-quality').textContent=ustList.length?`Official FedInvest prices dated ${day||'unknown'}${age>4?' — STALE '+age+' days':''}. SELL is the bid received; BUY is the offer paid; end-of-day is the published reference mark. These are not guaranteed broker dealing prices.`:'US security quote feed unavailable. The existing US yield-curve charts remain available. See official Treasury prices via the source link.';
-  if(!filtered.length){const tr=el('tr');const td0=td(tr,'No matching US Treasuries (or no source data)');td0.colSpan=9;table.append(tr);}
+  if(!filtered.length){const tr=el('tr');const td0=td(tr,'No matching US Treasuries (or no source data)');td0.colSpan=8;table.append(tr);}
   for(const b of filtered){const tr=el('tr');tr.style.cursor='pointer';if(b.cusip===ustState.selected)tr.classList.add('selected');
     const p=b.ask??b.endOfDay??b.price;const v=p!=null?ustModel(b,p,b.asOf):null;
-    td(tr,b.name);td(tr,b.cusip);td(tr,b.maturity);td(tr,fmt(b.coupon,3)+'%','n');
+    tr.dataset.cusip=b.cusip;
+    td(tr,b.name);td(tr,b.maturity);td(tr,fmt(b.coupon,3)+'%','n rate-coupon');
     td(tr,b.bid!=null?fmt(b.bid,5):'—','n');td(tr,b.ask!=null?fmt(b.ask,5):'—','n');td(tr,b.endOfDay!=null?fmt(b.endOfDay,5):'—','n');
-    td(tr,b.type==='TIPS'?'Real-indexed':b.type==='FRN'?'Floating':v?fmt(b.type==='Bill'?v.investment:v.ytm,3)+'%*':'—','n');td(tr,b.asOf||'—');
+    td(tr,b.type==='TIPS'?'Real-indexed':b.type==='FRN'?'Floating':v?fmt(b.type==='Bill'?v.investment:v.ytm,3)+'%*':'—','n rate-ytm');td(tr,b.asOf||'—');
     tr.onclick=()=>{ustState.selected=b.cusip;renderUST();};table.append(tr);
   }
   // Rebuilding rows must not return the bounded list to its first security.
@@ -4181,7 +4182,14 @@ function renderUST(){
   let cutoff=now?new Date(now+'T12:00:00Z'):null;
   if(cutoff&&ustState.range!=='MAX'){const n=ustState.range==='1M'?1:ustState.range==='1Y'?12:ustState.range==='3Y'?36:60;cutoff.setUTCMonth(cutoff.getUTCMonth()-n);}
   const visible=raw.filter(x=>ustState.range==='MAX'||!cutoff||x.date>=cutoff.toISOString().slice(0,10));
-  if(visible.length>=2)chart('ust-chart',[{name:b.cusip+' FedInvest reference price',color:AMBER,pts:visible}],{format:x=>'$'+fmt(x,3),aria:b.name+' dated FedInvest price history'});
+  if(visible.length>=2&&visible.every(x=>x.v===visible[0].v)){
+    const host=$('ust-chart');host.replaceChildren();
+    host.append(el('p','note','Unchanged recorded prices · '+visible.length+' dated FedInvest marks at $'+fmt(visible[0].v,5)+' per $100. These observations do not establish a continuously traded price.'));
+    const table=el('table','watch ust-dated-marks'),head=el('thead'),hr=el('tr');
+    hr.append(el('th','','Quotation date'),el('th','n','Reference price / $100'));head.append(hr);table.append(head);
+    const body=el('tbody');for(const point of visible){const tr=el('tr');td(tr,point.date);td(tr,'$'+fmt(point.v,5),'n');body.append(tr);}table.append(body);host.append(table);
+  }
+  else if(visible.length>=2)chart('ust-chart',[{name:b.cusip+' FedInvest reference price',color:AMBER,pts:visible}],{format:x=>'$'+fmt(x,3),aria:b.name+' dated FedInvest price history'});
   else empty('ust-chart',raw.length?'One valid observation. More dates will accumulate when the FedInvest download succeeds.':'No dated history for this security yet.');
   document.querySelectorAll('[data-ust-range]').forEach(btn=>btn.classList.toggle('active',btn.dataset.ustRange===ustState.range));
 }
